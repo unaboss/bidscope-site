@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ApiError, signup } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/controls'
@@ -21,7 +21,8 @@ interface SignupSummary
 {
     readonly qualified: number
     readonly total: number
-    readonly trialEndsAt: string
+    readonly trialEndsAt?: string
+    readonly activationSent?: boolean
 }
 
 const CONTACT = { name: '', email: '', phone: '', password: '' }
@@ -71,7 +72,6 @@ function ChipGroup(props: {
 
 export function JoinPage()
 {
-    const navigate = useNavigate()
     const [step, setStep] = useState<Step>('contact')
     const [contact, setContact] = useState({ ...CONTACT })
     const [company, setCompany] = useState({ ...COMPANY })
@@ -209,9 +209,16 @@ export function JoinPage()
                             Out of {summary.total} currently open across our sources, matched to
                             your service lines and provinces.
                         </p>
-                        <p className="mt-6 rounded-lg border border-line bg-panel px-4 py-3 text-sm">
-                            Your free trial runs until <strong>{summary.trialEndsAt}</strong>. R0 today.
+                        <p className="mt-6 rounded-lg border border-line bg-panel px-4 py-3 text-sm leading-relaxed">
+                            {summary.activationSent === false
+                                ? 'We could not send your activation email. Please try again shortly, or contact support@northtech.africa.'
+                                : <>We&rsquo;ve emailed an activation link to <strong>{contact.email}</strong>. Open it to verify your email and set your password, then sign in.</>}
                         </p>
+                        {summary.trialEndsAt !== undefined && (
+                            <p className="mt-3 text-sm text-ink/60">
+                                Your free trial runs until <strong>{summary.trialEndsAt}</strong>. R0 today.
+                            </p>
+                        )}
                     </section>
                 )}
 
@@ -230,13 +237,12 @@ export function JoinPage()
                         </>
                     )}
                     {step === 'result' && summary !== null && (
-                        <Button
-                            onClick={() => navigate('/join/payment', {
-                                state: { ...summary, provinces: company.provinces.length },
-                            })}
+                        <a
+                            href="/login"
+                            className="inline-flex h-10 items-center justify-center rounded-md bg-navy px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-cream transition-colors hover:bg-navy/90"
                         >
-                            Start trial
-                        </Button>
+                            Go to sign in
+                        </a>
                     )}
                 </div>
             </main>

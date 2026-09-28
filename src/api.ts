@@ -193,6 +193,8 @@ export interface SignupResult
     readonly qualified: number
     readonly total: number
     readonly trialEndsAt: string
+    /** False when the activation email could not be sent (best-effort). */
+    readonly activationSent?: boolean
 }
 
 /** Creates a trial account. Throws {@link ApiError} (409 = email taken). */
