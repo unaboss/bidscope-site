@@ -351,3 +351,41 @@ export async function deleteCompliance(id: string): Promise<void>
         throw new Error(`Could not delete document (${response.status})`)
     }
 }
+
+export interface CheckoutResult
+{
+    readonly authorizationUrl: string
+    readonly reference: string
+}
+
+/** Starts a Paystack subscription checkout for the current org. */
+export async function startCheckout(): Promise<CheckoutResult>
+{
+    const response = await fetch('/api/billing/checkout', { method: 'POST', headers: { accept: 'application/json' } })
+
+    if (!response.ok)
+    {
+        const body = await response.json().catch(() => null) as { error?: string } | null
+
+        throw new ApiError(response.status, body?.error ?? `Checkout failed (${response.status})`)
+    }
+
+    return await response.json() as CheckoutResult
+}
+
+/** Confirms a Paystack transaction after the browser return (webhook fallback). */
+export async function confirmCheckout(reference: string): Promise<{ ok: boolean, status?: string, plan?: string }>
+{
+    const response = await fetch('/api/billing/confirm', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ reference }),
+    })
+
+    if (!response.ok)
+    {
+        throw new ApiError(response.status, `Confirm failed (${response.status})`)
+    }
+
+    return await response.json() as { ok: boolean, status?: string, plan?: string }
+}

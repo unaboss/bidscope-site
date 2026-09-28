@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/app-shell'
 import { useSession } from '@/lib/session'
+import { BillingPage } from '@/pages/billing'
 import { BookmarksPage } from '@/pages/bookmarks'
 import { BuyersPage } from '@/pages/buyers'
 import { CalendarPage } from '@/pages/calendar'
@@ -9,7 +10,6 @@ import { DashboardPage } from '@/pages/dashboard'
 import { DiscoverPage } from '@/pages/discover'
 import { JoinPage } from '@/pages/public/join'
 import { LandingPage } from '@/pages/public/landing'
-import { PaymentPage } from '@/pages/public/payment'
 import { SettingsPage } from '@/pages/settings'
 import { TenderDetailPage } from '@/pages/tender-detail'
 
@@ -26,6 +26,7 @@ function PrivateRoutes()
                 <Route path="buyers" element={<BuyersPage />} />
                 <Route path="compliance" element={<CompliancePage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="billing" element={<BillingPage />} />
                 <Route path="tenders/:id" element={<TenderDetailPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
@@ -40,7 +41,6 @@ function PublicRoutes()
         <Routes>
             <Route index element={<LandingPage />} />
             <Route path="join" element={<JoinPage />} />
-            <Route path="join/payment" element={<PaymentPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )
