@@ -138,6 +138,27 @@ export interface SettingsInput
     readonly providerKey?: string
 }
 
+export interface CategoryBucket
+{
+    readonly code: string
+    readonly label: string
+    readonly summary: string
+}
+
+export interface TenderCategory
+{
+    readonly id: number
+    readonly label: string
+    readonly bucket: string
+}
+
+/** The public eTenders taxonomy served by `GET /api/categories`. */
+export interface Taxonomy
+{
+    readonly buckets: CategoryBucket[]
+    readonly categories: TenderCategory[]
+}
+
 export interface ComplianceCheck
 {
     readonly id: string

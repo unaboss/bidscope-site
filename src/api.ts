@@ -1,4 +1,4 @@
-import type { Account, BuyerProfile, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Tender, TenderListResponse } from '@/types'
+import type { Account, BuyerProfile, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse } from '@/types'
 
 /** URL of the subscribable iCalendar feed for the current org. */
 export const CALENDAR_FEED_URL = '/api/calendar/feed.ics'
@@ -12,6 +12,12 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T>
     }
 
     return await response.json() as T
+}
+
+/** The public eTenders category taxonomy (12 buckets, 91 categories). */
+export function getCategories(signal?: AbortSignal): Promise<Taxonomy>
+{
+    return getJson<Taxonomy>('/api/categories', signal)
 }
 
 export interface TenderQuery
