@@ -21,6 +21,12 @@ function monthlyRands(provinces: number): number
     return 799
 }
 
+/** First-month price after the 20% intro discount, in rands. */
+function firstMonthRands(provinces: number): number
+{
+    return monthlyRands(provinces) * 0.8
+}
+
 /** Plain-language plan name for the province count. */
 function planLabel(provinces: number): string
 {
@@ -102,6 +108,7 @@ export function BillingPage()
 
     const provinces = settings?.provinces.length ?? 0
     const rands = monthlyRands(provinces)
+    const firstMonth = firstMonthRands(provinces)
     const plan = account?.effectivePlan ?? '—'
 
     return (
@@ -123,6 +130,11 @@ export function BillingPage()
                         {account.trialDaysLeft !== null && ` (${account.trialDaysLeft} days left)`}.
                     </p>
                 )}
+
+                <p className="mt-4 rounded-md border border-line bg-cream/60 px-3 py-2 text-sm text-ink/70">
+                    <strong>20% off your first month</strong> — pay R{firstMonth.toFixed(2)}, then R{rands}/month.
+                    The discount is applied automatically.
+                </p>
 
                 <div className="mt-6">
                     <Button onClick={() => void subscribe()} disabled={busy}>
