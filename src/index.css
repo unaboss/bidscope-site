@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * North Tech design tokens.
+ *
+ * Values are RGB channel triplets so Tailwind can compose them with opacity
+ * modifiers (`bg-navy/10`) through the `<alpha-value>` slots in
+ * `tailwind.config.js`. Keep the channels here and the semantic names there.
+ */
+:root {
+    color-scheme: light;
+
+    /* Tender Dossier — manila paper, coffee ink, wax seal, navy tab. */
+    --color-ink: 58 46 34; /* #3A2E22 coffee */
+    --color-navy: 20 55 94; /* #14375E */
+    --color-wax: 138 51 36; /* #8A3324 sealing wax */
+    --color-cream: 240 233 218; /* #F0E9DA manila */
+    --color-panel: 250 247 240; /* #FAF7F0 paper */
+
+    /* Warm neutral scale */
+    --color-neutral-50: 250 247 240;
+    --color-neutral-100: 243 238 228;
+    --color-neutral-200: 226 217 200;
+    --color-neutral-300: 206 195 176;
+    --color-neutral-400: 166 154 134;
+    --color-neutral-500: 128 116 98;
+    --color-neutral-600: 96 84 68;
+    --color-neutral-700: 72 62 49;
+    --color-neutral-800: 50 42 33;
+    --color-neutral-900: 34 28 22;
+
+    /* Status */
+    --color-success: 46 108 70;
+    --color-warn: 166 106 16;
+    --color-danger: 138 51 36; /* wax */
+}
+
+@layer components {
+    /**
+     * For You deck: a slim scrollbar so each tender card reaches the deck's
+     * right edge instead of leaving the default ~17px scrollbar gutter.
+     * The affordance is kept (thin, visible thumb), only the width shrinks.
+     */
+    .deck-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .deck-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .deck-scroll::-webkit-scrollbar-thumb {
+        border-radius: 9999px;
+        background-color: rgb(var(--color-neutral-300));
+    }
+
+    /*
+     * Firefox (no ::-webkit-scrollbar support) — thin native scrollbar.
+     * Chrome ignores this block so the exact 6px webkit width above wins.
+     */
+    @supports not selector(::-webkit-scrollbar) {
+        .deck-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgb(var(--color-neutral-300)) transparent;
+        }
+    }
+}
+
+@layer base {
+    html,
+    body,
+    #root {
+        height: 100%;
+    }
+
+    body {
+        margin: 0;
+        background-color: rgb(var(--color-cream));
+        color: rgb(var(--color-ink));
+        font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* Default focus ring for cream surfaces; navy surfaces override it. */
+    :focus-visible {
+        outline: 2px solid rgb(var(--color-navy));
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background-color: rgb(var(--color-navy) / 0.15);
+    }
+}
