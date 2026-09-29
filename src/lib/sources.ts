@@ -1,6 +1,6 @@
 /** Where each source publishes, so the tender page can link back to the origin. */
 const SOURCE_SITES: Record<string, { name: string; url: string }> = {
-    etenders: { name: 'eTenders', url: 'https://www.etenders.gov.za/' },
+    etenders: { name: 'eTenders', url: 'https://www.etenders.gov.za/Home/opportunities' },
     ocds: { name: 'OCDS · National Treasury', url: 'https://www.etenders.gov.za/' },
     sanral: { name: 'SANRAL', url: 'https://www.nra.co.za/' },
     eskom: { name: 'Eskom', url: 'https://www.eskom.co.za/' },
@@ -118,6 +118,14 @@ function resolveUrl(raw: string, homepage: string): string | null
 export function buildDeepLink(source: string | null, supportDocuments: string | null): DeepLink | null
 {
     const homepage = source === null ? undefined : SOURCE_SITES[source]?.url
+
+    // eTenders has no per-tender page — its detail view is an AJAX modal on the
+    // listing page (see the legacy links.py). A document link is not "the tender
+    // page", so an eTenders tender always links to the tender list, never a file.
+    if (source === 'etenders') {
+        return homepage === undefined ? null : { url: homepage, isSpecific: false }
+    }
+
     const raw = tenderSourceUrl(supportDocuments)
 
     if (raw !== null) {
