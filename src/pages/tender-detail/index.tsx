@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { IconArrowRight, IconQuote } from '@/components/ui/icons'
 import { useBookmarks } from '@/hooks/use-bookmarks'
 import { daysUntil, formatDate, formatZAR, relativeDays } from '@/lib/format'
-import { estimateBasisLabel, sourceSite } from '@/lib/sources'
+import { buildDeepLink, estimateBasisLabel, isVerifiedRef, sourceSite } from '@/lib/sources'
 import { serviceLabel } from '@/lib/service-lines'
 import type { Tender } from '@/types'
 
@@ -63,6 +63,7 @@ export function TenderDetailPage()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(true)
     const [copied, setCopied] = useState(false)
+    const [copiedLink, setCopiedLink] = useState(false)
     const bookmarks = useBookmarks()
 
     useEffect(() =>
@@ -108,6 +109,22 @@ export function TenderDetailPage()
         }
     }
 
+    /** Copies this tender's shareable URL, so it can be sent and opened directly. */
+    async function copyLink(): Promise<void>
+    {
+        if (id === undefined) {
+            return
+        }
+
+        try {
+            await navigator.clipboard.writeText(`${window.location.origin}/tenders/${encodeURIComponent(id)}`)
+            setCopiedLink(true)
+            setTimeout(() => setCopiedLink(false), 1500)
+        } catch {
+            // clipboard unavailable; silently ignore
+        }
+    }
+
     const back = (
         <button
             type="button"
@@ -137,6 +154,9 @@ export function TenderDetailPage()
     }
 
     const site = sourceSite(tender.source)
+    const deepLink = buildDeepLink(tender.source, tender.support_documents)
+    const refVerified = isVerifiedRef(tender.tender_no)
+    const showSourceSearchHint = tender.source === 'etenders' || tender.source === 'ocds'
     const docs = documents(tender)
     const closingIn = tender.closing_date !== null ? daysUntil(tender.closing_date) : null
     const isSaved = bookmarks.ids.has(tender.id)
@@ -178,9 +198,20 @@ export function TenderDetailPage()
                             >
                                 {copied ? 'Copied' : 'Copy'}
                             </button>
+                            {!refVerified && (
+                                <span title="This reference came back from the source empty, all-zero, or too short — it may not resolve if you search for it elsewhere.">
+                                    <Badge tone="danger">unverified</Badge>
+                                </span>
+                            )}
                         </span>
                     )}
                 </div>
+
+                {showSourceSearchHint && (
+                    <p className="text-xs text-ink/55">
+                        On eTenders, switch <span className="font-semibold">“Search by”</span> to <span className="font-semibold">“Tender No”</span> before pasting the copied code — the default search looks at tender names, not reference numbers.
+                    </p>
+                )}
 
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-wax">
@@ -197,16 +228,23 @@ export function TenderDetailPage()
                     >
                         {isSaved ? 'Remove bookmark' : 'Bookmark'}
                     </Button>
-                    {site !== null && (
+                    {deepLink !== null && (
                         <a
-                            href={site.url}
+                            href={deepLink.url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-panel px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                         >
-                            Open on {site.name}
+                            {deepLink.isSpecific ? 'Open tender' : `Open on ${site?.name ?? tender.source ?? 'source'}`}
                         </a>
                     )}
+                    <button
+                        type="button"
+                        onClick={() => void copyLink()}
+                        className="inline-flex h-10 items-center rounded-md border border-line bg-panel px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                    >
+                        {copiedLink ? 'Link copied' : 'Copy link'}
+                    </button>
                 </div>
             </header>
 
