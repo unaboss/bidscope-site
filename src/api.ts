@@ -150,7 +150,7 @@ export interface RelevancePreview
 
 /** The public qualify-count for a candidate profile (no account needed). */
 export function previewRelevance(
-    input: { readonly serviceLines: string[], readonly provinces: string[], readonly companyName?: string },
+    input: { readonly serviceLines: string[], readonly categories?: string[], readonly provinces: string[], readonly companyName?: string },
     signal?: AbortSignal,
 ): Promise<RelevancePreview>
 {
@@ -159,6 +159,11 @@ export function previewRelevance(
     if (input.serviceLines.length > 0)
     {
         params.set('serviceLines', input.serviceLines.join(','))
+    }
+
+    if (input.categories !== undefined && input.categories.length > 0)
+    {
+        params.set('categories', input.categories.join(','))
     }
 
     if (input.provinces.length > 0)
@@ -182,6 +187,7 @@ export interface SignupInput
     readonly password: string
     readonly companyName: string
     readonly serviceLines: string[]
+    readonly categories?: string[]
     readonly provinces: string[]
     readonly cidbGrades: Record<string, number>
     readonly turnstileToken?: string
