@@ -3,14 +3,11 @@ import { AppShell } from '@/components/layout/app-shell'
 import { useSession } from '@/lib/session'
 import { BillingPage } from '@/pages/billing'
 import { BookmarksPage } from '@/pages/bookmarks'
-import { BuyersPage } from '@/pages/buyers'
 import { CalendarPage } from '@/pages/calendar'
-import { CompliancePage } from '@/pages/compliance'
 import { DashboardPage } from '@/pages/dashboard'
 import { DiscoverPage } from '@/pages/discover'
 import { JoinPage } from '@/pages/public/join'
 import { LandingPage } from '@/pages/public/landing'
-import { SettingsPage } from '@/pages/settings'
 import { TenderDetailPage } from '@/pages/tender-detail'
 
 /** The signed-in application, framed by the navy rail + header. */
@@ -23,9 +20,6 @@ function PrivateRoutes()
                 <Route path="discover" element={<DiscoverPage />} />
                 <Route path="bookmarks" element={<BookmarksPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
-                <Route path="buyers" element={<BuyersPage />} />
-                <Route path="compliance" element={<CompliancePage />} />
-                <Route path="settings" element={<SettingsPage />} />
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="tenders/:id" element={<TenderDetailPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

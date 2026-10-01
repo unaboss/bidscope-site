@@ -24,36 +24,16 @@ interface Slide
 
 const SLIDES: readonly Slide[] = [
     {
-        src: '/shots/00-ranked-feed.png',
-        alt: 'Personalised For-You feed showing tenders ranked to fit your business',
+        src: '/shots/procurement-1.webp',
+        alt: 'Clients dashboard — relevant public-sector clients by province, with tender counts and estimated value',
     },
     {
-        src: '/shots/01-provinces.png',
-        alt: 'Province drill-down showing estimated tender values by region',
+        src: '/shots/procurement-2.webp',
+        alt: 'Province drill-down showing each client and its tenders by work type and estimated value',
     },
     {
-        src: '/shots/02-tender-link.png',
-        alt: 'Close-up of the open-on-eTenders link on a tender listing',
-    },
-    {
-        src: '/shots/03-tender-dossier.png',
-        alt: 'Full tender dossier showing scope, buyer and documents',
-    },
-    {
-        src: '/shots/04-calendar.png',
-        alt: 'Calendar screen showing briefing and closing dates',
-    },
-    {
-        src: '/shots/05-buyers.png',
-        alt: 'Buyers screen showing buyer intelligence and award-median values',
-    },
-    {
-        src: '/shots/06-compliance.png',
-        alt: 'Compliance screen showing registration and document expiry monitoring',
-    },
-    {
-        src: '/shots/07-bookmarks.png',
-        alt: 'Bookmarks screen showing saved tenders tracked toward their closing dates',
+        src: '/shots/procurement-3.webp',
+        alt: 'Deadline calendar showing closing and briefing dates for the month',
     },
 ]
 
@@ -86,7 +66,7 @@ const PLANS: readonly PricingPlan[] = [
         name: 'One province',
         price: 'R399',
         detail: 'Operating in a single province',
-        features: ['Full tender feed & search', 'For-You ranked deck', 'Compliance monitoring', 'Bookmarks & calendar'],
+        features: ['Full tender feed & search', 'For-You ranked deck', 'Bookmarks & calendar'],
     },
     {
         name: 'Two to four provinces',
@@ -404,7 +384,7 @@ function ScreensCarousel()
             </div>
 
             {reducedMotion ? (
-                <div className="mx-auto w-[280px] sm:w-[420px] md:w-[520px] lg:w-[580px]">
+                <div className="mx-auto w-[150px] sm:w-[190px] md:w-[220px] lg:w-[240px]">
                     <div
                         role="group"
                         aria-roledescription="slide"
@@ -415,12 +395,12 @@ function ScreensCarousel()
                             src={activeSlide.src}
                             alt={activeSlide.alt}
                             loading="lazy"
-                            className="aspect-[16/10] w-full object-cover"
+                            className="aspect-[3/5] w-full object-cover"
                         />
                     </div>
                 </div>
             ) : (
-                <div className="relative mx-auto h-[210px] overflow-hidden sm:h-[290px] md:h-[350px] lg:h-[390px]">
+                <div className="relative mx-auto h-[300px] overflow-hidden sm:h-[360px] md:h-[420px] lg:h-[470px]">
                     {SLIDES.map((slide, index) =>
                     {
                         const offset = slideOffset(index, active, total)
@@ -434,7 +414,7 @@ function ScreensCarousel()
 
                         const scale = isActive ? 1 : distance === 1 ? 0.8 : 0.64
                         const opacity = isActive ? 1 : distance === 1 ? 0.55 : 0.28
-                        const translatePercent = offset * 66
+                        const translatePercent = offset * 88
                         const zIndex = 20 - distance
 
                         return (
@@ -444,7 +424,7 @@ function ScreensCarousel()
                                 aria-roledescription="slide"
                                 aria-label={`${index + 1} of ${total}`}
                                 aria-hidden={!isActive}
-                                className="screens-carousel-card absolute left-1/2 top-1/2 w-[260px] sm:w-[400px] md:w-[500px] lg:w-[560px]"
+                                className="screens-carousel-card absolute left-1/2 top-1/2 w-[150px] sm:w-[190px] md:w-[220px] lg:w-[240px]"
                                 style={{
                                     transform: `translate(-50%, -50%) translateX(${translatePercent}%) scale(${scale})`,
                                     opacity,
@@ -464,7 +444,7 @@ function ScreensCarousel()
                                         src={slide.src}
                                         alt={slide.alt}
                                         loading="lazy"
-                                        className="aspect-[16/10] w-full object-cover"
+                                        className="aspect-[3/5] w-full object-cover"
                                     />
                                 </div>
                             </div>
@@ -783,7 +763,7 @@ export function LandingPage()
                         <StepCard
                             step="3"
                             title="Get alerted before it closes"
-                            detail="Bookmark what you're chasing and get reminders for briefings, closings and compliance deadlines."
+                            detail="Bookmark what you're chasing and get reminders for briefings and closing dates."
                         />
                     </div>
                 </section>

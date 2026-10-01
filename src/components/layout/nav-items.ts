@@ -1,12 +1,9 @@
 import type { ComponentType, SVGProps } from 'react'
 import {
     IconBookmark,
-    IconBuilding,
     IconCalendar,
     IconDashboard,
     IconFunnel,
-    IconSettings,
-    IconShieldCheck,
 } from '@/components/ui/icons'
 
 export interface NavItem
@@ -22,9 +19,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
     { to: '/discover', label: 'Discover', icon: IconFunnel },
     { to: '/bookmarks', label: 'Bookmarks', icon: IconBookmark },
     { to: '/calendar', label: 'Calendar', icon: IconCalendar },
-    { to: '/buyers', label: 'Buyers', icon: IconBuilding },
-    { to: '/compliance', label: 'Compliance', icon: IconShieldCheck },
-    { to: '/settings', label: 'Settings', icon: IconSettings },
 ]
 
 /** Returns the nav item whose route best matches `pathname`. */

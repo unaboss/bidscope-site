@@ -105,7 +105,6 @@ export function SettingsPage()
 {
     const [form, setForm] = useState<FormState | null>(null)
     const [account, setAccount] = useState<Account | null>(null)
-    const [keySet, setKeySet] = useState(false)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
@@ -121,7 +120,6 @@ export function SettingsPage()
             .then((settings) =>
             {
                 setForm(fromSettings(settings))
-                setKeySet(settings.providerKeySet)
             })
             .catch((cause: unknown) =>
             {
@@ -147,7 +145,6 @@ export function SettingsPage()
         try {
             const settings = await saveSettings(toInput(form))
             setForm(fromSettings(settings))
-            setKeySet(settings.providerKeySet)
             setMessage('Settings saved.')
         } catch (cause: unknown) {
             setError(cause instanceof Error ? cause.message : 'Could not save settings')
@@ -161,7 +158,7 @@ export function SettingsPage()
             <PageHeader
                 eyebrow="Workspace"
                 title="Settings"
-                description="Company profile, notifications and the compliance data provider."
+                description="Company profile and notifications."
             />
 
             {loading && <p className="text-sm text-ink/60">Loading settings…</p>}
@@ -284,22 +281,6 @@ export function SettingsPage()
                         <Field label="Compliance lead days" htmlFor="set-comp-days" hint="Comma-separated, e.g. 60, 30, 7">
                             <Input id="set-comp-days" value={form.complianceLeadDays} onChange={(e) => setForm({ ...form, complianceLeadDays: e.target.value })} />
                         </Field>
-                    </section>
-
-                    <section className="flex flex-col gap-4">
-                        <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Compliance data provider</h2>
-                        <p className="text-sm text-ink/60">
-                            Optional. Only a paid reseller (e.g. Windeed) key goes here — never a government portal login. The key is encrypted at rest.
-                            {keySet ? ' A key is currently stored.' : ' No key stored.'}
-                        </p>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Provider" htmlFor="set-provider" hint="e.g. windeed">
-                                <Input id="set-provider" value={form.provider} onChange={(e) => setForm({ ...form, provider: e.target.value })} />
-                            </Field>
-                            <Field label="Provider API key" htmlFor="set-provider-key" hint={keySet ? 'Leave blank to keep the stored key' : 'Stored encrypted'}>
-                                <Input id="set-provider-key" type="password" value={form.providerKey} onChange={(e) => setForm({ ...form, providerKey: e.target.value })} />
-                            </Field>
-                        </div>
                     </section>
 
                     <div className="flex items-center gap-4">
