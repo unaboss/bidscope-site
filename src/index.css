@@ -12,29 +12,55 @@
 :root {
     color-scheme: light;
 
-    /* Tender Dossier — manila paper, coffee ink, wax seal, navy tab. */
-    --color-ink: 58 46 34; /* #3A2E22 coffee */
-    --color-navy: 20 55 94; /* #14375E */
-    --color-wax: 138 51 36; /* #8A3324 sealing wax */
-    --color-cream: 240 233 218; /* #F0E9DA manila */
-    --color-panel: 250 247 240; /* #FAF7F0 paper */
+    /* Navy with an olive-green undertone — petrol primary on a cool page. */
+    --color-ink: 18 32 31; /* #12201F deep blue-green near-black */
+    --color-navy: 30 74 71; /* #1E4A47 petrol blue-green, the primary */
+    --color-wax: 122 74 42; /* #7A4A2A warm accent */
+    --color-cream: 244 247 244; /* #F4F7F4 cool off-white page */
+    --color-panel: 255 255 255; /* #FFFFFF */
 
-    /* Warm neutral scale */
-    --color-neutral-50: 250 247 240;
-    --color-neutral-100: 243 238 228;
-    --color-neutral-200: 226 217 200;
-    --color-neutral-300: 206 195 176;
-    --color-neutral-400: 166 154 134;
-    --color-neutral-500: 128 116 98;
-    --color-neutral-600: 96 84 68;
-    --color-neutral-700: 72 62 49;
-    --color-neutral-800: 50 42 33;
-    --color-neutral-900: 34 28 22;
+    /* Cool blue-grey neutral scale */
+    --color-neutral-50: 245 247 246; /* #F5F7F6 */
+    --color-neutral-100: 233 238 236; /* #E9EEEC */
+    --color-neutral-200: 220 228 224; /* #DCE4E0 line */
+    --color-neutral-300: 196 207 201; /* #C4CFC9 strong line */
+    --color-neutral-400: 154 168 162; /* #9AA8A2 */
+    --color-neutral-500: 117 131 124; /* #75837C */
+    --color-neutral-600: 90 102 95; /* #5A665F */
+    --color-neutral-700: 69 79 73; /* #454F49 */
+    --color-neutral-800: 49 58 53; /* #313A35 */
+    --color-neutral-900: 31 39 35; /* #1F2723 */
 
     /* Status */
-    --color-success: 46 108 70;
-    --color-warn: 166 106 16;
-    --color-danger: 138 51 36; /* wax */
+    --color-success: 46 108 70; /* #2E6C46 */
+    --color-warn: 166 106 16; /* #A66A10 */
+    --color-danger: 150 62 45; /* #963E2D */
+
+    /*
+     * shadcn/ui semantic layer. `H S% L%` triples consumed as `hsl(var(--…))`
+     * in `tailwind.config.js`. Each one restates a token above — change the
+     * token first, then its mirror here.
+     */
+    --background: 120 16% 96%; /* cream */
+    --foreground: 176 28% 10%; /* ink */
+    --card: 0 0% 100%; /* panel */
+    --card-foreground: 176 28% 10%; /* ink */
+    --popover: 0 0% 100%; /* panel */
+    --popover-foreground: 176 28% 10%; /* ink */
+    --primary: 176 42% 20%; /* navy */
+    --primary-foreground: 0 0% 100%; /* panel */
+    --secondary: 156 13% 92%; /* neutral-100 */
+    --secondary-foreground: 176 28% 10%; /* ink */
+    --muted: 156 13% 92%; /* neutral-100 */
+    --muted-foreground: 145 6% 38%; /* neutral-600 */
+    --accent: 156 13% 92%; /* neutral-100 */
+    --accent-foreground: 176 28% 10%; /* ink */
+    --destructive: 10 54% 38%; /* danger */
+    --destructive-foreground: 0 0% 100%; /* panel */
+    --border: 150 13% 88%; /* neutral-200 (line) */
+    --input: 147 10% 79%; /* neutral-300 (strong line) */
+    --ring: 150 6% 49%; /* neutral-500 — darkest line tone that clears 3:1 */
+    --radius: 0.75rem;
 }
 
 @layer base {
@@ -125,8 +151,8 @@
 
 @layer components {
     /*
-     * Shared focus treatment. `cn()` does no conflict resolution, so components
-     * opt into one of these rather than restating the same six utilities. The
+     * Shared focus treatment. Components opt into one of these rather than
+     * restating the same six utilities. The
      * suffix names the surface the ring is offset against.
      */
     .focus-ring {
