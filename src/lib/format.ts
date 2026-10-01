@@ -7,7 +7,8 @@ export function formatDate(value: string | null): string
         return EM_DASH
     }
 
-    const parsed = new Date(`${value}T00:00:00Z`)
+    // Tolerate a full timestamp ("2026-09-11 00:00:00.000000") by taking the day.
+    const parsed = new Date(`${value.slice(0, 10)}T00:00:00Z`)
 
     if (Number.isNaN(parsed.getTime())) {
         return value
@@ -55,7 +56,7 @@ export function daysUntil(date: string): number
 {
     const now = new Date()
     const base = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
-    const target = Date.parse(`${date}T00:00:00Z`)
+    const target = Date.parse(`${date.slice(0, 10)}T00:00:00Z`)
 
     return Math.round((target - base) / 86_400_000)
 }

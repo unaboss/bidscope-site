@@ -161,7 +161,11 @@ export function TenderDetailPage()
     const closingIn = tender.closing_date !== null ? daysUntil(tender.closing_date) : null
     const isSaved = bookmarks.ids.has(tender.id)
     const briefing = tender.briefing_date !== null
-        ? formatDate(tender.briefing_date)
+        ? [
+            formatDate(tender.briefing_date),
+            tender.briefing_compulsory === 1 ? 'compulsory' : null,
+            daysUntil(tender.briefing_date) < 0 ? 'briefing passed' : null,
+        ].filter((part): part is string => part !== null).join(' · ')
         : (tender.briefing_required ? 'Required' : 'None')
     const estimate = tender.estimated_value !== null && tender.estimated_value !== undefined
         ? `${formatZAR(tender.estimated_value)} · ${estimateBasisLabel(tender.estimate_basis)}`
