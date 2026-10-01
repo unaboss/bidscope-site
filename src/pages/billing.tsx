@@ -124,18 +124,6 @@ export function BillingPage()
                     <p className="text-sm text-ink/60">Current plan: <strong>{plan}</strong></p>
                 </div>
 
-                {account?.trialActive === true && account.trialEndsAt !== null && (
-                    <p className="mt-4 text-sm text-ink/60">
-                        Free trial until <strong>{account.trialEndsAt}</strong>
-                        {account.trialDaysLeft !== null && ` (${account.trialDaysLeft} days left)`}.
-                    </p>
-                )}
-
-                <p className="mt-4 rounded-md border border-line bg-cream/60 px-3 py-2 text-sm text-ink/70">
-                    <strong>20% off your first month</strong> — pay R{firstMonth.toFixed(2)}, then R{rands}/month.
-                    The discount is applied automatically.
-                </p>
-
                 <div className="mt-6">
                     <Button onClick={() => void subscribe()} disabled={busy}>
                         {busy ? 'Starting…' : 'Subscribe'}
@@ -144,6 +132,18 @@ export function BillingPage()
                         Secure checkout via Paystack. You can cancel any time.
                     </p>
                 </div>
+
+                <p className="mt-4 rounded-md border border-line bg-cream/60 px-3 py-2 text-sm text-ink/70">
+                    <strong>20% off your first month</strong> — pay R{firstMonth.toFixed(2)}, then R{rands}/month.
+                    The discount is applied automatically.
+                </p>
+
+                {account?.trialActive === true && account.trialEndsAt !== null && (
+                    <p className="mt-4 text-sm text-ink/60">
+                        Free trial until <strong>{account.trialEndsAt}</strong>
+                        {account.trialDaysLeft !== null && ` (${account.trialDaysLeft} days left)`}.
+                    </p>
+                )}
 
                 {message !== '' && <p className="mt-4 text-sm text-navy">{message}</p>}
             </section>

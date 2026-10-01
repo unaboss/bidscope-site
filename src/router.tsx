@@ -6,6 +6,7 @@ import { BookmarksPage } from '@/pages/bookmarks'
 import { CalendarPage } from '@/pages/calendar'
 import { DashboardPage } from '@/pages/dashboard'
 import { DiscoverPage } from '@/pages/discover'
+import { CheckoutPage } from '@/pages/public/checkout'
 import { JoinPage } from '@/pages/public/join'
 import { LandingPage } from '@/pages/public/landing'
 import { TenderDetailPage } from '@/pages/tender-detail'
@@ -35,6 +36,7 @@ function PublicRoutes()
         <Routes>
             <Route index element={<LandingPage />} />
             <Route path="join" element={<JoinPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )

@@ -207,6 +207,8 @@ export interface SignupResult
     readonly trialEndsAt: string
     /** False when the activation email could not be sent (best-effort). */
     readonly activationSent?: boolean
+    /** Signed token that authorises a public checkout for this pending org. */
+    readonly checkoutToken?: string
 }
 
 /** Creates a trial account. Throws {@link ApiError} (409 = email taken). */
@@ -226,6 +228,50 @@ export async function signup(input: SignupInput): Promise<SignupResult>
     }
 
     return await response.json() as SignupResult
+}
+
+export interface PublicCheckout
+{
+    readonly authorizationUrl: string
+    readonly reference: string
+    readonly amountCents: number
+    readonly tier: string
+}
+
+/** Starts a Paystack checkout for a pending account, authorised by the signup token. */
+export async function startPublicCheckout(token: string): Promise<PublicCheckout>
+{
+    const response = await fetch('/api/public/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ token }),
+    })
+
+    if (!response.ok)
+    {
+        const body = await response.json().catch(() => null) as { error?: string } | null
+
+        throw new ApiError(response.status, body?.error ?? `Could not start checkout (${response.status})`)
+    }
+
+    return await response.json() as PublicCheckout
+}
+
+/** Confirms a public checkout after Paystack returns; applies the plan. */
+export async function confirmPublicCheckout(reference: string): Promise<{ readonly plan: string }>
+{
+    const response = await fetch('/api/public/checkout/confirm', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ reference }),
+    })
+
+    if (!response.ok)
+    {
+        throw new ApiError(response.status, `Could not confirm payment (${response.status})`)
+    }
+
+    return await response.json() as { plan: string }
 }
 
 /** The org's settings (the provider key is never returned). */

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/api'
 import { CategoryPicker } from '@/components/onboarding/category-picker'
 import { Button } from '@/components/ui/button'
@@ -136,6 +136,7 @@ export function JoinPage()
     const [error, setError] = useState('')
     const [submitting, setSubmitting] = useState(false)
     const [summary, setSummary] = useState<SignupSummary | null>(null)
+    const navigate = useNavigate()
 
     useEffect(() =>
     {
@@ -215,7 +216,7 @@ export function JoinPage()
         }
     }
 
-    async function submitOffer(): Promise<void>
+    async function submitOffer(pay: boolean): Promise<void>
     {
         setError('')
         setSubmitting(true)
@@ -233,6 +234,12 @@ export function JoinPage()
                 provinces: company.provinces,
                 cidbGrades: parseCidbGrades(company.cidbGrades),
             })
+
+            if (pay && result.checkoutToken !== undefined)
+            {
+                navigate(`/checkout?token=${encodeURIComponent(result.checkoutToken)}`)
+                return
+            }
 
             setSummary(result)
             setStep('result')
@@ -406,12 +413,21 @@ export function JoinPage()
                         </>
                     )}
                     {step === 'offer' && preview !== null && (
-                        <>
-                            <Button variant="secondary" onClick={() => setStep('company')}>Back</Button>
-                            <Button onClick={() => void submitOffer()} disabled={submitting}>
-                                {submitting ? 'Setting up…' : 'Start my free week'}
+                        <div className="flex w-full flex-col gap-3">
+                            <Button className="w-full" onClick={() => void submitOffer(true)} disabled={submitting}>
+                                {submitting ? 'Setting up…' : `Subscribe now — R${firstMonth}`}
                             </Button>
-                        </>
+                            <Button variant="secondary" className="w-full" onClick={() => void submitOffer(false)} disabled={submitting}>
+                                Start my free week instead
+                            </Button>
+                            <button
+                                type="button"
+                                onClick={() => setStep('company')}
+                                className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink/50 hover:text-ink"
+                            >
+                                Back
+                            </button>
+                        </div>
                     )}
                     {step === 'result' && summary !== null && (
                         <a

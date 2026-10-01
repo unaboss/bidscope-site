@@ -632,9 +632,10 @@ interface PricingCardProps
 {
     readonly plan: PricingPlan
     readonly onStart: () => void
+    readonly onSubscribe: () => void
 }
 
-function PricingCard({ plan, onStart }: PricingCardProps)
+function PricingCard({ plan, onStart, onSubscribe }: PricingCardProps)
 {
     return (
         <div
@@ -666,9 +667,18 @@ function PricingCard({ plan, onStart }: PricingCardProps)
                     </li>
                 ))}
             </ul>
-            <Button className="mt-6 w-full" variant={plan.featured ? 'primary' : 'secondary'} onClick={onStart}>
-                Start free trial
-            </Button>
+            <div className="mt-6 flex flex-col gap-2">
+                <Button className="w-full" variant={plan.featured ? 'primary' : 'secondary'} onClick={onSubscribe}>
+                    Subscribe
+                </Button>
+                <button
+                    type="button"
+                    onClick={onStart}
+                    className="w-full rounded-md px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-slate-500 transition-colors hover:text-navy"
+                >
+                    Start free trial instead
+                </button>
+            </div>
         </div>
     )
 }
@@ -776,7 +786,7 @@ export function LandingPage()
                     </p>
                     <div className="mt-10 grid gap-5 sm:grid-cols-3">
                         {PLANS.map((plan) => (
-                            <PricingCard key={plan.name} plan={plan} onStart={() => navigate('/join')} />
+                            <PricingCard key={plan.name} plan={plan} onStart={() => navigate('/join')} onSubscribe={() => navigate('/join?intent=subscribe')} />
                         ))}
                     </div>
                 </section>
