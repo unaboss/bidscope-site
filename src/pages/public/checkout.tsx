@@ -80,7 +80,15 @@ export function CheckoutPage()
         catch (caught)
         {
             setBusy(false)
-            setError(caught instanceof ApiError ? caught.message : 'Could not start checkout. Please try again.')
+
+            if (caught instanceof ApiError && caught.status === 503)
+            {
+                setError('Subscriptions aren’t open just yet — you can start a free trial instead.')
+            }
+            else
+            {
+                setError(caught instanceof ApiError ? caught.message : 'Could not start checkout. Please try again.')
+            }
         }
     }
 
