@@ -1,20 +1,118 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { listBookmarks, removeBookmark } from '@/api'
-import { TenderCaseFile } from '@/components/tender/tender-case-file'
+import type { ReactElement } from 'react'
+import { Link } from 'react-router-dom'
+import { addBookmark, listBookmarks, removeBookmark } from '@/api'
+import { FeedEmpty } from '@/components/feed/feed-empty'
+import { compactRand, prefersReducedMotion, urgencyOf } from '@/components/feed/signals'
+import type { UrgencyBand } from '@/components/feed/signals'
+import { QueueSkeleton } from '@/components/feed/skeleton'
+import { InlineError, LiveStatus } from '@/components/feed/workspace'
 import { Badge } from '@/components/ui/badge'
-import { EmptyState } from '@/components/ui/empty-state'
-import { IconBookmark } from '@/components/ui/icons'
+import { IconArrowRight, IconBookmark } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
-import { formatDate } from '@/lib/format'
+import { DeadlineRow } from '@/pages/bookmarks/deadline-row'
 import { cn } from '@/lib/utils'
 import type { Tender } from '@/types'
 
-export function BookmarksPage()
+/** Must stay in step with the `animate-retire` duration in `index.css`. */
+const RETIRE_MS = 260
+
+/** How long an accidental removal stays undoable. */
+const UNDO_MS = 10_000
+
+interface BoardGroup
+{
+    readonly band: UrgencyBand
+    readonly title: string
+    /** Tile caption — short enough for a 7rem tile. */
+    readonly short: string
+    readonly note: string
+    readonly accent: string
+}
+
+/**
+ * The board reads top to bottom as pressure decreasing. Overdue sits first
+ * because a closed tender on a shortlist is a job to finish, not a deadline.
+ */
+const GROUPS: readonly BoardGroup[] = [
+    { band: 'overdue', title: 'Closed', short: 'Closed', note: 'The date has passed — clear it, or check whether it was re-advertised.', accent: 'bg-danger' },
+    { band: 'week', title: 'Closing this week', short: '7 days', note: 'Submission window. Documents and pricing should already be signed off.', accent: 'bg-danger' },
+    { band: 'fortnight', title: 'Next two weeks', short: '14 days', note: 'Pricing, compliance documents and briefing attendance land here.', accent: 'bg-warn' },
+    { band: 'month', title: 'Rest of the month', short: '30 days', note: 'Enough runway to qualify the buyer and decide bid or no-bid.', accent: 'bg-warn' },
+    { band: 'later', title: 'Later', short: 'Later', note: 'A watching brief. Nothing due yet.', accent: 'bg-navy' },
+    { band: 'undated', title: 'No closing date', short: 'No date', note: 'The buyer never published a closing date — confirm it directly.', accent: 'bg-neutral-400' },
+]
+
+type BandFilter = UrgencyBand | 'all'
+
+/** Sorted so the most urgent closing dates surface first; undated last. */
+function byClosingDate(a: Tender, b: Tender): number
+{
+    if (a.closing_date === null) {
+        return b.closing_date === null ? 0 : 1
+    }
+
+    if (b.closing_date === null) {
+        return -1
+    }
+
+    return a.closing_date.localeCompare(b.closing_date)
+}
+
+interface PressureTileProps
+{
+    readonly count: number
+    readonly label: string
+    readonly accent: string
+    readonly active: boolean
+    readonly onClick: () => void
+}
+
+/** A count that is also a filter — the summary and the control are one thing. */
+function PressureTile({ count, label, accent, active, onClick }: PressureTileProps): ReactElement
+{
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-pressed={active}
+            className={cn(
+                'focus-ring group relative flex min-w-[6.5rem] shrink-0 flex-col gap-1 overflow-hidden rounded-xl border',
+                'px-4 py-3 text-start transition-[border-color,box-shadow,background-color] duration-200',
+                active ? 'border-navy/40 bg-panel shadow-panel' : 'border-line bg-panel/60 hover:bg-panel',
+            )}
+        >
+            <span
+                aria-hidden="true"
+                className={cn(
+                    'absolute inset-x-0 top-0 h-[2px] transition-opacity duration-200',
+                    accent,
+                    active ? 'opacity-100' : 'opacity-0 group-hover:opacity-50',
+                )}
+            />
+            <span className="font-serif text-2xl font-semibold leading-none tabular-nums text-ink">{count}</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">{label}</span>
+        </button>
+    )
+}
+
+interface RemovedTender
+{
+    readonly id: string
+    readonly title: string
+}
+
+export function BookmarksPage(): ReactElement
 {
     const [tenders, setTenders] = useState<Tender[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [status, setStatus] = useState('')
+    const [filter, setFilter] = useState<BandFilter>('all')
+    const [expandedId, setExpandedId] = useState<string | null>(null)
+    const [busyId, setBusyId] = useState<string | null>(null)
+    const [retiringId, setRetiringId] = useState<string | null>(null)
+    const [undo, setUndo] = useState<RemovedTender | null>(null)
 
     const load = useCallback(async (signal?: AbortSignal) =>
     {
@@ -38,80 +136,246 @@ export function BookmarksPage()
         return () => controller.abort()
     }, [load])
 
+    useEffect(() =>
+    {
+        if (undo === null) {
+            return
+        }
+
+        const timer = window.setTimeout(() => setUndo(null), UNDO_MS)
+
+        return () => window.clearTimeout(timer)
+    }, [undo])
+
+    const sorted = useMemo(() => [...tenders].sort(byClosingDate), [tenders])
+
+    const grouped = useMemo(() =>
+    {
+        const buckets = new Map<UrgencyBand, Tender[]>()
+
+        for (const tender of sorted) {
+            const { band } = urgencyOf(tender.closing_date)
+            const existing = buckets.get(band)
+
+            if (existing === undefined) {
+                buckets.set(band, [tender])
+            } else {
+                existing.push(tender)
+            }
+        }
+
+        return buckets
+    }, [sorted])
+
+    const trackedValue = useMemo(
+        () => sorted.reduce((sum, tender) => sum + (tender.estimated_value ?? tender.contract_value ?? 0), 0),
+        [sorted],
+    )
+
+    const closingSoon = grouped.get('week')?.length ?? 0
+    const overdue = grouped.get('overdue')?.length ?? 0
+
+    // A band that empties out (after a removal) must not strand the board.
+    const activeFilter: BandFilter = filter !== 'all' && (grouped.get(filter)?.length ?? 0) === 0 ? 'all' : filter
+    const visibleGroups = GROUPS.filter((group) =>
+    {
+        const count = grouped.get(group.band)?.length ?? 0
+
+        return count > 0 && (activeFilter === 'all' || activeFilter === group.band)
+    })
+
     async function remove(tenderId: string): Promise<void>
     {
-        await removeBookmark(tenderId)
-        setSelectedId(null)
-        await load()
+        const tender = sorted.find((entry) => entry.id === tenderId)
+
+        if (tender === undefined || busyId !== null) {
+            return
+        }
+
+        setBusyId(tenderId)
+        setError('')
+
+        try {
+            await removeBookmark(tenderId)
+
+            if (!prefersReducedMotion()) {
+                setRetiringId(tenderId)
+                await new Promise<void>((resolve) => { window.setTimeout(resolve, RETIRE_MS) })
+                setRetiringId(null)
+            }
+
+            setExpandedId((current) => (current === tenderId ? null : current))
+            setTenders((current) => current.filter((entry) => entry.id !== tenderId))
+            setUndo({ id: tenderId, title: tender.title ?? 'Untitled tender' })
+        } catch (cause: unknown) {
+            setError(cause instanceof Error ? cause.message : 'Could not remove the bookmark')
+        } finally {
+            setBusyId(null)
+        }
     }
 
-    const selected = useMemo(
-        () => tenders.find((tender) => tender.id === selectedId) ?? tenders[0] ?? null,
-        [tenders, selectedId],
-    )
+    async function restore(): Promise<void>
+    {
+        if (undo === null) {
+            return
+        }
+
+        const target = undo
+        setBusyId(target.id)
+        setUndo(null)
+        setError('')
+
+        try {
+            await addBookmark(target.id)
+            await load()
+            setStatus(`Restored ${target.title} to your shortlist.`)
+        } catch (cause: unknown) {
+            setError(cause instanceof Error ? cause.message : 'Could not restore the bookmark')
+            setUndo(target)
+        } finally {
+            setBusyId(null)
+        }
+    }
 
     return (
         <div className="flex flex-col gap-6">
+            <LiveStatus message={status} />
+
             <PageHeader
                 eyebrow="Workspace"
-                title="Bookmarks"
-                description="The tenders you have shortlisted, with their briefing and closing dates."
-                actions={<Badge tone="navy">{loading ? '...' : `${tenders.length} saved`}</Badge>}
+                title="Shortlist"
+                description="Everything you saved, laid out by how much time is left. The board runs from what closes first to what you are only watching."
+                actions={(
+                    <div className="flex flex-wrap items-center gap-2">
+                        {overdue > 0 && <Badge tone="danger">{overdue} closed</Badge>}
+                        {closingSoon > 0 && <Badge tone="warn">{closingSoon} closing this week</Badge>}
+                        <Badge tone="navy">{loading ? '…' : `${sorted.length} saved`}</Badge>
+                    </div>
+                )}
             />
 
-            {loading && <p className="text-sm text-ink/60">Loading bookmarks…</p>}
+            {loading && <QueueSkeleton rows={4} />}
 
-            {!loading && error !== '' && (
-                <p className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger" role="alert">
-                    {error}
-                </p>
+            {!loading && error !== '' && <InlineError message={error} />}
+
+            {!loading && sorted.length === 0 && (
+                <FeedEmpty
+                    eyebrow="Shortlist"
+                    icon={<IconBookmark className="size-6" />}
+                    title="Nothing on the shortlist yet"
+                    description="Saving a tender puts it on this board and starts the clock. Deadlines group themselves, the nearest ones rise to the top, and briefing dates come along for the ride."
+                >
+                    <Link
+                        to="/discover"
+                        className="focus-ring inline-flex items-center gap-2 rounded-md bg-navy px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-cream transition-colors hover:bg-navy/90"
+                    >
+                        Find tenders to save
+                        <IconArrowRight className="size-3.5" />
+                    </Link>
+                </FeedEmpty>
             )}
 
-            {!loading && error === '' && tenders.length === 0 && (
-                <EmptyState
-                    icon={<IconBookmark className="size-5" />}
-                    title="No bookmarks yet"
-                    description="Bookmark a tender from Discover and it will appear here with its deadline."
-                    hint="Phase 2 · bookmarks + alerts"
-                />
-            )}
+            {!loading && sorted.length > 0 && (
+                <>
+                    <div className="flex flex-col gap-3">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
+                            {sorted.length} saved
+                            {trackedValue > 0 && <span className="text-ink/30"> · {compactRand(trackedValue)} tracked</span>}
+                        </p>
 
-            {!loading && error === '' && tenders.length > 0 && (
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-                    <ul className="flex flex-col gap-2">
-                        {tenders.map((tender) =>
+                        <div
+                            role="group"
+                            aria-label="Filter the board by closing window"
+                            className="flex gap-2 overflow-x-auto"
+                        >
+                            <PressureTile
+                                count={sorted.length}
+                                label="All"
+                                accent="bg-ink"
+                                active={activeFilter === 'all'}
+                                onClick={() => setFilter('all')}
+                            />
+                            {GROUPS.map((group) =>
+                            {
+                                const count = grouped.get(group.band)?.length ?? 0
+
+                                if (count === 0) {
+                                    return null
+                                }
+
+                                return (
+                                    <PressureTile
+                                        key={group.band}
+                                        count={count}
+                                        label={group.short}
+                                        accent={group.accent}
+                                        active={activeFilter === group.band}
+                                        onClick={() => setFilter(group.band)}
+                                    />
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {undo !== null && (
+                        <div
+                            role="status"
+                            className="animate-reveal flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-panel px-4 py-3 shadow-panel"
+                        >
+                            <p className="text-sm text-ink/65">
+                                Removed <span className="font-semibold text-ink">{undo.title}</span> from your shortlist.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => void restore()}
+                                className="focus-ring-panel ms-auto rounded-md px-1 font-mono text-[10px] uppercase tracking-[0.14em] text-navy underline transition-colors hover:text-navy/70"
+                            >
+                                Undo
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-8">
+                        {visibleGroups.map((group) =>
                         {
-                            const isSelected = selected?.id === tender.id
+                            const rows = grouped.get(group.band) ?? []
 
                             return (
-                                <li key={tender.id}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedId(tender.id)}
-                                        aria-current={isSelected}
-                                        className={cn(
-                                            'flex w-full flex-col gap-1 rounded-lg border bg-panel px-4 py-3 text-left transition-colors',
-                                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream',
-                                            isSelected ? 'border-navy/40 bg-navy/5' : 'border-line hover:bg-ink/5',
-                                        )}
-                                    >
-                                        <span className="text-sm font-medium text-ink">{tender.title ?? 'Untitled tender'}</span>
-                                        <span className="text-xs text-ink/60">{tender.organ_of_state ?? 'Unknown buyer'}</span>
-                                        <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
-                                            closes {formatDate(tender.closing_date)}
-                                        </span>
-                                    </button>
-                                </li>
+                                <section key={group.band} aria-label={group.title} className="flex flex-col gap-3">
+                                    <div className="sticky top-16 z-10 -mx-1 flex flex-col gap-1 bg-cream/90 px-1 py-2 backdrop-blur">
+                                        <div className="flex items-baseline gap-3">
+                                            <h2 className="font-serif text-base font-semibold tracking-tight text-ink">
+                                                {group.title}
+                                            </h2>
+                                            <span
+                                                aria-hidden="true"
+                                                className={cn('h-[2px] flex-1 rounded-full opacity-25', group.accent)}
+                                            />
+                                            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/40">
+                                                {rows.length}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs leading-snug text-ink/45">{group.note}</p>
+                                    </div>
+
+                                    <ul className="flex flex-col gap-2.5">
+                                        {rows.map((tender) => (
+                                            <DeadlineRow
+                                                key={tender.id}
+                                                tender={tender}
+                                                expanded={expandedId === tender.id}
+                                                busy={busyId === tender.id}
+                                                retiring={retiringId === tender.id}
+                                                onToggle={() => setExpandedId((current) => (current === tender.id ? null : tender.id))}
+                                                onRemove={() => void remove(tender.id)}
+                                            />
+                                        ))}
+                                    </ul>
+                                </section>
                             )
                         })}
-                    </ul>
-
-                    <section aria-label="Bookmarked tender" className="lg:sticky lg:top-24 lg:self-start">
-                        {selected !== null && (
-                            <TenderCaseFile tender={selected} bookmarked onToggleBookmark={remove} />
-                        )}
-                    </section>
-                </div>
+                    </div>
+                </>
             )}
         </div>
     )
