@@ -1,4 +1,6 @@
+import { CircleAlert } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
+import { Kbd } from '@/components/ui/kbd'
 import { cn } from '@/lib/utils'
 
 interface WorkspaceProps
@@ -29,13 +31,15 @@ export function Workspace({ queue, brief }: WorkspaceProps): ReactElement
     )
 }
 
-/** A single key in the shortcut legend. */
-export function Kbd({ children }: { readonly children: ReactNode }): ReactElement
+function Shortcut({ keys, children }: { readonly keys: readonly string[], readonly children: ReactNode }): ReactElement
 {
     return (
-        <kbd className="rounded border border-line bg-panel px-1.5 py-0.5 font-mono text-[10px] uppercase text-ink/60 shadow-[0_1px_0_rgb(var(--color-ink)/0.08)]">
+        <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-0.5">
+                {keys.map((key) => <Kbd key={key}>{key}</Kbd>)}
+            </span>
             {children}
-        </kbd>
+        </span>
     )
 }
 
@@ -54,14 +58,15 @@ export function ShortcutLegend({ dismissable, className }: ShortcutLegendProps):
     return (
         <p
             className={cn(
-                'hidden flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/40 lg:flex',
+                'hidden flex-wrap items-center gap-x-4 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45 lg:flex',
                 className,
             )}
         >
-            <span className="inline-flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
-            <span className="inline-flex items-center gap-1"><Kbd>S</Kbd> save</span>
-            {dismissable && <span className="inline-flex items-center gap-1"><Kbd>X</Kbd> dismiss</span>}
-            <span className="inline-flex items-center gap-1"><Kbd>O</Kbd> open</span>
+            <span className="sr-only">Keyboard shortcuts:</span>
+            <Shortcut keys={['↑', '↓']}>move</Shortcut>
+            <Shortcut keys={['S']}>save</Shortcut>
+            {dismissable && <Shortcut keys={['X']}>dismiss</Shortcut>}
+            <Shortcut keys={['O']}>open</Shortcut>
         </p>
     )
 }
@@ -88,11 +93,12 @@ export function InlineError({ message, className }: InlineErrorProps): ReactElem
         <p
             role="alert"
             className={cn(
-                'rounded-lg border border-danger/25 bg-danger/5 px-4 py-2.5 text-sm text-danger',
+                'animate-reveal flex items-start gap-2.5 rounded-lg border border-danger/25 bg-danger/5 px-4 py-2.5 text-sm text-danger',
                 className,
             )}
         >
-            {message}
+            <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            <span>{message}</span>
         </p>
     )
 }

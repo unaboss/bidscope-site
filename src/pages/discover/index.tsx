@@ -1,5 +1,6 @@
-import { useEffect, useId, useMemo, useState } from 'react'
-import type { KeyboardEvent, ReactElement } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { ReactElement } from 'react'
+import { Search, Sparkles } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { listTenders } from '@/api'
 import { BrowseFilters, EMPTY_FILTERS } from '@/components/feed/browse-filters'
@@ -14,16 +15,19 @@ import { InlineError, LiveStatus, Workspace } from '@/components/feed/workspace'
 import { Button } from '@/components/ui/button'
 import { IconFunnel } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
+import { SegmentedTabsList } from '@/components/ui/segmented-tabs'
+import type { SegmentedTab } from '@/components/ui/segmented-tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { useBookmarks } from '@/hooks/use-bookmarks'
 import { closingWindow } from '@/lib/format'
-import { cn } from '@/lib/utils'
 import type { Tender } from '@/types'
 
 type Mode = 'foryou' | 'browse'
 
-const TABS: ReadonlyArray<{ value: Mode, label: string, hint: string }> = [
-    { value: 'foryou', label: 'For You', hint: 'Ranked and explained for your profile' },
-    { value: 'browse', label: 'Browse', hint: 'Search and filter the full catalogue' },
+const TABS: ReadonlyArray<SegmentedTab<Mode> & { hint: string }> = [
+    { value: 'foryou', label: 'For You', hint: 'Ranked and explained for your profile', icon: <Sparkles className="size-3.5" /> },
+    { value: 'browse', label: 'Browse', hint: 'Search and filter the full catalogue', icon: <Search className="size-3.5" /> },
 ]
 
 /** Milliseconds of quiet before a filter change reaches the API. */
@@ -170,104 +174,56 @@ function BrowseList({ initialSearch }: { readonly initialSearch: string }): Reac
     )
 }
 
-interface ModeSwitchProps
+function isMode(value: string): value is Mode
 {
-    readonly mode: Mode
-    readonly onChange: (next: Mode) => void
-    readonly idPrefix: string
+    return TABS.some((tab) => tab.value === value)
 }
+
+/** Radix makes each panel focusable; the primitive already carries the shared ring. */
+const PANEL = 'mt-0 rounded-2xl'
 
 /**
- * The source switch.
- *
- * For You and Browse are no longer separate screens — they are two ways to fill
- * the same queue, so the control is a single track with a sliding block rather
- * than two unrelated buttons.
+ * For You and Browse are not separate screens — they are two ways to fill the
+ * same queue, so the source switch is one segmented track with a sliding block
+ * (Radix tabs underneath: roles, roving focus and arrow keys come for free).
  */
-function ModeSwitch({ mode, onChange, idPrefix }: ModeSwitchProps): ReactElement
-{
-    function handleKeyDown(event: KeyboardEvent<HTMLDivElement>): void
-    {
-        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-            return
-        }
-
-        event.preventDefault()
-        const index = TABS.findIndex((tab) => tab.value === mode)
-        const next = TABS[event.key === 'ArrowRight' ? (index + 1) % TABS.length : (index + TABS.length - 1) % TABS.length]
-
-        if (next !== undefined) {
-            onChange(next.value)
-            document.getElementById(`${idPrefix}-tab-${next.value}`)?.focus()
-        }
-    }
-
-    return (
-        <div
-            role="tablist"
-            aria-label="Discover source"
-            onKeyDown={handleKeyDown}
-            className="relative inline-grid grid-cols-2 rounded-xl border border-line bg-panel p-1 shadow-panel"
-        >
-            <span
-                aria-hidden="true"
-                className={cn(
-                    'absolute inset-y-1 start-1 w-[calc(50%-0.25rem)] rounded-lg bg-ink',
-                    'transition-transform duration-300 ease-out',
-                    mode === 'browse' && 'translate-x-full',
-                )}
-            />
-
-            {TABS.map((tab) => (
-                <button
-                    key={tab.value}
-                    id={`${idPrefix}-tab-${tab.value}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={mode === tab.value}
-                    aria-controls={`${idPrefix}-panel-${tab.value}`}
-                    tabIndex={mode === tab.value ? 0 : -1}
-                    title={tab.hint}
-                    onClick={() => onChange(tab.value)}
-                    className={cn(
-                        'focus-ring-panel relative z-10 rounded-lg px-6 py-2 font-mono text-[11px] uppercase tracking-[0.14em]',
-                        'transition-colors duration-200',
-                        mode === tab.value ? 'text-cream' : 'text-ink/55 hover:text-ink',
-                    )}
-                >
-                    {tab.label}
-                </button>
-            ))}
-        </div>
-    )
-}
-
 export function DiscoverPage(): ReactElement
 {
     const [params] = useSearchParams()
     const [mode, setMode] = useState<Mode>('foryou')
-    const idPrefix = useId()
     const current = TABS.find((tab) => tab.value === mode)
 
     return (
-        <div className="flex flex-col gap-6">
-            <PageHeader
-                eyebrow="Workspace"
-                title="Discover"
-                description="One queue, two sources. Work the ranked feed until it is empty, or search the whole catalogue — either way the brief on the right tells you why a tender is worth your afternoon."
-                actions={<ModeSwitch mode={mode} onChange={setMode} idPrefix={idPrefix} />}
-            />
-
-            <p className="-mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">{current?.hint}</p>
-
-            <div
-                role="tabpanel"
-                id={`${idPrefix}-panel-${mode}`}
-                aria-labelledby={`${idPrefix}-tab-${mode}`}
+        <TooltipProvider delayDuration={300}>
+            <Tabs
+                value={mode}
+                onValueChange={(next) =>
+                {
+                    if (isMode(next)) {
+                        setMode(next)
+                    }
+                }}
+                className="flex flex-col gap-6"
             >
-                {mode === 'foryou' && <ForYouDeck />}
-                {mode === 'browse' && <BrowseList initialSearch={params.get('search') ?? ''} />}
-            </div>
-        </div>
+                <PageHeader
+                    eyebrow="Workspace"
+                    title="Discover"
+                    description="One queue, two sources. Work the ranked feed until it is empty, or search the whole catalogue — either way the brief on the right tells you why a tender is worth your afternoon."
+                    actions={<SegmentedTabsList tabs={TABS} value={mode} label="Discover source" />}
+                />
+
+                <p className="-mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45">
+                    <span aria-hidden="true" className="size-1.5 rounded-full bg-wax/70" />
+                    {current?.hint}
+                </p>
+
+                <TabsContent value="foryou" className={PANEL}>
+                    <ForYouDeck />
+                </TabsContent>
+                <TabsContent value="browse" className={PANEL}>
+                    <BrowseList initialSearch={params.get('search') ?? ''} />
+                </TabsContent>
+            </Tabs>
+        </TooltipProvider>
     )
 }

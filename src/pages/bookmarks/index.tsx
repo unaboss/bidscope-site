@@ -8,8 +8,15 @@ import type { UrgencyBand } from '@/components/feed/signals'
 import { QueueSkeleton } from '@/components/feed/skeleton'
 import { InlineError, LiveStatus } from '@/components/feed/workspace'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { IconArrowRight, IconBookmark } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { StackedBar } from '@/components/ui/stacked-bar'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { UndoToast } from '@/components/ui/undo-toast'
 import { DeadlineRow } from '@/pages/bookmarks/deadline-row'
 import { cn } from '@/lib/utils'
 import type { Tender } from '@/types'
@@ -65,21 +72,23 @@ interface PressureTileProps
     readonly label: string
     readonly accent: string
     readonly active: boolean
+    /** What the band means; shown as a tooltip. */
+    readonly note?: string
     readonly onClick: () => void
 }
 
 /** A count that is also a filter — the summary and the control are one thing. */
-function PressureTile({ count, label, accent, active, onClick }: PressureTileProps): ReactElement
+function PressureTile({ count, label, accent, active, note, onClick }: PressureTileProps): ReactElement
 {
-    return (
+    const tile = (
         <button
             type="button"
             onClick={onClick}
             aria-pressed={active}
             className={cn(
-                'focus-ring group relative flex min-w-[6.5rem] shrink-0 flex-col gap-1 overflow-hidden rounded-xl border',
+                'focus-ring-panel group relative flex min-w-[6.5rem] shrink-0 flex-col gap-1.5 overflow-hidden rounded-xl border',
                 'px-4 py-3 text-start transition-[border-color,box-shadow,background-color] duration-200',
-                active ? 'border-navy/40 bg-panel shadow-panel' : 'border-line bg-panel/60 hover:bg-panel',
+                active ? 'border-navy/40 bg-panel shadow-panel ring-1 ring-navy/10' : 'border-line bg-cream/60 hover:border-neutral-300 hover:bg-panel',
             )}
         >
             <span
@@ -91,8 +100,24 @@ function PressureTile({ count, label, accent, active, onClick }: PressureTilePro
                 )}
             />
             <span className="font-serif text-2xl font-semibold leading-none tabular-nums text-ink">{count}</span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">{label}</span>
+            <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
+                <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', accent)} />
+                {label}
+            </span>
         </button>
+    )
+
+    if (note === undefined) {
+        return tile
+    }
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>{tile}</TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[16rem] whitespace-normal font-sans text-xs normal-case tracking-normal">
+                {note}
+            </TooltipContent>
+        </Tooltip>
     )
 }
 
@@ -238,145 +263,159 @@ export function BookmarksPage(): ReactElement
     }
 
     return (
-        <div className="flex flex-col gap-6">
-            <LiveStatus message={status} />
+        <TooltipProvider delayDuration={300}>
+            <div className="flex flex-col gap-6">
+                <LiveStatus message={status} />
 
-            <PageHeader
-                eyebrow="Workspace"
-                title="Shortlist"
-                description="Everything you saved, laid out by how much time is left. The board runs from what closes first to what you are only watching."
-                actions={(
-                    <div className="flex flex-wrap items-center gap-2">
-                        {overdue > 0 && <Badge tone="danger">{overdue} closed</Badge>}
-                        {closingSoon > 0 && <Badge tone="warn">{closingSoon} closing this week</Badge>}
-                        <Badge tone="navy">{loading ? '…' : `${sorted.length} saved`}</Badge>
-                    </div>
-                )}
-            />
+                <PageHeader
+                    eyebrow="Workspace"
+                    title="Shortlist"
+                    description="Everything you saved, laid out by how much time is left. The board runs from what closes first to what you are only watching."
+                    actions={(
+                        <div className="flex flex-wrap items-center gap-2">
+                            {overdue > 0 && <Badge tone="danger" dot>{overdue} closed</Badge>}
+                            {closingSoon > 0 && <Badge tone="warn" dot>{closingSoon} closing this week</Badge>}
+                            <Badge tone="navy">{loading ? '…' : `${sorted.length} saved`}</Badge>
+                        </div>
+                    )}
+                />
 
-            {loading && <QueueSkeleton rows={4} />}
+                {loading && <QueueSkeleton rows={4} />}
 
-            {!loading && error !== '' && <InlineError message={error} />}
+                {!loading && error !== '' && <InlineError message={error} />}
 
-            {!loading && sorted.length === 0 && (
-                <FeedEmpty
-                    eyebrow="Shortlist"
-                    icon={<IconBookmark className="size-6" />}
-                    title="Nothing on the shortlist yet"
-                    description="Saving a tender puts it on this board and starts the clock. Deadlines group themselves, the nearest ones rise to the top, and briefing dates come along for the ride."
-                >
-                    <Link
-                        to="/discover"
-                        className="focus-ring inline-flex items-center gap-2 rounded-md bg-navy px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-cream transition-colors hover:bg-navy/90"
+                {!loading && sorted.length === 0 && (
+                    <FeedEmpty
+                        eyebrow="Shortlist"
+                        icon={<IconBookmark className="size-6" />}
+                        title="Nothing on the shortlist yet"
+                        description="Saving a tender puts it on this board and starts the clock. Deadlines group themselves, the nearest ones rise to the top, and briefing dates come along for the ride."
                     >
-                        Find tenders to save
-                        <IconArrowRight className="size-3.5" />
-                    </Link>
-                </FeedEmpty>
-            )}
+                        <Button asChild>
+                            <Link to="/discover">
+                                Find tenders to save
+                                <IconArrowRight className="size-3.5" />
+                            </Link>
+                        </Button>
+                    </FeedEmpty>
+                )}
 
-            {!loading && sorted.length > 0 && (
-                <>
-                    <div className="flex flex-col gap-3">
-                        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/40">
-                            {sorted.length} saved
-                            {trackedValue > 0 && <span className="text-ink/30"> · {compactRand(trackedValue)} tracked</span>}
-                        </p>
+                {!loading && sorted.length > 0 && (
+                    <>
+                        <Card asChild className="rounded-2xl">
+                            <section aria-label="Shortlist summary" className="flex flex-col gap-4 p-4 sm:p-5">
+                                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                                    <p className="font-serif text-lg font-semibold tracking-tight text-ink">
+                                        {sorted.length} on the board
+                                    </p>
+                                    {trackedValue > 0 && (
+                                        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45">
+                                            <span className="tabular-nums text-ink/70">{compactRand(trackedValue)}</span> tracked value
+                                        </p>
+                                    )}
+                                </div>
 
-                        <div
-                            role="group"
-                            aria-label="Filter the board by closing window"
-                            className="flex gap-2 overflow-x-auto"
-                        >
-                            <PressureTile
-                                count={sorted.length}
-                                label="All"
-                                accent="bg-ink"
-                                active={activeFilter === 'all'}
-                                onClick={() => setFilter('all')}
-                            />
-                            {GROUPS.map((group) =>
+                                <StackedBar
+                                    segments={GROUPS.map((group) => ({
+                                        key: group.band,
+                                        value: grouped.get(group.band)?.length ?? 0,
+                                        tone: group.accent,
+                                    }))}
+                                    highlight={activeFilter === 'all' ? null : activeFilter}
+                                />
+
+                                <ScrollArea className="-mx-1 w-[calc(100%+0.5rem)]">
+                                    <div
+                                        role="group"
+                                        aria-label="Filter the board by closing window"
+                                        className="flex w-max gap-2 p-1 pb-3"
+                                    >
+                                        <PressureTile
+                                            count={sorted.length}
+                                            label="All"
+                                            accent="bg-ink"
+                                            active={activeFilter === 'all'}
+                                            onClick={() => setFilter('all')}
+                                        />
+                                        {GROUPS.map((group) =>
+                                        {
+                                            const count = grouped.get(group.band)?.length ?? 0
+
+                                            if (count === 0) {
+                                                return null
+                                            }
+
+                                            return (
+                                                <PressureTile
+                                                    key={group.band}
+                                                    count={count}
+                                                    label={group.short}
+                                                    accent={group.accent}
+                                                    note={group.note}
+                                                    active={activeFilter === group.band}
+                                                    onClick={() => setFilter(group.band)}
+                                                />
+                                            )
+                                        })}
+                                    </div>
+                                    <ScrollBar orientation="horizontal" />
+                                </ScrollArea>
+                            </section>
+                        </Card>
+
+                        <div className="flex flex-col gap-8">
+                            {visibleGroups.map((group) =>
                             {
-                                const count = grouped.get(group.band)?.length ?? 0
-
-                                if (count === 0) {
-                                    return null
-                                }
+                                const rows = grouped.get(group.band) ?? []
 
                                 return (
-                                    <PressureTile
-                                        key={group.band}
-                                        count={count}
-                                        label={group.short}
-                                        accent={group.accent}
-                                        active={activeFilter === group.band}
-                                        onClick={() => setFilter(group.band)}
-                                    />
+                                    <section key={group.band} aria-label={group.title} className="flex flex-col gap-3">
+                                        <div className="sticky top-16 z-10 -mx-1 flex flex-col gap-1 bg-cream/90 px-1 py-2 backdrop-blur">
+                                            <div className="flex items-center gap-3">
+                                                <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', group.accent)} />
+                                                <h2 className="font-serif text-base font-semibold tracking-tight text-ink">
+                                                    {group.title}
+                                                </h2>
+                                                <Separator className="flex-1 bg-line" />
+                                                <Badge tone="neutral" className="tabular-nums">
+                                                    {rows.length}
+                                                    <span className="sr-only"> tender{rows.length === 1 ? '' : 's'}</span>
+                                                </Badge>
+                                            </div>
+                                            <p className="ps-5 text-xs leading-snug text-ink/50">{group.note}</p>
+                                        </div>
+
+                                        <ul className="flex flex-col gap-2.5">
+                                            {rows.map((tender) => (
+                                                <DeadlineRow
+                                                    key={tender.id}
+                                                    tender={tender}
+                                                    expanded={expandedId === tender.id}
+                                                    busy={busyId === tender.id}
+                                                    retiring={retiringId === tender.id}
+                                                    onToggle={() => setExpandedId((current) => (current === tender.id ? null : tender.id))}
+                                                    onRemove={() => void remove(tender.id)}
+                                                />
+                                            ))}
+                                        </ul>
+                                    </section>
                                 )
                             })}
                         </div>
-                    </div>
+                    </>
+                )}
 
-                    {undo !== null && (
-                        <div
-                            role="status"
-                            className="animate-reveal flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-panel px-4 py-3 shadow-panel"
-                        >
-                            <p className="text-sm text-ink/65">
-                                Removed <span className="font-semibold text-ink">{undo.title}</span> from your shortlist.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => void restore()}
-                                className="focus-ring-panel ms-auto rounded-md px-1 font-mono text-[10px] uppercase tracking-[0.14em] text-navy underline transition-colors hover:text-navy/70"
-                            >
-                                Undo
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="flex flex-col gap-8">
-                        {visibleGroups.map((group) =>
-                        {
-                            const rows = grouped.get(group.band) ?? []
-
-                            return (
-                                <section key={group.band} aria-label={group.title} className="flex flex-col gap-3">
-                                    <div className="sticky top-16 z-10 -mx-1 flex flex-col gap-1 bg-cream/90 px-1 py-2 backdrop-blur">
-                                        <div className="flex items-baseline gap-3">
-                                            <h2 className="font-serif text-base font-semibold tracking-tight text-ink">
-                                                {group.title}
-                                            </h2>
-                                            <span
-                                                aria-hidden="true"
-                                                className={cn('h-[2px] flex-1 rounded-full opacity-25', group.accent)}
-                                            />
-                                            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/40">
-                                                {rows.length}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs leading-snug text-ink/45">{group.note}</p>
-                                    </div>
-
-                                    <ul className="flex flex-col gap-2.5">
-                                        {rows.map((tender) => (
-                                            <DeadlineRow
-                                                key={tender.id}
-                                                tender={tender}
-                                                expanded={expandedId === tender.id}
-                                                busy={busyId === tender.id}
-                                                retiring={retiringId === tender.id}
-                                                onToggle={() => setExpandedId((current) => (current === tender.id ? null : tender.id))}
-                                                onRemove={() => void remove(tender.id)}
-                                            />
-                                        ))}
-                                    </ul>
-                                </section>
-                            )
-                        })}
-                    </div>
-                </>
-            )}
-        </div>
+                {undo !== null && (
+                    <UndoToast
+                        key={undo.id}
+                        durationMs={UNDO_MS}
+                        onUndo={() => void restore()}
+                        onDismiss={() => setUndo(null)}
+                    >
+                        Removed <span className="font-semibold text-ink">{undo.title}</span> from your shortlist.
+                    </UndoToast>
+                )}
+            </div>
+        </TooltipProvider>
     )
 }

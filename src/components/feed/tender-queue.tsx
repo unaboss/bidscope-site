@@ -5,7 +5,10 @@ import { Countdown, DeadlineMeter, URGENCY_SPINE } from '@/components/feed/deadl
 import type { QueueItem } from '@/components/feed/queue-item'
 import { compactRand, urgencyOf } from '@/components/feed/signals'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { IconBookmark, IconClose } from '@/components/ui/icons'
+import { Kbd } from '@/components/ui/kbd'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 /** Rows past this point start immediately; a long stagger stops feeling alive. */
@@ -31,6 +34,9 @@ function targetRow(rows: readonly HTMLButtonElement[], index: number, key: strin
 interface QuickActionProps
 {
     readonly label: string
+    /** Visible tooltip text; the accessible name stays the fuller `label`. */
+    readonly hint: string
+    readonly shortcut: string
     readonly pressed?: boolean
     readonly active: boolean
     readonly disabled: boolean
@@ -41,27 +47,34 @@ interface QuickActionProps
 /**
  * Icon affordance living beside the row rather than inside it — a button cannot
  * nest in a button, and triage has to be possible without opening the brief.
+ * The tooltip names the action and teaches its key.
  */
-function QuickAction({ label, pressed, active, disabled, onClick, children }: QuickActionProps): ReactElement
+function QuickAction({ label, hint, shortcut, pressed, active, disabled, onClick, children }: QuickActionProps): ReactElement
 {
     return (
-        <button
-            type="button"
-            title={label}
-            aria-label={label}
-            aria-pressed={pressed}
-            disabled={disabled}
-            tabIndex={active ? 0 : -1}
-            onClick={onClick}
-            className={cn(
-                'focus-ring-panel grid size-8 shrink-0 place-items-center rounded-md border border-transparent',
-                'text-ink/30 transition-colors hover:border-line hover:bg-ink/5 hover:text-ink',
-                'disabled:pointer-events-none disabled:opacity-40',
-                pressed === true && 'border-warn/25 bg-warn/10 text-warn hover:text-warn',
-            )}
-        >
-            {children}
-        </button>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={label}
+                    aria-pressed={pressed}
+                    disabled={disabled}
+                    tabIndex={active ? 0 : -1}
+                    onClick={onClick}
+                    className={cn(
+                        'focus-ring-panel border border-transparent text-ink/30 hover:border-line hover:bg-ink/5 hover:text-ink',
+                        pressed === true && 'border-warn/25 bg-warn/10 text-warn hover:border-warn/35 hover:bg-warn/15 hover:text-warn',
+                    )}
+                >
+                    {children}
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="flex items-center gap-2">
+                {hint}
+                <Kbd className="border-cream/20 bg-cream/10 text-cream shadow-none">{shortcut}</Kbd>
+            </TooltipContent>
+        </Tooltip>
     )
 }
 
@@ -210,7 +223,7 @@ export function TenderQueue({
                                 'group relative flex items-stretch overflow-hidden rounded-xl border bg-panel',
                                 'transition-[border-color,box-shadow] duration-200',
                                 isActive
-                                    ? 'border-navy/40 shadow-panel'
+                                    ? 'border-navy/40 shadow-panel ring-1 ring-navy/10'
                                     : 'border-line hover:border-navy/25 hover:shadow-panel',
                             )}
                         >
@@ -268,8 +281,8 @@ export function TenderQueue({
                                 <DeadlineMeter urgency={urgency} />
 
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                    {isSaved && <Badge tone="warn">Saved</Badge>}
-                                    {item.relevant && <Badge tone="success">Relevant</Badge>}
+                                    {isSaved && <Badge tone="warn" dot>Saved</Badge>}
+                                    {item.relevant && <Badge tone="success" dot>Relevant</Badge>}
                                     {item.service !== null && <Badge tone="navy">{item.service}</Badge>}
                                     {item.reAdvert && <Badge tone="danger">Re-advert</Badge>}
                                 </div>
@@ -284,17 +297,21 @@ export function TenderQueue({
                             <div className="flex shrink-0 flex-col items-center justify-center gap-1 pe-2 ps-1">
                                 <QuickAction
                                     label={isSaved ? `Remove ${item.title} from bookmarks` : `Save ${item.title}`}
+                                    hint={isSaved ? 'Unsave' : 'Save'}
+                                    shortcut="S"
                                     pressed={isSaved}
                                     active={isActive}
                                     disabled={isBusy}
                                     onClick={() => onSave(item.id)}
                                 >
-                                    <IconBookmark className="size-4" />
+                                    <IconBookmark className="size-4" fill={isSaved ? 'currentColor' : 'none'} />
                                 </QuickAction>
 
                                 {onDismiss !== undefined && (
                                     <QuickAction
                                         label={`Dismiss ${item.title}`}
+                                        hint="Dismiss"
+                                        shortcut="X"
                                         active={isActive}
                                         disabled={isBusy}
                                         onClick={() => onDismiss(item.id)}

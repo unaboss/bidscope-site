@@ -1,7 +1,12 @@
-import { useId, useState } from 'react'
-import type { ReactElement, SVGProps } from 'react'
-import { Input, Select } from '@/components/ui/controls'
+import { useId, useRef, useState } from 'react'
+import type { ReactElement } from 'react'
+import { Search } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/controls'
 import { IconClose, IconFunnel } from '@/components/ui/icons'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
 export const PROVINCES = [
@@ -31,6 +36,12 @@ export interface BrowseFilterState
 
 export const EMPTY_FILTERS: BrowseFilterState = { search: '', province: '', windowDays: '0', sort: 'relevant' }
 
+/**
+ * Radix Select reserves the empty string for "no selection", so "all
+ * provinces" travels through the control as a sentinel and back out as ''.
+ */
+const ALL_PROVINCES = '__all__'
+
 /** Count of filters that actually narrow the catalogue. Sort is not one. */
 export function activeFilterCount(value: BrowseFilterState): number
 {
@@ -44,28 +55,6 @@ function labelOf(options: ReadonlyArray<{ value: string, label: string }>, value
     return options.find((option) => option.value === value)?.label ?? value
 }
 
-function IconSearch(props: Omit<SVGProps<SVGSVGElement>, 'children'>): ReactElement
-{
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            width="1em"
-            height="1em"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.75}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            focusable="false"
-            {...props}
-        >
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-        </svg>
-    )
-}
-
 interface ChipProps
 {
     readonly label: string
@@ -76,19 +65,55 @@ interface ChipProps
 function Chip({ label, onClear }: ChipProps): ReactElement
 {
     return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-navy/20 bg-navy/[0.06] ps-3 text-navy">
+        <span className="animate-reveal inline-flex items-center gap-1 rounded-full border border-navy/20 bg-navy/[0.06] ps-3 text-navy">
             <span className="font-mono text-[10px] uppercase tracking-[0.12em]">{label}</span>
             <button
                 type="button"
                 onClick={onClear}
                 aria-label={`Remove filter: ${label}`}
-                className="focus-ring grid size-6 place-items-center rounded-full text-navy/60 transition-colors hover:bg-navy/10 hover:text-navy"
+                className="focus-ring-panel grid size-6 place-items-center rounded-full text-navy/60 transition-colors hover:bg-navy/10 hover:text-navy"
             >
                 <IconClose className="size-3" />
             </button>
         </span>
     )
 }
+
+interface FilterSelectProps
+{
+    readonly label: string
+    readonly value: string
+    readonly options: ReadonlyArray<{ value: string, label: string }>
+    readonly onChange: (next: string) => void
+    readonly active: boolean
+}
+
+/** One narrowing control: a small caption over a themed Radix select. */
+function FilterSelect({ label, value, options, onChange, active }: FilterSelectProps): ReactElement
+{
+    const captionId = useId()
+
+    return (
+        <div className="flex min-w-0 flex-col gap-1.5">
+            <span id={captionId} className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">{label}</span>
+            <Select value={value} onValueChange={onChange}>
+                <SelectTrigger aria-labelledby={captionId} className={cn(active && 'border-navy/30 bg-navy/[0.03]')}>
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    )
+}
+
+const PROVINCE_OPTIONS: ReadonlyArray<{ value: string, label: string }> = [
+    { value: ALL_PROVINCES, label: 'All provinces' },
+    ...PROVINCES.map((name) => ({ value: name, label: name })),
+]
 
 interface BrowseFiltersProps
 {
@@ -110,6 +135,7 @@ export function BrowseFilters({ value, onChange, resultCount }: BrowseFiltersPro
 {
     const [open, setOpen] = useState(false)
     const panelId = useId()
+    const searchRef = useRef<HTMLInputElement>(null)
     const active = activeFilterCount(value)
 
     function patch(change: Partial<BrowseFilterState>): void
@@ -118,29 +144,43 @@ export function BrowseFilters({ value, onChange, resultCount }: BrowseFiltersPro
     }
 
     return (
-        <div className="flex flex-col gap-3 rounded-2xl border border-line bg-panel p-3 shadow-panel sm:p-4">
+        <Card className="flex flex-col gap-3 rounded-2xl p-3 sm:p-4">
             <div className="flex items-center gap-2">
                 <span className="relative flex-1">
-                    <IconSearch className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink/35" />
+                    <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink/35" />
                     <Input
+                        ref={searchRef}
                         type="search"
                         value={value.search}
                         onChange={(event) => patch({ search: event.target.value })}
                         placeholder="Search titles, buyers and references…"
                         aria-label="Search tenders"
-                        className="h-11 ps-9 text-[15px]"
+                        className="h-11 pe-10 ps-9 text-[15px] [&::-webkit-search-cancel-button]:hidden"
                     />
+                    {value.search.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() =>
+                            {
+                                patch({ search: '' })
+                                searchRef.current?.focus()
+                            }}
+                            aria-label="Clear search"
+                            className="focus-ring-panel absolute end-2 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-ink/40 transition-colors hover:bg-ink/5 hover:text-ink"
+                        >
+                            <IconClose className="size-3.5" />
+                        </button>
+                    )}
                 </span>
 
-                <button
-                    type="button"
+                <Button
+                    variant="secondary"
                     onClick={() => setOpen((current) => !current)}
                     aria-expanded={open}
                     aria-controls={panelId}
                     className={cn(
-                        'focus-ring-panel inline-flex h-11 shrink-0 items-center gap-2 rounded-md border px-3',
-                        'font-mono text-[10px] uppercase tracking-[0.14em] transition-colors sm:hidden',
-                        active > 0 ? 'border-navy/30 bg-navy/5 text-navy' : 'border-line text-ink/60 hover:bg-ink/5',
+                        'focus-ring-panel h-11 shrink-0 px-3 text-[10px] sm:hidden',
+                        active > 0 && 'border-navy/30 bg-navy/5 text-navy hover:bg-navy/10',
                     )}
                 >
                     <IconFunnel className="size-3.5" />
@@ -150,40 +190,44 @@ export function BrowseFilters({ value, onChange, resultCount }: BrowseFiltersPro
                             {active}
                         </span>
                     )}
-                </button>
+                </Button>
             </div>
 
-            <div id={panelId} className={cn('gap-2 sm:grid sm:grid-cols-3', open ? 'grid' : 'hidden')}>
-                <Select
-                    value={value.province}
-                    onChange={(event) => patch({ province: event.target.value })}
-                    aria-label="Filter by province"
-                >
-                    <option value="">All provinces</option>
-                    {PROVINCES.map((name) => <option key={name} value={name}>{name}</option>)}
-                </Select>
-
-                <Select
+            <div id={panelId} className={cn('gap-3 sm:grid sm:grid-cols-3', open ? 'animate-reveal grid' : 'hidden')}>
+                <FilterSelect
+                    label="Province"
+                    value={value.province.length > 0 ? value.province : ALL_PROVINCES}
+                    options={PROVINCE_OPTIONS}
+                    onChange={(next) => patch({ province: next === ALL_PROVINCES ? '' : next })}
+                    active={value.province.length > 0}
+                />
+                <FilterSelect
+                    label="Closing window"
                     value={value.windowDays}
-                    onChange={(event) => patch({ windowDays: event.target.value })}
-                    aria-label="Filter by closing window"
-                >
-                    {WINDOWS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </Select>
-
-                <Select
+                    options={WINDOWS}
+                    onChange={(next) => patch({ windowDays: next })}
+                    active={value.windowDays !== '0'}
+                />
+                <FilterSelect
+                    label="Sort by"
                     value={value.sort}
-                    onChange={(event) => patch({ sort: event.target.value })}
-                    aria-label="Sort tenders"
-                >
-                    {SORTS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </Select>
+                    options={SORTS}
+                    onChange={(next) => patch({ sort: next })}
+                    active={false}
+                />
             </div>
 
             <div className="flex flex-wrap items-center gap-2 border-t border-line/70 pt-3">
-                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">
-                    {resultCount === null ? 'Searching…' : `${resultCount} tenders`}
-                    <span className="text-ink/30"> · {labelOf(SORTS, value.sort)}</span>
+                <p aria-live="polite" className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">
+                    {resultCount === null
+                        ? (
+                            <>
+                                <span aria-hidden="true" className="nt-skeleton inline-block h-2.5 w-16 rounded-full" />
+                                <span className="sr-only">Searching…</span>
+                            </>
+                        )
+                        : <Badge tone="navy" className="tabular-nums">{resultCount} tenders</Badge>}
+                    <span className="text-ink/35">{labelOf(SORTS, value.sort)}</span>
                 </p>
 
                 {value.search.length > 0 && (
@@ -197,15 +241,16 @@ export function BrowseFilters({ value, onChange, resultCount }: BrowseFiltersPro
                 )}
 
                 {active > 1 && (
-                    <button
-                        type="button"
+                    <Button
+                        variant="link"
+                        size="sm"
                         onClick={() => onChange({ ...EMPTY_FILTERS, sort: value.sort })}
-                        className="focus-ring-panel ms-auto rounded-md px-1 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45 underline transition-colors hover:text-ink"
+                        className="focus-ring-panel ms-auto h-auto px-1 text-[10px] text-ink/50 underline hover:text-ink"
                     >
                         Clear all
-                    </button>
+                    </Button>
                 )}
             </div>
-        </div>
+        </Card>
     )
 }

@@ -1,5 +1,6 @@
 import { useId } from 'react'
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
+import { ChevronDown, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { DeadlineMeter, URGENCY_TEXT } from '@/components/feed/deadline-meter'
 import { fromTender } from '@/components/feed/queue-item'
@@ -7,6 +8,8 @@ import { compactRand, urgencyOf } from '@/components/feed/signals'
 import type { UrgencyTone } from '@/components/feed/signals'
 import { TenderCaseFile } from '@/components/tender/tender-case-file'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Tender } from '@/types'
@@ -42,43 +45,6 @@ function dateParts(value: string | null): DateParts | null
     }
 }
 
-interface RowActionProps
-{
-    readonly onClick: () => void
-    readonly disabled: boolean
-    readonly tone?: 'default' | 'danger'
-    readonly expanded?: boolean
-    readonly controls?: string
-    readonly children: ReactNode
-}
-
-/**
- * Row-level action. Hand-rolled rather than the shared `Button`, because these
- * need a danger hover and `cn()` does no conflict resolution.
- */
-function RowAction({ onClick, disabled, tone = 'default', expanded, controls, children }: RowActionProps): ReactElement
-{
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={disabled}
-            aria-expanded={expanded}
-            aria-controls={controls}
-            className={cn(
-                'focus-ring-panel inline-flex h-8 items-center justify-center gap-1.5 rounded-md border px-3',
-                'font-mono text-[10px] uppercase tracking-[0.14em] transition-colors',
-                'disabled:pointer-events-none disabled:opacity-40',
-                tone === 'danger'
-                    ? 'border-line text-ink/45 hover:border-danger/35 hover:bg-danger/[0.07] hover:text-danger'
-                    : 'border-line text-ink/65 hover:border-navy/30 hover:bg-navy/5 hover:text-navy',
-            )}
-        >
-            {children}
-        </button>
-    )
-}
-
 interface DeadlineRowProps
 {
     readonly tender: Tender
@@ -104,81 +70,107 @@ export function DeadlineRow({ tender, expanded, busy, retiring, onToggle, onRemo
     const parts = dateParts(tender.closing_date)
     const value = compactRand(item.estimatedValue)
     const panelId = useId()
+    const titleId = useId()
 
     return (
         <li className={cn(retiring ? 'animate-retire' : 'animate-rise')}>
-            <article
+            <Card
+                asChild
                 className={cn(
-                    'overflow-hidden rounded-xl border bg-panel transition-[border-color,box-shadow] duration-200',
-                    expanded ? 'border-navy/35 shadow-panel' : 'border-line hover:border-navy/25 hover:shadow-panel',
+                    'relative overflow-hidden shadow-none transition-[border-color,box-shadow] duration-200',
+                    expanded ? 'border-navy/35 shadow-panel ring-1 ring-navy/10' : 'hover:border-navy/25 hover:shadow-panel',
                 )}
             >
-                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
-                    <div
-                        className={cn(
-                            'flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border py-2',
-                            CHIP[urgency.tone],
-                        )}
-                    >
-                        {parts === null
-                            ? <span aria-hidden="true" className="font-mono text-lg leading-none">—</span>
-                            : (
-                                <>
-                                    <span aria-hidden="true" className="font-serif text-xl font-semibold leading-none tabular-nums">
-                                        {parts.day}
-                                    </span>
-                                    <span aria-hidden="true" className="font-mono text-[9px] uppercase tracking-[0.14em]">
-                                        {parts.month}
-                                    </span>
-                                </>
+                <article aria-labelledby={titleId}>
+                    <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+                        <div
+                            aria-hidden="true"
+                            className={cn(
+                                'flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 self-start rounded-lg border py-2',
+                                CHIP[urgency.tone],
                             )}
-                    </div>
-
-                    <div className="flex min-w-0 flex-col gap-2">
-                        <h3 className="font-serif text-[15px] font-semibold leading-snug text-ink">
-                            <Link to={`/tenders/${tender.id}`} className="focus-ring-panel rounded-sm hover:text-navy">
-                                {item.title}
-                            </Link>
-                        </h3>
-
-                        <p className="truncate text-[13px] leading-snug text-ink/55">
-                            {item.organ}
-                            {item.province !== null && ` · ${item.province}`}
-                        </p>
-
-                        <div className="flex flex-wrap items-center gap-1.5">
-                            {item.relevant && <Badge tone="success">Relevant</Badge>}
-                            {item.service !== null && <Badge tone="navy">{item.service}</Badge>}
-                            {item.reAdvert && <Badge tone="danger">Re-advert</Badge>}
-                            {item.briefing !== null && <Badge tone="warn">Briefing {item.briefing}</Badge>}
+                        >
+                            {parts === null
+                                ? <span className="font-mono text-lg leading-none">—</span>
+                                : (
+                                    <>
+                                        <span className="font-serif text-xl font-semibold leading-none tabular-nums">{parts.day}</span>
+                                        <span className="font-mono text-[9px] uppercase tracking-[0.14em]">{parts.month}</span>
+                                    </>
+                                )}
                         </div>
 
-                        <DeadlineMeter urgency={urgency} className="mt-0.5" />
+                        <div className="flex min-w-0 flex-col gap-2">
+                            <h3 id={titleId} className="font-serif text-[15px] font-semibold leading-snug text-ink">
+                                <Link to={`/tenders/${tender.id}`} className="focus-ring-panel rounded-sm hover:text-navy">
+                                    {item.title}
+                                </Link>
+                            </h3>
 
-                        <p className="flex flex-wrap items-center gap-x-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/40">
-                            <span className={URGENCY_TEXT[urgency.tone]}>
-                                {tender.closing_date !== null ? `closes ${formatDate(tender.closing_date)} · ${urgency.label}` : urgency.label}
-                            </span>
-                            {value !== null && <span className="tabular-nums">{value}</span>}
-                        </p>
+                            <p className="truncate text-[13px] leading-snug text-ink/55">
+                                {item.organ}
+                                {item.province !== null && ` · ${item.province}`}
+                            </p>
+
+                            {(item.relevant || item.service !== null || item.reAdvert || item.briefing !== null) && (
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    {item.relevant && <Badge tone="success" dot>Relevant</Badge>}
+                                    {item.service !== null && <Badge tone="navy">{item.service}</Badge>}
+                                    {item.reAdvert && <Badge tone="danger">Re-advert</Badge>}
+                                    {item.briefing !== null && <Badge tone="warn" dot>Briefing {item.briefing}</Badge>}
+                                </div>
+                            )}
+
+                            <DeadlineMeter urgency={urgency} className="mt-0.5" />
+
+                            <p className="flex flex-wrap items-center gap-x-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/40">
+                                <span className={URGENCY_TEXT[urgency.tone]}>
+                                    {tender.closing_date !== null ? `closes ${formatDate(tender.closing_date)} · ${urgency.label}` : urgency.label}
+                                </span>
+                                {value !== null && <span className="tabular-nums">{value}</span>}
+                            </p>
+                        </div>
+
+                        <div className="col-span-2 flex flex-row gap-2 sm:col-span-1 sm:flex-col">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={onToggle}
+                                disabled={busy}
+                                aria-expanded={expanded}
+                                aria-controls={panelId}
+                                className={cn(
+                                    'focus-ring-panel text-[10px] text-ink/65 hover:border-navy/30 hover:bg-navy/5 hover:text-navy',
+                                    expanded && 'border-navy/30 bg-navy/5 text-navy',
+                                )}
+                            >
+                                {expanded ? 'Hide' : 'Details'}
+                                <ChevronDown
+                                    aria-hidden="true"
+                                    className={cn('size-3.5 transition-transform duration-200', expanded && 'rotate-180')}
+                                />
+                            </Button>
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={onRemove}
+                                disabled={busy}
+                                aria-label={`Remove ${item.title} from your shortlist`}
+                                className="focus-ring-panel text-[10px]"
+                            >
+                                <Trash2 aria-hidden="true" className="size-3.5" />
+                                Remove
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="col-span-2 flex flex-row gap-2 sm:col-span-1 sm:flex-col">
-                        <RowAction onClick={onToggle} disabled={busy} expanded={expanded} controls={panelId}>
-                            {expanded ? 'Hide' : 'Details'}
-                        </RowAction>
-                        <RowAction onClick={onRemove} disabled={busy} tone="danger">
-                            Remove
-                        </RowAction>
-                    </div>
-                </div>
-
-                {expanded && (
-                    <div id={panelId} className="animate-reveal border-t border-line bg-cream/50 p-4">
-                        <TenderCaseFile tender={tender} bookmarked onToggleBookmark={onRemove} />
-                    </div>
-                )}
-            </article>
+                    {expanded && (
+                        <div id={panelId} className="animate-reveal border-t border-line bg-cream/50 p-4">
+                            <TenderCaseFile tender={tender} bookmarked onToggleBookmark={onRemove} />
+                        </div>
+                    )}
+                </article>
+            </Card>
         </li>
     )
 }
