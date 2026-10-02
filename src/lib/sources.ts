@@ -108,17 +108,24 @@ function resolveUrl(raw: string, homepage: string): string | null
 }
 
 /**
- * The best link to open for a tender — mirrors the legacy `build_deep_link`.
+ * The best link to open for a tender — ported from the legacy `build_deep_link`.
  *
- * A tender-specific URL captured by ingest (a detail-page permalink, or a
- * document download such as eTenders' `home/Download` blob URL) is preferred
- * and marked specific; otherwise the source's homepage is returned, marked
- * non-specific. Only `http(s)` links are ever returned; an unknown source with
- * no usable URL yields `null`.
+ * A tender-specific URL is preferred and marked specific; otherwise the source's
+ * homepage is returned, marked non-specific (eTenders always take this path
+ * because they publish no per-tender page). Only `http(s)` links are ever
+ * returned; an unknown source with no usable URL yields `null`.
  */
 export function buildDeepLink(source: string | null, supportDocuments: string | null): DeepLink | null
 {
     const homepage = source === null ? undefined : SOURCE_SITES[source]?.url
+
+    // eTenders has no per-tender page — its detail view is an AJAX modal on the
+    // listing page (see the legacy links.py). A document link is not "the tender
+    // page", so an eTenders tender always links to the tender list, never a file.
+    if (source === 'etenders') {
+        return homepage === undefined ? null : { url: homepage, isSpecific: false }
+    }
+
     const raw = tenderSourceUrl(supportDocuments)
 
     if (raw !== null) {
