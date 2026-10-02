@@ -84,6 +84,11 @@
         height: 100%;
     }
 
+    /* Base scale, upsized 1.5x. Every rem-based utility scales with it. */
+    html {
+        font-size: 150%;
+    }
+
     body {
         margin: 0;
         background-color: rgb(var(--color-cream));
