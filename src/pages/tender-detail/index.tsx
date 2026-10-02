@@ -154,7 +154,7 @@ export function TenderDetailPage()
     }
 
     const site = sourceSite(tender.source)
-    const deepLink = buildDeepLink(tender.source, tender.support_documents)
+    const deepLink = buildDeepLink(tender.source, tender.support_documents, tender.raw_id)
     const refVerified = isVerifiedRef(tender.tender_no)
     const showSourceSearchHint = tender.source === 'etenders' || tender.source === 'ocds'
     const docs = documents(tender)
