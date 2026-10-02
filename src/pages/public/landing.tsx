@@ -24,16 +24,16 @@ interface Slide
 
 const SLIDES: readonly Slide[] = [
     {
-        src: '/shots/procurement-1.webp',
-        alt: 'Clients dashboard — relevant public-sector clients by province, with tender counts and estimated value',
+        src: '/shots/app-discover.png',
+        alt: 'For-You feed ranking live tenders to fit your business',
     },
     {
-        src: '/shots/procurement-2.webp',
-        alt: 'Province drill-down showing each client and its tenders by work type and estimated value',
+        src: '/shots/app-clients.png',
+        alt: 'Clients view showing public-sector buyers by province, with tender counts',
     },
     {
-        src: '/shots/procurement-3.webp',
-        alt: 'Deadline calendar showing closing and briefing dates for the month',
+        src: '/shots/app-calendar.png',
+        alt: 'Deadline calendar showing briefing and closing dates for bookmarked tenders',
     },
 ]
 
@@ -220,14 +220,16 @@ function SiteNav()
                     ))}
                 </nav>
 
-                <div className="hidden items-center gap-4 sm:flex">
+                <div className="flex items-center gap-3 sm:gap-4">
                     <a
                         href="/login"
                         className="font-mono text-[11px] uppercase tracking-[0.14em] text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     >
                         Sign in
                     </a>
-                    <Button size="sm" onClick={() => navigate('/join')}>Start free trial</Button>
+                    <div className="hidden sm:block">
+                        <Button size="sm" onClick={() => navigate('/join')}>Start free trial</Button>
+                    </div>
                 </div>
 
                 <button
