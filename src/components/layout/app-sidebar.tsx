@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from '@/components/layout/nav-items'
+import { IconLogout } from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
 
 interface AppSidebarProps
@@ -55,6 +56,15 @@ export function AppSidebar({ onNavigate }: AppSidebarProps)
                     <br />
                     Phase 0
                 </p>
+                <form method="post" action="/logout">
+                    <button
+                        type="submit"
+                        className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-cream/70 transition-colors hover:bg-cream/10 hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                    >
+                        <IconLogout className="size-4 shrink-0" />
+                        <span>Sign out</span>
+                    </button>
+                </form>
             </div>
         </div>
     )
