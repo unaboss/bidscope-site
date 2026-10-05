@@ -38,6 +38,31 @@ export interface Tender
     /** Present only on `/api/bookmarks` responses. */
     readonly bookmark_note?: string | null
     readonly bookmarked_at?: string | null
+    /** Present on `/api/tenders/:id` only. */
+    readonly eligibility?: EligibilitySummary
+}
+
+export type GateState =
+    | 'meets_verified'
+    | 'meets_declared'
+    | 'fails'
+    | 'requirement_not_found'
+    | 'tender_unreadable'
+    | 'profile_unknown'
+
+export interface GateSummary
+{
+    readonly type: string
+    readonly subjectKey: string
+    readonly state: GateState
+    readonly evidence: string | null
+    readonly asAt: string | null
+}
+
+export interface EligibilitySummary
+{
+    readonly state: GateState
+    readonly gates: GateSummary[]
 }
 
 export interface BuyerSummary
@@ -188,6 +213,7 @@ export interface FeedItem
     readonly reAdvert: number
     readonly score: number
     readonly reasons: string[]
+    readonly eligibility: EligibilitySummary
 }
 
 export interface FeedResponse

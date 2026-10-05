@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Countdown, DeadlineMeter, URGENCY_SPINE } from '@/components/feed/deadline-meter'
 import type { QueueItem } from '@/components/feed/queue-item'
 import { compactRand, urgencyOf } from '@/components/feed/signals'
+import { EligibilityChip } from '@/components/tender/eligibility-chip'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { IconBookmark, IconClose } from '@/components/ui/icons'
@@ -285,6 +286,7 @@ export function TenderQueue({
                                     {item.relevant && <Badge tone="success" dot>Relevant</Badge>}
                                     {item.service !== null && <Badge tone="navy">{item.service}</Badge>}
                                     {item.reAdvert && <Badge tone="danger">Re-advert</Badge>}
+                                    <EligibilityChip state={item.eligibility} />
                                 </div>
 
                                 {reason !== undefined && (

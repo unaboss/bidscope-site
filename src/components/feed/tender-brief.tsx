@@ -4,6 +4,7 @@ import { Countdown, DeadlineMeter } from '@/components/feed/deadline-meter'
 import { DeadlineDial } from '@/components/feed/deadline-dial'
 import type { QueueItem } from '@/components/feed/queue-item'
 import { urgencyOf } from '@/components/feed/signals'
+import { EligibilityChip } from '@/components/tender/eligibility-chip'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
@@ -105,8 +106,9 @@ export function TenderBrief({
                             {item.province !== null && <span className="text-ink/40"> · {item.province}</span>}
                         </p>
 
-                        {(item.relevant || item.service !== null || item.reAdvert || saved) && (
+                        {(item.relevant || item.service !== null || item.reAdvert || saved || item.eligibility !== undefined) && (
                             <div className="flex flex-wrap items-center gap-1.5">
+                                <EligibilityChip state={item.eligibility} />
                                 {item.relevant && <Badge tone="success" dot>Relevant</Badge>}
                                 {item.service !== null && <Badge tone="navy">{item.service}</Badge>}
                                 {item.reAdvert && <Badge tone="danger">Re-advertised</Badge>}

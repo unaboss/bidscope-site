@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
+import { EligibilityChip } from '@/components/tender/eligibility-chip'
+import { RequirementsSection } from '@/components/tender/requirements-section'
 import { Button } from '@/components/ui/button'
 import { formatDate, formatZAR, daysUntil, relativeDays } from '@/lib/format'
 import { serviceLabel } from '@/lib/service-lines'
@@ -55,6 +57,7 @@ export function TenderCaseFile({ tender, bookmarked = false, onToggleBookmark }:
                     </Badge>
                     {tender.re_advert === 1 && <Badge tone="danger">Re-advertised</Badge>}
                     {serviceLabel(tender.service_line) !== null && <Badge tone="success">{serviceLabel(tender.service_line)}</Badge>}
+                    <EligibilityChip state={tender.eligibility?.state} />
                     {bookmarked && <Badge tone="warn">Bookmarked</Badge>}
                 </div>
                 <h2 className="text-lg font-semibold text-ink">{tender.title ?? 'Untitled tender'}</h2>
@@ -92,6 +95,8 @@ export function TenderCaseFile({ tender, bookmarked = false, onToggleBookmark }:
             {tender.description !== null && (
                 <p className="text-sm leading-relaxed text-ink/70">{tender.description}</p>
             )}
+
+            {tender.eligibility !== undefined && <RequirementsSection eligibility={tender.eligibility} />}
 
             <section className="flex flex-col gap-2">
                 <h3 className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink/50">Contact</h3>

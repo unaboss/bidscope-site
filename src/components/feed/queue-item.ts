@@ -1,7 +1,7 @@
 import { urgencyOf } from '@/components/feed/signals'
 import { daysUntil, formatDate } from '@/lib/format'
 import { serviceLabel } from '@/lib/service-lines'
-import type { FeedItem, Tender } from '@/types'
+import type { FeedItem, GateState, Tender } from '@/types'
 
 /**
  * The single shape the Discover queue renders.
@@ -29,6 +29,8 @@ export interface QueueItem
     readonly relevant: boolean
     /** Plain-language "why this" lines, most telling first. */
     readonly reasons: readonly string[]
+    /** Overall gate state; absent in Browse, where rows carry no eligibility. */
+    readonly eligibility?: GateState
 }
 
 const UNTITLED = 'Untitled tender'
@@ -61,6 +63,7 @@ export function fromFeedItem(item: FeedItem): QueueItem
         reAdvert: item.reAdvert === 1,
         relevant: item.relevance === 'relevant',
         reasons: item.reasons,
+        eligibility: item.eligibility.state,
     }
 }
 
