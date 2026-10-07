@@ -163,6 +163,28 @@ export interface SettingsInput
     readonly providerKey?: string
 }
 
+/** A typed company fact the eligibility layer evaluates tenders against. */
+export interface Claim
+{
+    readonly id: string
+    readonly claimType: string
+    readonly subjectKey: string
+    readonly value: Readonly<Record<string, unknown>>
+    readonly status: 'declared' | 'verified'
+    readonly source: string
+    readonly asAt: string
+    readonly validUntil: string | null
+}
+
+/** One claim as sent to `PUT /api/claims` (always stored as declared). */
+export interface ClaimInput
+{
+    readonly claimType: string
+    readonly subjectKey: string
+    readonly value: Readonly<Record<string, unknown>>
+    readonly validUntil: string | null
+}
+
 export interface CategoryBucket
 {
     readonly code: string

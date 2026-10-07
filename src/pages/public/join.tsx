@@ -3,30 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/api'
 import { CategoryPicker } from '@/components/onboarding/category-picker'
 import { Button } from '@/components/ui/button'
+import { ChipGroup } from '@/components/ui/chip-group'
 import { Input } from '@/components/ui/controls'
 import { Field } from '@/components/ui/field'
-import { cn } from '@/lib/utils'
+import { CIDB_CLASSES, CONSTRUCTION_BUCKETS, parseCidbGrades, PROVINCES } from '@/lib/profile'
 import type { Taxonomy } from '@/types'
-
-const PROVINCES: readonly string[] = [
-    'Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo',
-    'Mpumalanga', 'Northern Cape', 'North West', 'Western Cape',
-]
-
-/** CIDB classes shown when a construction/electrical category is selected. */
-const CIDB_CLASSES: ReadonlyArray<{ readonly code: string, readonly label: string }> = [
-    { code: 'GB', label: 'GB — General building' },
-    { code: 'CE', label: 'CE — Civil engineering' },
-    { code: 'SQ', label: 'SQ — Specialist (non-structural)' },
-    { code: 'ME', label: 'ME — Mechanical' },
-    { code: 'EP', label: 'EP — Electrical (engineering)' },
-    { code: 'EB', label: 'EB — Electrical (building)' },
-    { code: 'SO', label: 'SO — Specialist (structural)' },
-    { code: 'SF', label: 'SF — Specialist (functional)' },
-    { code: 'SK', label: 'SK — Specialist (trade)' },
-]
-
-const CONSTRUCTION_BUCKETS = new Set(['CW', 'EE'])
 
 const FIRST_MONTH_DISCOUNT = 0.8
 
@@ -70,60 +51,6 @@ function priceForProvinces(count: number): number
     }
 
     return 799
-}
-
-/** Converts the string grade inputs into the numeric record the API expects. */
-function parseCidbGrades(input: Record<string, string>): Record<string, number>
-{
-    const grades: Record<string, number> = {}
-
-    for (const [code, value] of Object.entries(input))
-    {
-        const grade = Number(value)
-
-        if (value.trim() !== '' && Number.isFinite(grade) && grade >= 0) {
-            grades[code] = Math.trunc(grade)
-        }
-    }
-
-    return grades
-}
-
-/** A labelled set of toggle chips backed by a string[] value. */
-function ChipGroup(props: {
-    readonly label: string
-    readonly options: ReadonlyArray<{ readonly value: string, readonly text: string }>
-    readonly selected: readonly string[]
-    readonly onToggle: (value: string) => void
-})
-{
-    return (
-        <fieldset className="flex flex-col gap-2">
-            <legend className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">{props.label}</legend>
-            <div className="flex flex-wrap gap-2">
-                {props.options.map((option) => {
-                    const active = props.selected.includes(option.value)
-
-                    return (
-                        <button
-                            key={option.value}
-                            type="button"
-                            aria-pressed={active}
-                            onClick={() => props.onToggle(option.value)}
-                            className={cn(
-                                'rounded-md border px-3 py-1.5 text-xs transition-colors',
-                                active
-                                    ? 'border-navy bg-navy text-cream'
-                                    : 'border-line bg-panel text-ink/70 hover:bg-ink/5',
-                            )}
-                        >
-                            {option.text}
-                        </button>
-                    )
-                })}
-            </div>
-        </fieldset>
-    )
 }
 
 export function JoinPage()

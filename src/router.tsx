@@ -9,6 +9,7 @@ import { DiscoverPage } from '@/pages/discover'
 import { CheckoutPage } from '@/pages/public/checkout'
 import { JoinPage } from '@/pages/public/join'
 import { LandingPage } from '@/pages/public/landing'
+import { ProfilePage } from '@/pages/profile'
 import { TenderDetailPage } from '@/pages/tender-detail'
 
 /** The signed-in application, framed by the navy rail + header. */
@@ -21,6 +22,8 @@ function PrivateRoutes()
                 <Route path="discover" element={<DiscoverPage />} />
                 <Route path="bookmarks" element={<BookmarksPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<Navigate to="/profile" replace />} />
                 <Route path="billing" element={<BillingPage />} />
                 <Route path="tenders/:id" element={<TenderDetailPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

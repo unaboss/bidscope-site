@@ -1,4 +1,4 @@
-import type { Account, BuyerProfile, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse } from '@/types'
+import type { Account, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse } from '@/types'
 
 /** URL of the subscribable iCalendar feed for the current org. */
 export const CALENDAR_FEED_URL = '/api/calendar/feed.ics'
@@ -294,6 +294,33 @@ export async function saveSettings(input: SettingsInput): Promise<Settings>
     }
 
     return await response.json() as Settings
+}
+
+/** The org's current eligibility claims. */
+export async function getClaims(signal?: AbortSignal): Promise<Claim[]>
+{
+    const body = await getJson<{ claims: Claim[] }>('/api/claims', signal)
+
+    return body.claims
+}
+
+/**
+ * Replaces the org's user-editable claims (everything except `cidb_grade`).
+ * `skipped` lists claims left alone because a verified row already exists.
+ */
+export async function saveClaims(claims: readonly ClaimInput[]): Promise<{ claims: Claim[], skipped: Array<{ claimType: string }> }>
+{
+    const response = await fetch('/api/claims', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ claims }),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Could not save eligibility details (${response.status})`)
+    }
+
+    return await response.json() as { claims: Claim[], skipped: Array<{ claimType: string }> }
 }
 
 /** Recent compliance registration checks. */
