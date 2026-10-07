@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { getAccount, getCategories, getClaims, getSettings, saveClaims, saveSettings } from '@/api'
 import { CategoryPicker } from '@/components/onboarding/category-picker'
+import { CsdUpload, type CsdApplied } from '@/components/profile/csd-upload'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ChipGroup } from '@/components/ui/chip-group'
@@ -14,6 +15,7 @@ import {
     needsCidb,
     parseCidbGrades,
     PROVINCES,
+    type CsdImport,
     type EligibilityAnswers,
 } from '@/lib/profile'
 import { SERVICE_LABELS } from '@/lib/service-lines'
@@ -106,6 +108,7 @@ export function ProfilePage()
 {
     const [stored, setStored] = useState<Settings | null>(null)
     const [claims, setClaims] = useState<Claim[]>([])
+    const [csdImport, setCsdImport] = useState<CsdImport | null>(null)
     const [form, setForm] = useState<FormState | null>(null)
     const [taxonomy, setTaxonomy] = useState<Taxonomy | null>(null)
     const [account, setAccount] = useState<Account | null>(null)
@@ -161,6 +164,31 @@ export function ProfilePage()
         return [...CIDB_CLASSES, ...extra]
     }, [form?.cidbGrades])
 
+    function applyCsd(applied: CsdApplied): void
+    {
+        if (form === null) {
+            return
+        }
+
+        const { report } = applied
+
+        setForm({
+            ...form,
+            companyName: report.legalName,
+            categories: [...new Set([...form.categories, ...applied.categories])],
+            eligibility: { ...form.eligibility, csdRegistered: report.active, taxCompliant: report.taxCompliant },
+        })
+        setCsdImport({
+            supplierNumber: report.supplierNumber,
+            taxCompliant: report.taxCompliant,
+            bbeeCert: applied.bbeeCurrent && report.bbee !== null && report.bbee.expires !== null
+                ? { status: report.bbee.status, expires: report.bbee.expires }
+                : null,
+        })
+        setError('')
+        setMessage('Filled in from your CSD report. Check the details, add any CIDB grades and your B-BBEE level, then save.')
+    }
+
     async function save(): Promise<void>
     {
         if (form === null || stored === null) {
@@ -178,10 +206,11 @@ export function ProfilePage()
 
         try {
             const settings = await saveSettings(toSettingsInput(form, stored))
-            const result = await saveClaims(claimsForSave(claims, form.eligibility))
+            const result = await saveClaims(claimsForSave(claims, form.eligibility, csdImport))
 
             setStored(settings)
             setClaims(result.claims)
+            setCsdImport(null)
             setForm(toForm(settings, result.claims))
             setMessage(result.skipped.length > 0
                 ? 'Profile saved. Some details were already verified from your documents and were kept as verified.'
@@ -209,6 +238,13 @@ export function ProfilePage()
 
             {!loading && form !== null && stored !== null && (
                 <div className="flex max-w-3xl flex-col gap-6">
+                    <Section
+                        title="Set up from your CSD report"
+                        description="Upload your CSD Registration Summary Report (csd.gov.za → Reports) and we fill in your company, tender categories, CSD and tax status for you to check."
+                    >
+                        <CsdUpload taxonomy={taxonomy} onApply={applyCsd} />
+                    </Section>
+
                     <Section title="Company" description="The kinds of work you do drive which tenders appear in your feed.">
                         <Field label="Company name" htmlFor="profile-name">
                             <Input

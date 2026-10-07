@@ -183,6 +183,8 @@ export interface ClaimInput
     readonly subjectKey: string
     readonly value: Readonly<Record<string, unknown>>
     readonly validUntil: string | null
+    /** Typed by the user, or read from their CSD report. */
+    readonly source: 'user' | 'csd_pdf'
 }
 
 export interface CategoryBucket

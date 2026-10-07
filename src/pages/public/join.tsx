@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/api'
 import { CategoryPicker } from '@/components/onboarding/category-picker'
+import { CsdUpload } from '@/components/profile/csd-upload'
 import { Button } from '@/components/ui/button'
 import { ChipGroup } from '@/components/ui/chip-group'
 import { Input } from '@/components/ui/controls'
@@ -239,6 +240,21 @@ export function JoinPage()
                         <p className="mt-2 text-sm text-ink/60">Pick the kinds of work you do — this drives which tenders we surface.</p>
 
                         <div className="mt-8 flex flex-col gap-6">
+                            <div className="flex flex-col gap-3 rounded-xl border border-line bg-panel p-4">
+                                <p className="text-sm text-ink/70">
+                                    <strong className="font-medium text-ink">Have your CSD report?</strong> Upload it and we&rsquo;ll fill in your company and categories.
+                                </p>
+                                <CsdUpload
+                                    taxonomy={taxonomy}
+                                    note="Your CSD and tax status are saved when you upload this report on your Profile page after signing in."
+                                    onApply={(applied) => setCompany({
+                                        ...company,
+                                        companyName: applied.report.legalName,
+                                        categories: [...new Set([...company.categories, ...applied.categories])],
+                                    })}
+                                />
+                            </div>
+
                             <Field label="Company name" htmlFor="companyName" required>
                                 <Input id="companyName" value={company.companyName} onChange={(event) => setCompany({ ...company, companyName: event.target.value })} autoComplete="organization" />
                             </Field>
