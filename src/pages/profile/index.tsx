@@ -87,7 +87,7 @@ function toggle(list: readonly string[], value: string): string[]
 function Section(props: { readonly title: string, readonly description?: string, readonly children: ReactNode })
 {
     return (
-        <section className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-6 shadow-panel">
+        <section className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5 shadow-panel sm:p-6">
             <div className="flex flex-col gap-1">
                 <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">{props.title}</h2>
                 {props.description !== undefined && <p className="text-sm text-ink/60">{props.description}</p>}

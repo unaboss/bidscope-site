@@ -39,8 +39,8 @@ function Row({ label, children }: { readonly label: string, readonly children: R
 {
     return (
         <div className="flex flex-col gap-0.5 border-b border-line/60 py-2 last:border-0 sm:flex-row sm:gap-4">
-            <dt className="w-40 shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">{label}</dt>
-            <dd className="text-sm text-ink">{children}</dd>
+            <dt className="shrink-0 font-mono sm:w-36 text-[10px] uppercase tracking-[0.14em] text-ink/50">{label}</dt>
+            <dd className="min-w-0 text-sm text-ink [overflow-wrap:anywhere]">{children}</dd>
         </div>
     )
 }
@@ -48,7 +48,7 @@ function Row({ label, children }: { readonly label: string, readonly children: R
 function Panel({ title, children }: { readonly title: string, readonly children: ReactNode })
 {
     return (
-        <section className="flex flex-col gap-2 rounded-xl border border-line bg-panel p-5 shadow-panel">
+        <section className="flex min-w-0 flex-col gap-2 rounded-xl border border-line bg-panel p-5 shadow-panel">
             <h2 className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">{title}</h2>
             {children}
         </section>
@@ -63,7 +63,6 @@ export function TenderDetailPage()
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(true)
     const [copied, setCopied] = useState(false)
-    const [copiedLink, setCopiedLink] = useState(false)
     const bookmarks = useBookmarks()
 
     useEffect(() =>
@@ -109,22 +108,6 @@ export function TenderDetailPage()
         }
     }
 
-    /** Copies this tender's shareable URL, so it can be sent and opened directly. */
-    async function copyLink(): Promise<void>
-    {
-        if (id === undefined) {
-            return
-        }
-
-        try {
-            await navigator.clipboard.writeText(`${window.location.origin}/tenders/${encodeURIComponent(id)}`)
-            setCopiedLink(true)
-            setTimeout(() => setCopiedLink(false), 1500)
-        } catch {
-            // clipboard unavailable; silently ignore
-        }
-    }
-
     const back = (
         <button
             type="button"
@@ -154,7 +137,7 @@ export function TenderDetailPage()
     }
 
     const site = sourceSite(tender.source)
-    const deepLink = buildDeepLink(tender.source, tender.support_documents, tender.raw_id)
+    const deepLink = buildDeepLink(tender.source, tender.support_documents, tender.tender_no)
     const refVerified = isVerifiedRef(tender.tender_no)
     const showSourceSearchHint = tender.source === 'etenders' || tender.source === 'ocds'
     const docs = documents(tender)
@@ -176,7 +159,7 @@ export function TenderDetailPage()
             {back}
 
             {/* Cover sheet */}
-            <header className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-6 shadow-panel">
+            <header className="flex flex-col gap-4 rounded-xl border border-line bg-panel p-5 shadow-panel sm:p-6">
                 <div className="flex flex-wrap items-center gap-2">
                     <Badge tone="navy">{site?.name ?? tender.source ?? 'unknown'}</Badge>
                     {tender.relevance === 'relevant' && <Badge tone="success">Relevant</Badge>}
@@ -186,7 +169,7 @@ export function TenderDetailPage()
                     {tender.re_advert === 1 && <Badge tone="danger">Re-advertised</Badge>}
                 </div>
 
-                <h1 className="font-serif text-2xl font-semibold leading-snug text-ink sm:text-3xl">
+                <h1 className="font-serif text-2xl font-semibold leading-snug text-ink [overflow-wrap:anywhere] sm:text-3xl">
                     {tender.title ?? 'Untitled tender'}
                 </h1>
 
@@ -242,18 +225,20 @@ export function TenderDetailPage()
                             {deepLink.isSpecific ? 'Open tender' : `Open on ${site?.name ?? tender.source ?? 'source'}`}
                         </a>
                     )}
-                    <button
-                        type="button"
-                        onClick={() => void copyLink()}
-                        className="inline-flex h-10 items-center rounded-md border border-line bg-panel px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
-                    >
-                        {copiedLink ? 'Link copied' : 'Copy link'}
-                    </button>
+                    {tender.tender_no !== null && (
+                        <button
+                            type="button"
+                            onClick={() => void copyRef(tender.tender_no ?? '')}
+                            className="inline-flex h-10 items-center rounded-md border border-line bg-panel px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                        >
+                            {copied ? 'Tender number copied' : 'Copy tender number'}
+                        </button>
+                    )}
                 </div>
             </header>
 
-            <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-2">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                <div className="min-w-0">
                     <Panel title="Details">
                         <dl className="flex flex-col">
                             <Row label="Client">{tender.organ_of_state ?? '—'}</Row>
@@ -271,13 +256,13 @@ export function TenderDetailPage()
                     </Panel>
                 </div>
 
-                <div className="flex flex-col gap-6">
+                <div className="grid min-w-0 gap-6 sm:grid-cols-2 xl:flex xl:flex-col">
                     <Panel title="Contact">
                         <p className="text-sm text-ink">
                             {tender.contact_person ?? 'Not listed'}
                         </p>
                         {tender.email !== null && (
-                            <a href={`mailto:${tender.email}`} className="text-sm text-navy underline">{tender.email}</a>
+                            <a href={`mailto:${tender.email}`} className="text-sm text-navy underline [overflow-wrap:anywhere]">{tender.email}</a>
                         )}
                         {tender.telephone !== null && <p className="text-sm text-ink/70">{tender.telephone}</p>}
                     </Panel>

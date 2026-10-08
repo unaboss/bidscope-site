@@ -250,8 +250,9 @@ export function TenderQueue({
                                 onClick={() => onSelect(item.id)}
                                 className="focus-ring-panel flex min-w-0 flex-1 flex-col gap-2.5 py-3.5 pe-2 ps-4 text-start sm:ps-5"
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <span className="flex min-w-0 items-start gap-2.5">
+                                {/* The countdown wraps under the title when the row is too narrow for both. */}
+                                <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+                                    <span className="flex min-w-0 flex-1 basis-56 items-start gap-2.5">
                                         {ranked && (
                                             <span
                                                 aria-hidden="true"
@@ -325,7 +326,7 @@ export function TenderQueue({
                         </div>
 
                         {isActive && (
-                            <div className="animate-reveal mt-2 xl:hidden">{renderInlineBrief(item)}</div>
+                            <div className="animate-reveal mt-2 2xl:hidden">{renderInlineBrief(item)}</div>
                         )}
                     </li>
                 )

@@ -12,18 +12,18 @@ interface WorkspaceProps
 /**
  * The Discover frame: a scrolling queue beside a brief that stays put.
  *
- * The split only appears at `xl`, where the app rail still leaves room for two
- * readable columns. Below it the brief folds into the queue, under the row it
+ * The split only appears at `2xl`: the 1.5x type scale makes the rail and
+ * brief wide enough that narrower screens leave the queue no readable column. Below it the brief folds into the queue, under the row it
  * belongs to, so small screens get one column and no modal.
  */
 export function Workspace({ queue, brief }: WorkspaceProps): ReactElement
 {
     return (
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,25rem)]">
+        <div className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
             <div className="min-w-0">{queue}</div>
             <aside
                 aria-label="Tender brief"
-                className="hidden xl:sticky xl:top-20 xl:block xl:max-h-[calc(100dvh-7rem)] xl:overflow-y-auto"
+                className="hidden 2xl:sticky 2xl:top-20 2xl:block 2xl:max-h-[calc(100dvh-7rem)] 2xl:overflow-y-auto"
             >
                 {brief}
             </aside>

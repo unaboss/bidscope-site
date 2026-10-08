@@ -208,7 +208,7 @@ export function DiscoverPage(): ReactElement
                 <PageHeader
                     eyebrow="Workspace"
                     title="Discover"
-                    description="One queue, two sources. Work the ranked feed until it is empty, or search the whole catalogue — either way the brief on the right tells you why a tender is worth your afternoon."
+                    description="One queue, two sources. Work the ranked feed until it is empty, or search the whole catalogue — either way the brief tells you why a tender is worth your afternoon."
                     actions={<SegmentedTabsList tabs={TABS} value={mode} label="Discover source" />}
                 />
 

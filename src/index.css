@@ -84,9 +84,14 @@
         height: 100%;
     }
 
-    /* Base scale, upsized 1.5x. Every rem-based utility scales with it. */
+    /*
+     * Base scale: 1.5x on wide screens, easing down to ~1x on phones. Every
+     * rem-based utility scales with it, while breakpoints stay in px, so a flat
+     * 1.5x left phones and laptops with two-thirds of the room the layouts
+     * assume. Expressed in rem so the reader's browser font setting still counts.
+     */
     html {
-        font-size: 150%;
+        font-size: clamp(1rem, 0.89rem + 0.64vw, 1.5rem);
     }
 
     body {

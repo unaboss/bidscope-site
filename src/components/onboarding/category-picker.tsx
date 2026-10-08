@@ -147,20 +147,39 @@ export function CategoryPicker({ taxonomy, value, onChange }: CategoryPickerProp
             {related.length > 0 && <CategorySection title="Related to your selection" categories={related} selected={selected} onToggle={toggle} />}
 
             {searching && browsing && (
-                <p className="text-sm text-ink/60">No categories match &ldquo;{query.trim()}&rdquo; — browse the groups below.</p>
+                <p className="text-sm text-ink/60">No categories match &ldquo;{query.trim()}&rdquo;. Open a group below to browse.</p>
             )}
 
+            {/* Groups fold away: open, all ~90 chips made the page several screens long on a phone. */}
             {browsing && (
-                <div className="flex flex-col gap-6">
-                    {taxonomy.buckets.map((bucket) => (
-                        <CategorySection
-                            key={bucket.code}
-                            title={bucket.label}
-                            categories={taxonomy.categories.filter((category) => category.bucket === bucket.code)}
-                            selected={selected}
-                            onToggle={toggle}
-                        />
-                    ))}
+                <div className="flex flex-col divide-y divide-line rounded-lg border border-line">
+                    {taxonomy.buckets.map((bucket) =>
+                    {
+                        const categories = taxonomy.categories.filter((category) => category.bucket === bucket.code)
+                        const picked = categories.filter((category) => selected.has(category.label)).length
+
+                        return (
+                            <details key={bucket.code} className="group">
+                                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy [&::-webkit-details-marker]:hidden">
+                                    <span className="min-w-0">{bucket.label}</span>
+                                    <span className="flex shrink-0 items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">
+                                        {picked > 0 ? `${picked} of ${categories.length}` : categories.length}
+                                        <span aria-hidden="true" className="transition-transform group-open:rotate-90">›</span>
+                                    </span>
+                                </summary>
+                                <div className="flex flex-wrap gap-2 px-3 pb-3">
+                                    {categories.map((category) => (
+                                        <CategoryChip
+                                            key={category.label}
+                                            label={category.label}
+                                            active={selected.has(category.label)}
+                                            onToggle={() => toggle(category.label)}
+                                        />
+                                    ))}
+                                </div>
+                            </details>
+                        )
+                    })}
                 </div>
             )}
         </div>

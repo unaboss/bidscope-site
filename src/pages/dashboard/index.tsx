@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getPortfolio } from '@/api'
 import { EmptyState } from '@/components/ui/empty-state'
-import { IconDashboard } from '@/components/ui/icons'
+import { IconArrowRight, IconDashboard } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
-import { formatDate, formatZAR } from '@/lib/format'
+import { daysUntil, formatDate, formatZAR, relativeDays } from '@/lib/format'
 import { serviceLabel } from '@/lib/service-lines'
 import { cn } from '@/lib/utils'
 import type { Portfolio, PortfolioClient, PortfolioSector } from '@/types'
@@ -18,7 +18,7 @@ const SECTOR_LABEL: Record<string, string> = {
 function Stat({ value, label }: { readonly value: number, readonly label: string })
 {
     return (
-        <div className="flex min-w-[92px] flex-col rounded-lg border border-line bg-panel px-4 py-3 shadow-panel">
+        <div className="flex min-w-0 flex-col rounded-lg border border-line bg-panel px-4 py-3 shadow-panel">
             <span className="font-serif text-xl font-semibold text-ink">{value}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">{label}</span>
         </div>
@@ -67,22 +67,30 @@ function ClientCard({ client, openRows, onToggleRow }: ClientCardProps)
                                 </span>
                                 <span className="ms-auto font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
                                     {service.count}
-                                    {service.estimatedValue !== null && ` · ${formatZAR(service.estimatedValue)}`}
+                                    {service.estimatedValue !== null && service.estimatedValue > 0 && ` · ${formatZAR(service.estimatedValue)}`}
                                 </span>
                             </button>
 
+                            {/* One bordered row per tender, so titles never run into each other. */}
                             {isOpen && (
-                                <ul className="flex flex-col gap-1 px-3 pb-2 pt-1">
+                                <ul className="mx-2 mb-2 mt-1 flex flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-panel">
                                     {service.tenders.map((tender) => (
                                         <li key={tender.id}>
                                             <Link
                                                 to={`/tenders/${tender.id}`}
-                                                className="flex items-center justify-between gap-3 rounded text-xs text-ink/80 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-panel"
+                                                className="group flex items-start gap-3 px-3 py-2.5 transition-colors hover:bg-navy/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy"
                                             >
-                                                <span>{tender.title ?? 'Untitled tender'}</span>
-                                                <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
-                                                    closes {formatDate(tender.closingDate)}
+                                                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                                                    <span className="line-clamp-3 text-sm leading-snug text-ink group-hover:underline">
+                                                        {tender.title ?? 'Untitled tender'}
+                                                    </span>
+                                                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
+                                                        {tender.closingDate !== null
+                                                            ? `Closes ${formatDate(tender.closingDate)} · ${relativeDays(daysUntil(tender.closingDate))}`
+                                                            : 'No closing date'}
+                                                    </span>
                                                 </span>
+                                                <IconArrowRight aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-ink/30 transition-colors group-hover:text-navy" />
                                             </Link>
                                         </li>
                                     ))}
@@ -111,7 +119,8 @@ function SectorBlock({ sector, openRows, onToggleRow }: SectorBlockProps)
                 {SECTOR_LABEL[sector.sector] ?? sector.sector}
                 <span className="text-ink/40">{sector.clients.length}</span>
             </h3>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {/* auto-fit: a sector with one or two clients still spans the full width. */}
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-3">
                 {sector.clients.map((client) => (
                     <ClientCard key={client.name} client={client} openRows={openRows} onToggleRow={onToggleRow} />
                 ))}
@@ -171,7 +180,7 @@ export function DashboardPage()
 
             {!loading && error === '' && portfolio !== null && (
                 <>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
                         <Stat value={portfolio.summary.clients} label="clients" />
                         <Stat value={portfolio.summary.tenders} label="tenders" />
                         <Stat value={portfolio.summary.government} label="government" />
