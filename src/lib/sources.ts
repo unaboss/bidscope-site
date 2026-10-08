@@ -23,7 +23,7 @@ const SOURCE_SITES: Record<string, { name: string; url: string }> = {
     cticc: { name: 'CTICC', url: 'https://www.cticc.co.za/' },
 }
 
-/** The eTenders opportunities listing; `?filter=1&search=<term>` pre-queries it. */
+/** The eTenders opportunities listing; `?filter=1&search=<id>` pre-queries it. */
 const ETENDERS_OPPORTUNITIES = 'https://www.etenders.gov.za/Home/opportunities'
 
 /** A tender's best outbound link: the tender itself, or just the source site. */
@@ -114,10 +114,11 @@ function resolveUrl(raw: string, homepage: string): string | null
  * The best link to open for a tender — ported from the legacy `build_deep_link`.
  *
  * eTenders/OCDS have no standalone per-tender page, but the opportunities listing
- * pre-queries via `?filter=1&search=<term>`. The term is the tender number, the
- * field its search matches: the internal eTenders id that an earlier version
- * sent did not find the tender. With no usable number it falls back to the
- * listing.
+ * pre-queries via `?filter=1&search=<id>`, which calls the site's
+ * `/Home/HomeSearch/?status=1&searchTerm=<id>`. That term must be eTenders' own
+ * numeric tender id (`raw_id`, the id its Quick Find picks): a tender number
+ * makes HomeSearch fail with an "Ajax error" pop-up. Without an id it opens the
+ * plain listing, where the copied tender number can be pasted.
  *
  * Other sources prefer a captured tender-specific URL (a detail permalink or a
  * document link), else their homepage. Only `http(s)` links are ever returned; an
@@ -126,20 +127,18 @@ function resolveUrl(raw: string, homepage: string): string | null
 export function buildDeepLink(
     source: string | null,
     supportDocuments: string | null,
-    tenderNo: string | null = null,
+    rawId: number | null = null,
 ): DeepLink | null
 {
-    const homepage = source === null ? undefined : SOURCE_SITES[source]?.url
-
     if (source === 'etenders' || source === 'ocds') {
-        if (tenderNo !== null && isVerifiedRef(tenderNo)) {
-            const params = new URLSearchParams({ filter: '1', search: tenderNo.trim() })
-
-            return { url: `${ETENDERS_OPPORTUNITIES}?${params.toString()}`, isSpecific: true }
+        if (rawId !== null && Number.isInteger(rawId) && rawId > 0) {
+            return { url: `${ETENDERS_OPPORTUNITIES}?filter=1&search=${rawId}`, isSpecific: true }
         }
 
-        return homepage === undefined ? null : { url: homepage, isSpecific: false }
+        return { url: `${ETENDERS_OPPORTUNITIES}?id=1`, isSpecific: false }
     }
+
+    const homepage = source === null ? undefined : SOURCE_SITES[source]?.url
 
     const raw = tenderSourceUrl(supportDocuments)
 
