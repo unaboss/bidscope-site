@@ -8,6 +8,8 @@ import type { QueueItem } from '@/components/feed/queue-item'
 import { prefersReducedMotion, urgencyOf } from '@/components/feed/signals'
 import { BriefSkeleton, QueueSkeleton } from '@/components/feed/skeleton'
 import { TenderBrief } from '@/components/feed/tender-brief'
+import { SwipeDeck } from '@/components/feed/swipe-deck'
+import type { SwipeDecision } from '@/components/feed/swipe-deck'
 import { TenderQueue } from '@/components/feed/tender-queue'
 import { InlineError, LiveStatus, ShortcutLegend, Workspace } from '@/components/feed/workspace'
 import { Button } from '@/components/ui/button'
@@ -25,6 +27,56 @@ const TOP_UP_AT = 4
 /** Must stay in step with the `animate-retire` duration in `index.css`. */
 const RETIRE_MS = 260
 
+type DeckView = 'swipe' | 'list'
+
+const VIEW_KEY = 'bidscope.foryou.view'
+
+/** The remembered view; swipe unless this browser last chose the list. */
+function storedView(): DeckView
+{
+    try {
+        return window.localStorage.getItem(VIEW_KEY) === 'list' ? 'list' : 'swipe'
+    } catch {
+        return 'swipe'
+    }
+}
+
+function rememberView(view: DeckView): void
+{
+    try {
+        window.localStorage.setItem(VIEW_KEY, view)
+    } catch {
+        // Private windows can refuse storage; the toggle still works for this visit.
+    }
+}
+
+const VIEWS: ReadonlyArray<{ value: DeckView, label: string }> = [
+    { value: 'swipe', label: 'Swipe' },
+    { value: 'list', label: 'List' },
+]
+
+function ViewToggle({ value, onChange }: { readonly value: DeckView, readonly onChange: (view: DeckView) => void }): ReactElement
+{
+    return (
+        <div role="group" aria-label="For You view" className="inline-flex rounded-full border border-line bg-cream/60 p-0.5">
+            {VIEWS.map((view) => (
+                <button
+                    key={view.value}
+                    type="button"
+                    aria-pressed={value === view.value}
+                    onClick={() => onChange(view.value)}
+                    className={cn(
+                        'focus-ring rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors',
+                        value === view.value ? 'bg-ink text-cream' : 'text-ink/55 hover:text-ink',
+                    )}
+                >
+                    {view.label}
+                </button>
+            ))}
+        </div>
+    )
+}
+
 function countClosingThisWeek(items: readonly QueueItem[]): number
 {
     return items.filter((item) =>
@@ -40,6 +92,8 @@ interface TriageStripProps
     readonly remaining: number
     readonly closingThisWeek: number
     readonly triaged: number
+    readonly view: DeckView
+    readonly onViewChange: (view: DeckView) => void
 }
 
 interface StatProps
@@ -74,7 +128,7 @@ function Stat({ value, label, tone = 'ink' }: StatProps): ReactElement
  * far through the pile you are. The progress bar is the reward for triaging —
  * it is the only thing on the page that fills up.
  */
-function TriageStrip({ remaining, closingThisWeek, triaged }: TriageStripProps): ReactElement
+function TriageStrip({ remaining, closingThisWeek, triaged, view, onViewChange }: TriageStripProps): ReactElement
 {
     const handled = triaged + remaining
     const progress = handled === 0 ? 0 : Math.round((triaged / handled) * 100)
@@ -89,7 +143,10 @@ function TriageStrip({ remaining, closingThisWeek, triaged }: TriageStripProps):
                         <Stat value={triaged} label="Triaged" tone="navy" />
                     </dl>
 
-                    <ShortcutLegend dismissable />
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                        {view === 'list' && <ShortcutLegend dismissable />}
+                        <ViewToggle value={view} onChange={onViewChange} />
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -136,6 +193,7 @@ export function ForYouDeck(): ReactElement
     const [retiringId, setRetiringId] = useState<string | null>(null)
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [triaged, setTriaged] = useState(0)
+    const [view, setView] = useState<DeckView>(storedView)
     const fetched = useRef(0)
     const bookmarks = useBookmarks()
 
@@ -195,13 +253,19 @@ export function ForYouDeck(): ReactElement
         setItems((current) => current.filter((entry) => entry.id !== id))
     }
 
-    async function act(id: string, action: 'save' | 'dismiss'): Promise<void>
+    /**
+     * Saves (or unsaves) or dismisses a tender and retires it from the queue.
+     * `swiped` means the card already flew off: skip the row animation, and a
+     * right swipe only ever bookmarks, never removes an existing bookmark.
+     * Resolves false when nothing happened, so a swiped card can come back.
+     */
+    async function act(id: string, action: 'save' | 'dismiss', swiped = false): Promise<boolean>
     {
         const index = items.findIndex((entry) => entry.id === id)
         const item = items[index]
 
         if (item === undefined || busyId !== null) {
-            return
+            return false
         }
 
         // Hand the brief on before the row leaves, so the pane never blinks.
@@ -215,7 +279,9 @@ export function ForYouDeck(): ReactElement
 
         try {
             if (action === 'save') {
-                await bookmarks.toggle(id)
+                if (!(swiped && wasSaved)) {
+                    await bookmarks.toggle(id)
+                }
             } else {
                 await dismissTender(id)
             }
@@ -223,18 +289,27 @@ export function ForYouDeck(): ReactElement
             if (action === 'dismiss') {
                 setStatus(`Dismissed ${title}.`)
             } else {
-                setStatus(wasSaved ? `Removed ${title} from bookmarks.` : `Saved ${title} to bookmarks.`)
+                setStatus(wasSaved && !swiped ? `Removed ${title} from bookmarks.` : `Saved ${title} to bookmarks.`)
             }
 
             setTriaged((current) => current + 1)
             setSelectedId(successor?.id ?? null)
-            await retire(id)
+
+            if (swiped) {
+                setItems((current) => current.filter((entry) => entry.id !== id))
+            } else {
+                await retire(id)
+            }
 
             if (remaining <= TOP_UP_AT && fetched.current < total) {
                 await loadMore()
             }
+
+            return true
         } catch (cause: unknown) {
             setError(cause instanceof Error ? cause.message : 'Action failed')
+
+            return false
         } finally {
             setBusyId(null)
         }
@@ -287,50 +362,73 @@ export function ForYouDeck(): ReactElement
         <div className="flex flex-col gap-4">
             <LiveStatus message={status} />
 
-            <TriageStrip remaining={queue.length} closingThisWeek={closingThisWeek} triaged={triaged} />
+            <TriageStrip
+                remaining={queue.length}
+                closingThisWeek={closingThisWeek}
+                triaged={triaged}
+                view={view}
+                onViewChange={(next) =>
+                {
+                    setView(next)
+                    rememberView(next)
+                }}
+            />
 
             {/* `useBookmarks` absorbs its own failures, so surface them here too. */}
             {error !== '' && <InlineError message={error} />}
             {error === '' && bookmarks.error !== '' && <InlineError message={bookmarks.error} />}
 
-            <Workspace
-                brief={brief}
-                queue={(
-                    <div className="flex flex-col gap-4">
-                        <TenderQueue
-                            ranked
-                            label="Tenders ranked for you"
-                            items={queue}
-                            activeId={active?.id ?? null}
-                            savedIds={bookmarks.ids}
-                            busyId={busyId}
-                            retiringId={retiringId}
-                            onSelect={setSelectedId}
-                            onSave={(id) => void act(id, 'save')}
-                            onDismiss={(id) => void act(id, 'dismiss')}
-                            renderInlineBrief={(item) => (
-                                <TenderBrief
-                                    variant="inline"
-                                    item={item}
-                                    saved={bookmarks.ids.has(item.id)}
-                                    busy={busyId === item.id}
-                                    onSave={() => void act(item.id, 'save')}
-                                    onDismiss={() => void act(item.id, 'dismiss')}
-                                />
-                            )}
-                        />
+            {view === 'swipe' && (
+                <SwipeDeck
+                    items={queue}
+                    savedIds={bookmarks.ids}
+                    total={total}
+                    triaged={triaged}
+                    busy={busyId !== null}
+                    onDecide={(id: string, decision: SwipeDecision) => act(id, decision === 'save' ? 'save' : 'dismiss', true)}
+                />
+            )}
 
-                        {fetched.current < total && (
-                            <div className="flex justify-center">
-                                <Button variant="secondary" disabled={loadingMore} onClick={() => void loadMore()}>
-                                    {loadingMore ? 'Loading…' : `Load ${Math.min(PAGE_SIZE, total - fetched.current)} more`}
-                                    <IconArrowRight className="size-3.5" />
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                )}
-            />
+            {view === 'list' && (
+                <Workspace
+                    brief={brief}
+                    queue={(
+                        <div className="flex flex-col gap-4">
+                            <TenderQueue
+                                ranked
+                                label="Tenders ranked for you"
+                                items={queue}
+                                activeId={active?.id ?? null}
+                                savedIds={bookmarks.ids}
+                                busyId={busyId}
+                                retiringId={retiringId}
+                                onSelect={setSelectedId}
+                                onSave={(id) => void act(id, 'save')}
+                                onDismiss={(id) => void act(id, 'dismiss')}
+                                renderInlineBrief={(item) => (
+                                    <TenderBrief
+                                        variant="inline"
+                                        item={item}
+                                        saved={bookmarks.ids.has(item.id)}
+                                        busy={busyId === item.id}
+                                        onSave={() => void act(item.id, 'save')}
+                                        onDismiss={() => void act(item.id, 'dismiss')}
+                                    />
+                                )}
+                            />
+
+                            {fetched.current < total && (
+                                <div className="flex justify-center">
+                                    <Button variant="secondary" disabled={loadingMore} onClick={() => void loadMore()}>
+                                        {loadingMore ? 'Loading…' : `Load ${Math.min(PAGE_SIZE, total - fetched.current)} more`}
+                                        <IconArrowRight className="size-3.5" />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                />
+            )}
         </div>
     )
 }
