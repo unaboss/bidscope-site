@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -12,29 +12,7 @@ interface NavLink
 const NAV_LINKS: readonly NavLink[] = [
     { label: 'How it works', href: '#how-it-works' },
     { label: 'Pricing', href: '#pricing' },
-    { label: 'Screens', href: '#screens' },
     { label: 'FAQ', href: '#faq' },
-]
-
-interface Slide
-{
-    readonly src: string
-    readonly alt: string
-}
-
-const SLIDES: readonly Slide[] = [
-    {
-        src: '/shots/app-discover.png',
-        alt: 'For-You feed ranking live tenders to fit your business',
-    },
-    {
-        src: '/shots/app-clients.png',
-        alt: 'Clients view showing public-sector buyers by province, with tender counts',
-    },
-    {
-        src: '/shots/app-calendar.png',
-        alt: 'Deadline calendar showing briefing and closing dates for bookmarked tenders',
-    },
 ]
 
 interface Stat
@@ -208,7 +186,7 @@ function SiteNav()
                     </span>
                 </a>
 
-                <nav aria-label="Primary" className="hidden items-center gap-8 sm:flex">
+                <nav aria-label="Primary" className="hidden items-center gap-8 lg:flex">
                     {NAV_LINKS.map((link) => (
                         <a
                             key={link.href}
@@ -223,7 +201,7 @@ function SiteNav()
                 <div className="flex items-center gap-3 sm:gap-4">
                     <a
                         href="/login"
-                        className="font-mono text-[11px] uppercase tracking-[0.14em] text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.14em] text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     >
                         Sign in
                     </a>
@@ -234,7 +212,7 @@ function SiteNav()
 
                 <button
                     type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:hidden"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white lg:hidden"
                     aria-expanded={open}
                     aria-controls={menuId}
                     aria-label={open ? 'Close menu' : 'Open menu'}
@@ -245,7 +223,7 @@ function SiteNav()
             </div>
 
             {open && (
-                <div id={menuId} className="border-t border-slate-200 bg-white px-6 pb-6 pt-2 sm:hidden">
+                <div id={menuId} className="border-t border-slate-200 bg-white px-6 pb-6 pt-2 lg:hidden">
                     <nav aria-label="Primary" className="flex flex-col gap-1">
                         {NAV_LINKS.map((link) => (
                             <a
@@ -283,8 +261,6 @@ function SiteNav()
     )
 }
 
-const AUTO_ADVANCE_MS = 4800
-
 function usePrefersReducedMotion(): boolean
 {
     const [reduced, setReduced] = useState(false)
@@ -300,198 +276,6 @@ function usePrefersReducedMotion(): boolean
     }, [])
 
     return reduced
-}
-
-/** Shortest signed distance from `active` to `index` around a loop of `total` items. */
-function slideOffset(index: number, active: number, total: number): number
-{
-    let diff = index - active
-    if (diff > total / 2) diff -= total
-    if (diff < -total / 2) diff += total
-    return diff
-}
-
-function ScreensCarousel()
-{
-    const total = SLIDES.length
-    const [active, setActive] = useState(0)
-    const [paused, setPaused] = useState(false)
-    const reducedMotion = usePrefersReducedMotion()
-
-    const goTo = useCallback((index: number) =>
-    {
-        setActive(((index % total) + total) % total)
-    }, [total])
-
-    const goPrev = useCallback(() => goTo(active - 1), [goTo, active])
-    const goNext = useCallback(() => goTo(active + 1), [goTo, active])
-
-    useEffect(() =>
-    {
-        if (reducedMotion || paused)
-        {
-            return
-        }
-
-        const timer = window.setInterval(() =>
-        {
-            setActive((current) => (current + 1) % total)
-        }, AUTO_ADVANCE_MS)
-
-        return () => window.clearInterval(timer)
-    }, [reducedMotion, paused, total, active])
-
-    const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) =>
-    {
-        if (event.key === 'ArrowLeft')
-        {
-            event.preventDefault()
-            goPrev()
-        }
-        else if (event.key === 'ArrowRight')
-        {
-            event.preventDefault()
-            goNext()
-        }
-    }
-
-    const activeSlide = SLIDES[active]!
-
-    return (
-        <div
-            role="region"
-            aria-roledescription="carousel"
-            aria-label="Product screens"
-            tabIndex={0}
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-            onFocus={() => setPaused(true)}
-            onBlur={() => setPaused(false)}
-            onKeyDown={onKeyDown}
-            className="screens-carousel relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-        >
-            <style>{`
-                .screens-carousel-card {
-                    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease, filter 500ms ease;
-                }
-                @media (prefers-reduced-motion: reduce) {
-                    .screens-carousel-card {
-                        transition: none;
-                    }
-                }
-            `}</style>
-
-            <div className="sr-only" aria-live="polite">
-                {`Screen ${active + 1} of ${total}: ${activeSlide.alt}`}
-            </div>
-
-            {reducedMotion ? (
-                <div className="mx-auto w-[150px] sm:w-[190px] md:w-[220px] lg:w-[240px]">
-                    <div
-                        role="group"
-                        aria-roledescription="slide"
-                        aria-label={`${active + 1} of ${total}`}
-                        className="overflow-hidden rounded-xl border-4 border-navy/50 bg-slate-100 shadow-[0_10px_16px_rgba(15,23,42,0.06),0_24px_48px_rgba(15,23,42,0.16)]"
-                    >
-                        <img
-                            src={activeSlide.src}
-                            alt={activeSlide.alt}
-                            loading="lazy"
-                            className="aspect-[3/5] w-full object-cover"
-                        />
-                    </div>
-                </div>
-            ) : (
-                <div className="relative mx-auto h-[300px] overflow-hidden sm:h-[360px] md:h-[420px] lg:h-[470px]">
-                    {SLIDES.map((slide, index) =>
-                    {
-                        const offset = slideOffset(index, active, total)
-                        const isActive = offset === 0
-                        const distance = Math.abs(offset)
-
-                        if (distance > 2)
-                        {
-                            return null
-                        }
-
-                        const scale = isActive ? 1 : distance === 1 ? 0.8 : 0.64
-                        const opacity = isActive ? 1 : distance === 1 ? 0.55 : 0.28
-                        const translatePercent = offset * 88
-                        const zIndex = 20 - distance
-
-                        return (
-                            <div
-                                key={slide.src}
-                                role="group"
-                                aria-roledescription="slide"
-                                aria-label={`${index + 1} of ${total}`}
-                                aria-hidden={!isActive}
-                                className="screens-carousel-card absolute left-1/2 top-1/2 w-[150px] sm:w-[190px] md:w-[220px] lg:w-[240px]"
-                                style={{
-                                    transform: `translate(-50%, -50%) translateX(${translatePercent}%) scale(${scale})`,
-                                    opacity,
-                                    zIndex,
-                                    filter: isActive ? 'none' : 'saturate(0.9) brightness(0.96)',
-                                }}
-                            >
-                                <div
-                                    className={cn(
-                                        'overflow-hidden rounded-xl border-4 bg-slate-100',
-                                        isActive
-                                            ? 'border-navy/50 shadow-[0_10px_16px_rgba(15,23,42,0.06),0_24px_48px_rgba(15,23,42,0.16)]'
-                                            : 'border-navy/25 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_8px_20px_rgba(15,23,42,0.08)]',
-                                    )}
-                                >
-                                    <img
-                                        src={slide.src}
-                                        alt={slide.alt}
-                                        loading="lazy"
-                                        className="aspect-[3/5] w-full object-cover"
-                                    />
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            )}
-
-            <div className="mt-6 flex items-center justify-center gap-4">
-                <button
-                    type="button"
-                    onClick={goPrev}
-                    aria-label="Previous screen"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition-colors hover:border-navy/40 hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                >
-                    <span aria-hidden="true">&#8592;</span>
-                </button>
-
-                <div className="flex items-center gap-2">
-                    {SLIDES.map((slide, index) => (
-                        <button
-                            key={slide.src}
-                            type="button"
-                            onClick={() => goTo(index)}
-                            aria-label={`Go to screen ${index + 1}`}
-                            aria-current={index === active}
-                            className={cn(
-                                'h-1.5 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white',
-                                index === active ? 'w-5 bg-navy' : 'w-1.5 bg-slate-300 hover:bg-slate-400',
-                            )}
-                        />
-                    ))}
-                </div>
-
-                <button
-                    type="button"
-                    onClick={goNext}
-                    aria-label="Next screen"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition-colors hover:border-navy/40 hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                >
-                    <span aria-hidden="true">&#8594;</span>
-                </button>
-            </div>
-        </div>
-    )
 }
 
 const STAT_COUNT_DURATION_MS = 1400
@@ -725,6 +509,15 @@ export function LandingPage()
 {
     const navigate = useNavigate()
 
+    // Arriving from the intro's ad, open on the plans rather than the hero.
+    useEffect(() =>
+    {
+        if (window.location.hash === '')
+        {
+            document.getElementById('pricing')?.scrollIntoView()
+        }
+    }, [])
+
     return (
         <div id="top" className="relative min-h-dvh bg-white text-slate-900">
             <div
@@ -746,10 +539,7 @@ export function LandingPage()
                         </div>
                     </div>
 
-                    <div id="screens" className="mt-10 scroll-mt-24 sm:mt-12">
-                        <ScreensCarousel />
-                    </div>
-                    <p className="mx-auto mt-4 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
+                    <p className="mx-auto mt-8 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
                         Built for South African SMEs &middot; eTenders + SOE + municipal sources
                     </p>
 
@@ -761,7 +551,7 @@ export function LandingPage()
                     <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-slate-500">
                         Three steps between signing up and your first shortlisted tender.
                     </p>
-                    <div className="mt-10 grid gap-5 sm:grid-cols-3">
+                    <div className="mx-auto mt-10 grid max-w-xl gap-5 lg:max-w-none lg:grid-cols-3">
                         <StepCard
                             step="1"
                             title="Tell us your service lines & provinces"
@@ -786,7 +576,7 @@ export function LandingPage()
                         One plan structure, priced by how many provinces you operate in.
                         Every plan starts with a 7-day free trial.
                     </p>
-                    <div className="mt-10 grid gap-5 sm:grid-cols-3">
+                    <div className="mx-auto mt-10 grid max-w-xl gap-5 lg:max-w-none lg:grid-cols-3">
                         {PLANS.map((plan) => (
                             <PricingCard key={plan.name} plan={plan} onStart={() => navigate('/join')} onSubscribe={() => navigate('/join?intent=subscribe')} />
                         ))}

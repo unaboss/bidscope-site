@@ -7,6 +7,7 @@ import { CalendarPage } from '@/pages/calendar'
 import { DashboardPage } from '@/pages/dashboard'
 import { DiscoverPage } from '@/pages/discover'
 import { CheckoutPage } from '@/pages/public/checkout'
+import { IntroPage } from '@/pages/public/intro'
 import { JoinPage } from '@/pages/public/join'
 import { LandingPage } from '@/pages/public/landing'
 import { ProfilePage } from '@/pages/profile'
@@ -32,12 +33,13 @@ function PrivateRoutes()
     )
 }
 
-/** The public trial funnel: landing, onboarding, payment. */
+/** The public trial funnel: intro and ad, pricing/landing, onboarding, payment. */
 function PublicRoutes()
 {
     return (
         <Routes>
-            <Route index element={<LandingPage />} />
+            <Route index element={<IntroPage />} />
+            <Route path="pricing" element={<LandingPage />} />
             <Route path="join" element={<JoinPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
