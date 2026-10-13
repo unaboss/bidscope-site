@@ -643,13 +643,8 @@ export function SubscribePage()
                                         <span className="flex items-center gap-2 text-sm text-[#E9DFC6]/80"><LockIcon /> Secure card payment</span>
                                         <span className="flex gap-1.5"><CardBadge label="Visa" /><CardBadge label="Mastercard" /></span>
                                     </div>
-                                    <div aria-hidden="true" className="mt-4 grid grid-cols-[1fr_auto_auto] gap-2">
-                                        <div className="rounded-md border border-dashed border-[#B08D57]/30 truncate whitespace-nowrap px-3 py-2 font-mono text-[12px] tracking-[0.12em] text-[#E9DFC6]/30">0000 0000 0000 0000</div>
-                                        <div className="rounded-md border border-dashed border-[#B08D57]/30 px-3 py-2 font-mono text-[12px] text-[#E9DFC6]/30">MM/YY</div>
-                                        <div className="rounded-md border border-dashed border-[#B08D57]/30 px-3 py-2 font-mono text-[12px] text-[#E9DFC6]/30">CVV</div>
-                                    </div>
                                     <p className="mt-3 text-[12px] leading-relaxed text-[#E9DFC6]/50">
-                                        Tap Pay and your card goes into Paystack&rsquo;s secure window right here on this page. We never see or store your card number.
+                                        <strong className="text-[#E9DFC6]/80">You enter your card after tapping Pay below</strong>, in Paystack&rsquo;s secure window that opens on this page. We never see or store your card number.
                                     </p>
                                 </div>
 
