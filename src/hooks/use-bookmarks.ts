@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { addBookmark, listBookmarks, removeBookmark } from '@/api'
+import { useFeature } from '@/lib/plan'
 
 export interface BookmarksState
 {
     readonly ids: ReadonlySet<string>
     readonly loading: boolean
     readonly error: string
+    /** False on a plan without bookmarks: nothing loads and saving explains the upgrade. */
+    readonly enabled: boolean
     readonly toggle: (tenderId: string) => Promise<void>
     readonly refresh: () => Promise<void>
 }
@@ -20,6 +23,7 @@ export function useBookmarks(): BookmarksState
     const [ids, setIds] = useState<ReadonlySet<string>>(new Set())
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const enabled = useFeature('bookmarks_calendar')
 
     const refresh = useCallback(async (signal?: AbortSignal) =>
     {
@@ -29,6 +33,12 @@ export function useBookmarks(): BookmarksState
 
     useEffect(() =>
     {
+        if (!enabled) {
+            setLoading(false)
+
+            return
+        }
+
         const controller = new AbortController()
 
         refresh(controller.signal)
@@ -41,10 +51,16 @@ export function useBookmarks(): BookmarksState
             .finally(() => setLoading(false))
 
         return () => controller.abort()
-    }, [refresh])
+    }, [refresh, enabled])
 
     const toggle = useCallback(async (tenderId: string) =>
     {
+        if (!enabled) {
+            setError('Saving tenders comes with Growth and Pro. Upgrade on the Billing page to bookmark this one.')
+
+            return
+        }
+
         const wasBookmarked = ids.has(tenderId)
 
         setIds((current) =>
@@ -82,7 +98,7 @@ export function useBookmarks(): BookmarksState
             })
             setError(cause instanceof Error ? cause.message : 'Could not update bookmark')
         }
-    }, [ids])
+    }, [ids, enabled])
 
-    return { ids, loading, error, toggle, refresh: () => refresh() }
+    return { ids, loading, error, enabled, toggle, refresh: () => refresh() }
 }

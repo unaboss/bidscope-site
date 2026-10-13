@@ -258,12 +258,21 @@ export function TenderDetailPage()
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
-                    <Button
-                        variant={isSaved ? 'secondary' : 'primary'}
-                        onClick={() => void bookmarks.toggle(tender.id)}
-                    >
-                        {isSaved ? 'Remove bookmark' : 'Bookmark'}
-                    </Button>
+                    {bookmarks.enabled ? (
+                        <Button
+                            variant={isSaved ? 'secondary' : 'primary'}
+                            onClick={() => void bookmarks.toggle(tender.id)}
+                        >
+                            {isSaved ? 'Remove bookmark' : 'Bookmark'}
+                        </Button>
+                    ) : (
+                        <Link
+                            to="/billing"
+                            className="inline-flex h-10 items-center rounded-md border border-wax/40 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-wax hover:bg-wax/10"
+                        >
+                            Bookmark · Growth plan
+                        </Link>
+                    )}
                     {deepLink !== null && (
                         <a
                             href={deepLink.url}

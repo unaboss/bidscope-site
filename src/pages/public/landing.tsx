@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ApiError, requestDiscountCode, type PricingTier } from '@/api'
+import { annualCents, isPromoTier, PROMO_MONTHS, PROMO_PERCENT, promoCents, TIER_CENTS, TIER_NAMES, type Billing } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
+import { BUTTON_GOLD, BUTTON_OUTLINE, EYEBROW, FOCUS, formatRands, GOLD_TEXT, INPUT, PANEL, PANEL_HOVER } from './brand'
 
 interface NavLink
 {
@@ -31,8 +34,8 @@ const STATS: readonly Stat[] = [
 
 interface PricingPlan
 {
+    readonly tier: PricingTier
     readonly name: string
-    readonly price: string
     readonly detail: string
     readonly features: readonly string[]
     readonly featured?: boolean
@@ -40,23 +43,32 @@ interface PricingPlan
 
 const PLANS: readonly PricingPlan[] = [
     {
-        name: 'One province',
-        price: 'R399',
-        detail: 'Operating in a single province',
-        features: ['Full tender feed & search', 'For-You ranked deck', 'Bookmarks & calendar'],
+        tier: 'single',
+        name: TIER_NAMES.single,
+        detail: 'One province · +R100 per extra province (up to 3)',
+        features: ['For-You ranked tender feed', 'AI summary of every tender', 'Search across every source'],
     },
     {
-        name: 'Two to four provinces',
-        price: 'R599',
-        detail: 'Operating across two to four provinces',
-        features: ['Everything in one province', 'Buyer profiles & value estimates', 'Opportunity optimisation', 'Priority email alerts'],
+        tier: 'mid',
+        name: TIER_NAMES.mid,
+        detail: 'Up to 4 provinces · +R100 per extra province',
+        features: [
+            'Everything in Starter',
+            'Bookmarks & deadline calendar',
+            'Email alerts before briefings and closing',
+            'Price estimates',
+            'Buyer profiles',
+            'Tender map',
+            'Requirement checks',
+            'Opportunity optimisation',
+        ],
         featured: true,
     },
     {
-        name: 'All provinces',
-        price: 'R799',
-        detail: 'Operating nationwide',
-        features: ['Everything in two to four provinces', 'National coverage across all sources', 'Unlimited service lines', 'Unlimited bookmarks'],
+        tier: 'all',
+        name: TIER_NAMES.all,
+        detail: 'All nine provinces, nationwide',
+        features: ['Everything in Growth', 'Every province, every source', 'Best value from 6 provinces up'],
     },
 ]
 
@@ -88,27 +100,18 @@ const FAQS: readonly FaqItem[] = [
         answer: 'Yes. There is no lock-in contract — cancel from your account settings whenever you like and you will not be billed again.',
     },
     {
-        question: 'What does the plan price depend on?',
-        answer: 'Only how many provinces you operate in — one, two-to-four, or all provinces. Every plan includes the full feature set.',
+        question: 'How does the 50% discount work?',
+        answer: 'Enter your email in the pricing section and we send you a discount code. On Growth and Pro it halves your monthly price for your first six months, then the standard price applies. The code works with the email it was sent to, on monthly billing.',
+    },
+    {
+        question: 'What is the difference between the plans?',
+        answer: 'Starter is the ranked feed with AI summaries for one province. Growth adds the working tools: bookmarks, the deadline calendar, email alerts, price estimates, buyer profiles, the tender map and requirement checks, for up to four provinces. Pro is Growth across all nine provinces. Extra provinces on Starter or Growth are R100 a month each.',
+    },
+    {
+        question: 'Is there a yearly option?',
+        answer: 'Yes. Pay yearly and you get twelve months for the price of ten.',
     },
 ]
-
-/**
- * The intro screen's palette, carried through the rest of the site: near-black
- * green, brass gold and a warm parchment ink.
- */
-const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D9B97E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#06140F]'
-
-const GOLD_TEXT = 'bg-gradient-to-b from-[#F0D9A4] via-[#C9A464] to-[#8A6A3F] bg-clip-text text-transparent'
-
-const PANEL = 'rounded-xl border border-[#B08D57]/20 bg-[#0B1F18]/70 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)]'
-const PANEL_HOVER = 'transition-colors hover:border-[#B08D57]/40'
-
-const BUTTON_BASE = 'inline-flex items-center justify-center rounded-md font-mono text-[11px] font-semibold uppercase tracking-[0.2em] transition-colors'
-const BUTTON_GOLD = `${BUTTON_BASE} bg-gradient-to-b from-[#D9B97E] to-[#B08D57] text-[#06140F] shadow-[0_0_40px_-10px_rgba(176,141,87,0.55)] hover:from-[#F0D9A4] hover:to-[#C9A464] ${FOCUS}`
-const BUTTON_OUTLINE = `${BUTTON_BASE} border border-[#B08D57]/55 text-[#D9B97E] hover:border-[#D9B97E] hover:bg-[#B08D57] hover:text-[#06140F] ${FOCUS}`
-
-const EYEBROW = 'font-mono text-[10px] uppercase tracking-[0.28em] text-[#B08D57]/85'
 
 /** The intro's "— by North Tech —" rule, reused as a section divider. */
 function GoldRule({ label }: { readonly label: string })
@@ -455,12 +458,18 @@ function StepCard({ step, title, detail }: StepCardProps)
 interface PricingCardProps
 {
     readonly plan: PricingPlan
+    readonly billing: Billing
     readonly onStart: () => void
     readonly onSubscribe: () => void
 }
 
-function PricingCard({ plan, onStart, onSubscribe }: PricingCardProps)
+function PricingCard({ plan, billing, onStart, onSubscribe }: PricingCardProps)
 {
+    const yearly = billing === 'annual'
+    const promo = !yearly && isPromoTier(plan.tier)
+    const fullPrice = formatRands(TIER_CENTS[plan.tier])
+    const yearPrice = formatRands(annualCents(plan.tier, 0))
+
     return (
         <div
             className={cn(
@@ -475,12 +484,45 @@ function PricingCard({ plan, onStart, onSubscribe }: PricingCardProps)
                     Most popular
                 </span>
             )}
-            <h3 className="font-serif text-xl font-semibold text-[#E9DFC6]">{plan.name}</h3>
+            <div className="flex items-start justify-between gap-3">
+                <h3 className="font-serif text-xl font-semibold text-[#E9DFC6]">{plan.name}</h3>
+                {(promo || yearly) && (
+                    <span className="shrink-0 rounded-full bg-gradient-to-b from-[#D9B97E] to-[#B08D57] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[#06140F]">
+                        {yearly ? '2 months free' : `${PROMO_PERCENT}% off`}
+                    </span>
+                )}
+            </div>
             <p className="mt-1 text-sm text-[#E9DFC6]/50">{plan.detail}</p>
-            <p className="mt-6 flex items-baseline gap-1.5">
-                <span className={cn('font-serif text-5xl font-semibold tracking-tight', GOLD_TEXT)}>{plan.price}</span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#E9DFC6]/45">/ month</span>
-            </p>
+            {yearly ? (
+                <>
+                    <p className="mt-6 flex items-baseline gap-1.5">
+                        <span className={cn('font-serif text-[2.75rem] font-semibold leading-none tracking-tight lg:text-[2.35rem] xl:text-[2.5rem]', GOLD_TEXT)}>{yearPrice}</span>
+                        <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#E9DFC6]/45">/ year</span>
+                    </p>
+                    <p className="mt-3 rounded-md border border-dashed border-[#D9B97E]/40 bg-[#D9B97E]/[0.06] px-3 py-2 text-[13px] leading-snug text-[#E9DFC6]/75">
+                        <strong className="font-semibold text-[#F0D9A4]">2 months free.</strong> Twelve months for the price of ten ({fullPrice}/month).
+                    </p>
+                </>
+            ) : promo ? (
+                <>
+                    <p className="mt-6 flex items-baseline gap-2.5">
+                        <s className="font-serif text-2xl font-semibold text-[#E9DFC6]/40 decoration-[#D9B97E]/80 decoration-2" aria-label={`Was ${fullPrice}`}>
+                            {fullPrice}
+                        </s>
+                        <span className={cn('font-serif text-[2.75rem] font-semibold leading-none lg:text-[2.35rem] xl:text-[2.5rem] tracking-tight', GOLD_TEXT)}>{formatRands(promoCents(plan.tier))}</span>
+                    </p>
+                    <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-[#E9DFC6]/45">/ month for {PROMO_MONTHS} months</p>
+                    <p className="mt-3 rounded-md border border-dashed border-[#D9B97E]/40 bg-[#D9B97E]/[0.06] px-3 py-2 text-[13px] leading-snug text-[#E9DFC6]/75">
+                        <strong className="font-semibold text-[#F0D9A4]">{PROMO_PERCENT}% off for {PROMO_MONTHS} months</strong> with your emailed code,
+                        then {fullPrice}/month.
+                    </p>
+                </>
+            ) : (
+                <p className="mt-6 flex items-baseline gap-1.5">
+                    <span className={cn('font-serif text-5xl font-semibold tracking-tight', GOLD_TEXT)}>{fullPrice}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#E9DFC6]/45">/ month</span>
+                </p>
+            )}
             <div aria-hidden="true" className="mt-6 h-px bg-gradient-to-r from-[#B08D57]/0 via-[#B08D57]/35 to-[#B08D57]/0" />
             <ul className="mt-6 flex-1 space-y-3">
                 {plan.features.map((feature) => (
@@ -501,6 +543,92 @@ function PricingCard({ plan, onStart, onSubscribe }: PricingCardProps)
                 >
                     Start free trial instead
                 </button>
+            </div>
+        </div>
+    )
+}
+
+type CodeState = 'idle' | 'sending' | 'sent' | 'error'
+
+interface DiscountCaptureProps
+{
+    readonly email: string
+    readonly onEmailChange: (email: string) => void
+}
+
+/** "Put your email in first": sends the 50%-off code before anyone subscribes. */
+function DiscountCapture({ email, onEmailChange }: DiscountCaptureProps)
+{
+    const [state, setState] = useState<CodeState>('idle')
+    const [error, setError] = useState('')
+
+    async function send(event: React.FormEvent): Promise<void>
+    {
+        event.preventDefault()
+
+        if (!email.includes('@'))
+        {
+            setState('error')
+            setError('Please enter a valid email address.')
+            return
+        }
+
+        setState('sending')
+        setError('')
+
+        try
+        {
+            await requestDiscountCode(email.trim())
+            setState('sent')
+        }
+        catch (caught)
+        {
+            setState('error')
+            setError(caught instanceof ApiError && caught.status === 429
+                ? 'Too many requests. Please try again in a little while.'
+                : 'We could not send the code just now. Please try again.')
+        }
+    }
+
+    return (
+        <div className="relative mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border border-[#D9B97E]/45 bg-[linear-gradient(120deg,rgba(22,66,50,0.9),rgba(11,31,24,0.95))] p-6 shadow-[0_0_60px_-25px_rgba(217,185,126,0.6)] sm:p-7">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#D9B97E]/10 blur-2xl" />
+            <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-sm">
+                    <p className={EYEBROW}>Launch offer</p>
+                    <p className="mt-2 font-serif text-2xl font-semibold leading-tight text-[#F0D9A4]">
+                        {PROMO_PERCENT}% off for {PROMO_MONTHS} months
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-[#E9DFC6]/60">
+                        On Growth and Pro, billed monthly. Pop in your email and we&rsquo;ll send your code.
+                    </p>
+                </div>
+                {state === 'sent' ? (
+                    <div role="status" className="w-full rounded-lg border border-[#D9B97E]/35 bg-[#06140F]/60 px-4 py-3 sm:max-w-xs">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#D9B97E]">Code sent</p>
+                        <p className="mt-1 text-sm leading-relaxed text-[#E9DFC6]/75">
+                            Check <strong className="text-[#E9DFC6]">{email}</strong>. Pick a plan below and the code goes straight in.
+                        </p>
+                    </div>
+                ) : (
+                    <form onSubmit={(event) => void send(event)} className="flex w-full flex-col gap-2 sm:max-w-xs">
+                        <label htmlFor="discount-email" className="sr-only">Email address</label>
+                        <input
+                            id="discount-email"
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
+                            placeholder="you@company.co.za"
+                            value={email}
+                            onChange={(event) => onEmailChange(event.target.value)}
+                            className={INPUT}
+                        />
+                        <button type="submit" disabled={state === 'sending'} className={cn('h-11 w-full', BUTTON_GOLD)}>
+                            {state === 'sending' ? 'Sending…' : 'Email me my code'}
+                        </button>
+                        {state === 'error' && <p role="alert" className="text-xs text-[#F2A38A]">{error}</p>}
+                    </form>
+                )}
             </div>
         </div>
     )
@@ -542,9 +670,50 @@ function FaqRow({ item, index }: FaqRowProps)
     )
 }
 
+/** Monthly or yearly prices on the cards. */
+function BillingToggle({ value, onChange }: { readonly value: Billing, readonly onChange: (value: Billing) => void })
+{
+    return (
+        <div className="mt-10 flex justify-center">
+            <div role="radiogroup" aria-label="Billing" className="inline-flex rounded-full border border-[#B08D57]/30 bg-[#0B1F18]/80 p-1">
+                {(['monthly', 'annual'] as const).map((option) => (
+                    <button
+                        key={option}
+                        type="button"
+                        role="radio"
+                        aria-checked={value === option}
+                        onClick={() => onChange(option)}
+                        className={cn(
+                            'rounded-full px-5 py-2 font-mono text-[11px] uppercase tracking-[0.16em] transition-colors',
+                            value === option ? 'bg-[#D9B97E] font-bold text-[#06140F]' : 'text-[#E9DFC6]/60 hover:text-[#D9B97E]',
+                            FOCUS,
+                        )}
+                    >
+                        {option === 'monthly' ? 'Monthly' : 'Yearly · 2 months free'}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export function LandingPage()
 {
     const navigate = useNavigate()
+    const [promoEmail, setPromoEmail] = useState('')
+    const [billing, setBilling] = useState<Billing>('monthly')
+
+    function subscribe(tier: PricingTier): void
+    {
+        const query = new URLSearchParams({ tier, billing })
+
+        if (promoEmail.includes('@'))
+        {
+            query.set('email', promoEmail.trim())
+        }
+
+        navigate(`/subscribe?${query.toString()}`)
+    }
 
     // Arriving from the intro's ad, open on the plans rather than the hero.
     useEffect(() =>
@@ -623,12 +792,14 @@ export function LandingPage()
                     <div className="relative">
                         <SectionHeading
                             eyebrow="Pricing"
-                            title="Priced by where you work"
-                            detail="One plan structure, priced by how many provinces you operate in. Every plan starts with a 7-day free trial."
+                            title="Pick the plan that fits your work"
+                            detail="Starter gets you the ranked feed. Growth adds the tools to chase and win tenders. Every plan starts with a 7-day free trial."
                         />
+                        <DiscountCapture email={promoEmail} onEmailChange={setPromoEmail} />
+                        <BillingToggle value={billing} onChange={setBilling} />
                         <div className="mx-auto mt-14 grid max-w-xl gap-8 lg:max-w-none lg:grid-cols-3 lg:items-stretch lg:gap-5">
                             {PLANS.map((plan) => (
-                                <PricingCard key={plan.name} plan={plan} onStart={() => navigate('/join')} onSubscribe={() => navigate('/join?intent=subscribe')} />
+                                <PricingCard key={plan.tier} plan={plan} billing={billing} onStart={() => navigate('/join')} onSubscribe={() => subscribe(plan.tier)} />
                             ))}
                         </div>
                     </div>

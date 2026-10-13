@@ -236,6 +236,16 @@ export function ProfilePage()
                 <p className="max-w-3xl rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger" role="alert">{error}</p>
             )}
 
+            {!loading && stored !== null && stored.categories.length === 0 && stored.serviceLines.length === 0 && (
+                <div className="max-w-3xl rounded-xl border border-wax/40 bg-wax/[0.08] px-5 py-4" role="status">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Welcome to Bidscope · last step</p>
+                    <p className="mt-1.5 font-serif text-lg font-semibold text-ink">Tell us the work you do and your feed fills in.</p>
+                    <p className="mt-1 text-sm leading-relaxed text-ink/65">
+                        Upload your CSD report to fill this in for you, or pick your tender categories below, then save.
+                    </p>
+                </div>
+            )}
+
             {!loading && form !== null && stored !== null && (
                 <div className="flex max-w-3xl flex-col gap-6">
                     <Section

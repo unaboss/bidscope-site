@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from '@/components/layout/nav-items'
 import { IconLogout } from '@/components/ui/icons'
+import { useFeature } from '@/lib/plan'
 import { cn } from '@/lib/utils'
 
 interface AppSidebarProps
@@ -10,6 +11,14 @@ interface AppSidebarProps
 }
 
 const RAIL_FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-night'
+
+/** A small "Growth" marker on a rail link the current plan does not include. */
+function PlanTag({ feature }: { readonly feature: string })
+{
+    return useFeature(feature)
+        ? null
+        : <span className="ms-auto rounded-full border border-wax/40 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-wax">Growth</span>
+}
 
 /** Deep green navigation rail, shared by the desktop rail and the mobile drawer. */
 export function AppSidebar({ onNavigate }: AppSidebarProps)
@@ -56,6 +65,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps)
                     >
                         <item.icon className="size-4 shrink-0" />
                         <span>{item.label}</span>
+                        {item.feature !== undefined && <PlanTag feature={item.feature} />}
                     </NavLink>
                 ))}
             </nav>

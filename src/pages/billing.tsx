@@ -3,44 +3,15 @@ import { useSearchParams } from 'react-router-dom'
 import { ApiError, confirmCheckout, getAccount, getSettings, startCheckout } from '@/api'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
+import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/lib/pricing'
 import type { Account, Settings } from '@/types'
 
-/** Mirrors worker/domain/pricing.ts; keep the two in step. */
-function monthlyRands(provinces: number): number
-{
-    if (provinces === 1)
-    {
-        return 399
-    }
-
-    if (provinces >= 2 && provinces <= 4)
-    {
-        return 599
-    }
-
-    return 799
-}
-
-/** First-month price after the 20% intro discount, in rands. */
-function firstMonthRands(provinces: number): number
-{
-    return monthlyRands(provinces) * 0.8
-}
-
-/** Plain-language plan name for the province count. */
+/** Plan and province count shown on the card. */
 function planLabel(provinces: number): string
 {
-    if (provinces === 1)
-    {
-        return '1 province'
-    }
+    const name = TIER_NAMES[tierForProvinces(provinces)]
 
-    if (provinces >= 2 && provinces <= 4)
-    {
-        return `${provinces} provinces`
-    }
-
-    return 'All provinces'
+    return provinces === 0 || provinces > 4 ? `${name} · all provinces` : `${name} · ${provinces} province${provinces === 1 ? '' : 's'}`
 }
 
 /** Billing page: plan, trial and a Paystack subscribe action. */
@@ -107,8 +78,7 @@ export function BillingPage()
     }
 
     const provinces = settings?.provinces.length ?? 0
-    const rands = monthlyRands(provinces)
-    const firstMonth = firstMonthRands(provinces)
+    const rands = TIER_CENTS[tierForProvinces(provinces)] / 100
     const plan = account?.effectivePlan ?? '—'
 
     return (
@@ -133,10 +103,6 @@ export function BillingPage()
                     </p>
                 </div>
 
-                <p className="mt-4 rounded-md border border-line bg-cream/60 px-3 py-2 text-sm text-ink/70">
-                    <strong>20% off your first month</strong> — pay R{firstMonth.toFixed(2)}, then R{rands}/month.
-                    The discount is applied automatically.
-                </p>
 
                 {account?.trialActive === true && account.trialEndsAt !== null && (
                     <p className="mt-4 text-sm text-ink/60">

@@ -269,7 +269,8 @@ export interface FeedItem extends EstimateFields
     readonly reAdvert: number
     readonly score: number
     readonly reasons: string[]
-    readonly eligibility: EligibilitySummary
+    /** Absent on plans without requirement checks. */
+    readonly eligibility?: EligibilitySummary
     /** DeepSeek's read of the scope; null until it has run on this tender. */
     readonly brief?: TenderScope | null
 }

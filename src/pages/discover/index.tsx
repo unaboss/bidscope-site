@@ -19,7 +19,9 @@ import { SegmentedTabsList } from '@/components/ui/segmented-tabs'
 import type { SegmentedTab } from '@/components/ui/segmented-tabs'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { LockedFeature } from '@/components/ui/locked-feature'
 import { useBookmarks } from '@/hooks/use-bookmarks'
+import { useFeature } from '@/lib/plan'
 import { closingWindow } from '@/lib/format'
 import type { Tender, TenderMapResponse } from '@/types'
 
@@ -50,6 +52,7 @@ function BrowseList({ initialSearch }: { readonly initialSearch: string }): Reac
     const [busyId, setBusyId] = useState<string | null>(null)
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const bookmarks = useBookmarks()
+    const mapEnabled = useFeature('tender_map')
 
     // Nothing is listed until the user narrows the catalogue; until then the map is the overview.
     const searched = activeFilterCount(filters) > 0
@@ -78,10 +81,12 @@ function BrowseList({ initialSearch }: { readonly initialSearch: string }): Reac
                 }
             }
 
-            getTenderMap(query, controller.signal)
-                .then(setPoints)
-                .catch((cause: unknown) => fail(cause, 'Failed to load the map'))
-                .finally(() => setMapLoading(false))
+            if (mapEnabled) {
+                getTenderMap(query, controller.signal)
+                    .then(setPoints)
+                    .catch((cause: unknown) => fail(cause, 'Failed to load the map'))
+                    .finally(() => setMapLoading(false))
+            }
 
             if (!searched) {
                 setTenders([])
@@ -105,7 +110,7 @@ function BrowseList({ initialSearch }: { readonly initialSearch: string }): Reac
             clearTimeout(timer)
             controller.abort()
         }
-    }, [filters, searched])
+    }, [filters, searched, mapEnabled])
 
     const queue = useMemo(() => tenders.map(fromTender), [tenders])
     const active = queue.find((item) => item.id === selectedId) ?? queue[0] ?? null
@@ -158,15 +163,19 @@ function BrowseList({ initialSearch }: { readonly initialSearch: string }): Reac
             {error !== '' && <InlineError message={error} />}
             {error === '' && bookmarks.error !== '' && <InlineError message={bookmarks.error} />}
 
-            <Suspense fallback={<div aria-hidden="true" className="nt-skeleton h-[min(68vh,620px)] min-h-[380px] rounded-2xl" />}>
-                <TenderMap
-                    points={points?.points ?? []}
-                    unplaced={points?.unplaced ?? 0}
-                    loading={mapLoading}
-                    province={filters.province}
-                    onOpen={(id) => navigate(`/tenders/${id}`)}
-                />
-            </Suspense>
+            {mapEnabled ? (
+                <Suspense fallback={<div aria-hidden="true" className="nt-skeleton h-[min(68vh,620px)] min-h-[380px] rounded-2xl" />}>
+                    <TenderMap
+                        points={points?.points ?? []}
+                        unplaced={points?.unplaced ?? 0}
+                        loading={mapLoading}
+                        province={filters.province}
+                        onOpen={(id) => navigate(`/tenders/${id}`)}
+                    />
+                </Suspense>
+            ) : (
+                <LockedFeature title="See every matched tender on a map" detail="The tender map pins live tenders across South Africa so you can see where the work is. It comes with Growth and Pro." />
+            )}
 
             {!searched && (
                 <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45">

@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/app-shell'
+import { FeatureGate } from '@/components/ui/locked-feature'
+import { PlanProvider } from '@/lib/plan'
 import { useSession } from '@/lib/session'
 import { BillingPage } from '@/pages/billing'
 import { BookmarksPage } from '@/pages/bookmarks'
@@ -10,6 +12,7 @@ import { CheckoutPage } from '@/pages/public/checkout'
 import { IntroPage } from '@/pages/public/intro'
 import { JoinPage } from '@/pages/public/join'
 import { LandingPage } from '@/pages/public/landing'
+import { SubscribePage } from '@/pages/public/subscribe'
 import { ProfilePage } from '@/pages/profile'
 import { TenderDetailPage } from '@/pages/tender-detail'
 
@@ -17,19 +20,35 @@ import { TenderDetailPage } from '@/pages/tender-detail'
 function PrivateRoutes()
 {
     return (
-        <Routes>
-            <Route element={<AppShell />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="discover" element={<DiscoverPage />} />
-                <Route path="bookmarks" element={<BookmarksPage />} />
-                <Route path="calendar" element={<CalendarPage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="settings" element={<Navigate to="/profile" replace />} />
-                <Route path="billing" element={<BillingPage />} />
-                <Route path="tenders/:id" element={<TenderDetailPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-        </Routes>
+        <PlanProvider>
+            <Routes>
+                <Route element={<AppShell />}>
+                    <Route index element={<DashboardPage />} />
+                    <Route path="discover" element={<DiscoverPage />} />
+                    <Route
+                        path="bookmarks"
+                        element={(
+                            <FeatureGate feature="bookmarks_calendar" className="m-4 sm:m-8" title="Save tenders you are chasing" detail="Bookmarks keep your shortlist in one place, with email reminders before briefings and closing dates. They come with Growth and Pro.">
+                                <BookmarksPage />
+                            </FeatureGate>
+                        )}
+                    />
+                    <Route
+                        path="calendar"
+                        element={(
+                            <FeatureGate feature="bookmarks_calendar" className="m-4 sm:m-8" title="Every briefing and closing date on one calendar" detail="The calendar plots your saved tenders, flags clashes and syncs to your own calendar. It comes with Growth and Pro.">
+                                <CalendarPage />
+                            </FeatureGate>
+                        )}
+                    />
+                    <Route path="profile" element={<ProfilePage />} />
+                    <Route path="settings" element={<Navigate to="/profile" replace />} />
+                    <Route path="billing" element={<BillingPage />} />
+                    <Route path="tenders/:id" element={<TenderDetailPage />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+            </Routes>
+        </PlanProvider>
     )
 }
 
@@ -42,6 +61,7 @@ function PublicRoutes()
             <Route path="pricing" element={<LandingPage />} />
             <Route path="join" element={<JoinPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="subscribe" element={<SubscribePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )

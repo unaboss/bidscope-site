@@ -126,8 +126,7 @@ export function CheckoutPage()
                         <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ink/50">Subscribe</p>
                         <h1 className="mt-3 text-3xl font-semibold">Start your subscription</h1>
                         <p className="mt-3 text-sm leading-relaxed text-ink/70">
-                            <strong>20% off your first month</strong>, applied automatically, then standard monthly
-                            billing. Cancel anytime.
+                            Billed monthly for the provinces on your profile. Cancel anytime.
                         </p>
 
                         <div className="mt-8">

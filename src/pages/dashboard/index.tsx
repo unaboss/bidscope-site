@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getPortfolio, getTenderMap } from '@/api'
 import { EstimateCompact } from '@/components/tender/estimate-value'
 import { EmptyState } from '@/components/ui/empty-state'
+import { FeatureGate } from '@/components/ui/locked-feature'
 import { IconArrowRight, IconDashboard } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
 import { estimateFrom } from '@/lib/estimate'
@@ -325,7 +326,9 @@ export function DashboardPage()
                         <Stat value={portfolio.summary.provinces} label="provinces" />
                     </div>
 
-                    <PortfolioMap />
+                    <FeatureGate feature="tender_map" title="See every matched tender on a map" detail="The tender map pins live tenders across South Africa so you can see where the work is. It comes with Growth and Pro.">
+                        <PortfolioMap />
+                    </FeatureGate>
 
                     {portfolio.provinces.length === 0 && (
                         <EmptyState

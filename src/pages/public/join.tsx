@@ -8,9 +8,8 @@ import { ChipGroup } from '@/components/ui/chip-group'
 import { Input } from '@/components/ui/controls'
 import { Field } from '@/components/ui/field'
 import { CIDB_CLASSES, CONSTRUCTION_BUCKETS, parseCidbGrades, PROVINCES } from '@/lib/profile'
+import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/lib/pricing'
 import type { Taxonomy } from '@/types'
-
-const FIRST_MONTH_DISCOUNT = 0.8
 
 type Step = 'contact' | 'company' | 'offer' | 'result'
 
@@ -39,21 +38,6 @@ function toggle(list: readonly string[], value: string): string[]
 }
 
 /** Rands per month for a province count (0 = nationwide → all provinces). */
-function priceForProvinces(count: number): number
-{
-    if (count === 1)
-    {
-        return 399
-    }
-
-    if (count >= 2 && count <= 4)
-    {
-        return 599
-    }
-
-    return 799
-}
-
 export function JoinPage()
 {
     const [step, setStep] = useState<Step>('contact')
@@ -188,8 +172,8 @@ export function JoinPage()
         }
     }
 
-    const price = priceForProvinces(company.provinces.length)
-    const firstMonth = (price * FIRST_MONTH_DISCOUNT).toFixed(2)
+    const tier = tierForProvinces(company.provinces.length)
+    const price = TIER_CENTS[tier] / 100
     const provinceScope = company.provinces.length === 0
         ? 'nationwide'
         : `${company.provinces.length} province${company.provinces.length === 1 ? '' : 's'}`
@@ -308,10 +292,10 @@ export function JoinPage()
                         <div className="mt-8 rounded-xl border border-line bg-panel p-5 shadow-panel">
                             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Your offer</p>
                             <p className="mt-2 text-2xl font-semibold">
-                                R{firstMonth}<span className="text-base font-normal text-ink/50"> for your first month</span>
+                                R{price}<span className="text-base font-normal text-ink/50">/month</span>
                             </p>
                             <p className="mt-1 text-sm text-ink/60">
-                                Then R{price}/month ({provinceScope}). <strong>20% off</strong> your first month is applied automatically.
+                                {TIER_NAMES[tier]} plan ({provinceScope}). Cancel anytime.
                             </p>
                             <ul className="mt-4 flex flex-col gap-2 text-sm text-ink/70">
                                 <li>· 7 days free — no card needed today</li>
@@ -335,7 +319,7 @@ export function JoinPage()
                         </p>
                         {summary.trialEndsAt !== undefined && (
                             <p className="mt-3 text-sm text-ink/60">
-                                Your free trial runs until <strong>{summary.trialEndsAt}</strong>. R0 today, then 20% off your first month.
+                                Your free trial runs until <strong>{summary.trialEndsAt}</strong>. R0 today.
                             </p>
                         )}
                     </section>
@@ -358,7 +342,7 @@ export function JoinPage()
                     {step === 'offer' && preview !== null && (
                         <div className="flex w-full flex-col gap-3">
                             <Button className="w-full" onClick={() => void submitOffer(true)} disabled={submitting}>
-                                {submitting ? 'Setting up…' : `Subscribe now — R${firstMonth}`}
+                                {submitting ? 'Setting up…' : `Subscribe now — R${price}`}
                             </Button>
                             <Button variant="secondary" className="w-full" onClick={() => void submitOffer(false)} disabled={submitting}>
                                 Start my free week instead

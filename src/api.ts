@@ -269,13 +269,19 @@ export async function startPublicCheckout(token: string): Promise<PublicCheckout
     return await response.json() as PublicCheckout
 }
 
-/** Confirms a public checkout after Paystack returns; applies the plan. */
-export async function confirmPublicCheckout(reference: string): Promise<{ readonly plan: string }>
+/**
+ * Confirms a public checkout after Paystack returns; applies the plan. With the
+ * subscribe flow's `token` and a promo charge, the server also signs the payer in.
+ */
+export async function confirmPublicCheckout(
+    reference: string,
+    token?: string,
+): Promise<{ readonly plan: string, readonly signedIn?: boolean }>
 {
     const response = await fetch('/api/public/checkout/confirm', {
         method: 'POST',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ reference }),
+        body: JSON.stringify(token === undefined ? { reference } : { reference, token }),
     })
 
     if (!response.ok)
@@ -283,7 +289,64 @@ export async function confirmPublicCheckout(reference: string): Promise<{ readon
         throw new ApiError(response.status, `Could not confirm payment (${response.status})`)
     }
 
-    return await response.json() as { plan: string }
+    return await response.json() as { plan: string, signedIn?: boolean }
+}
+
+export type PricingTier = 'single' | 'mid' | 'all'
+
+/** Emails the 50%-off discount code to `email`. */
+export async function requestDiscountCode(email: string, tier?: PricingTier): Promise<void>
+{
+    const response = await fetch('/api/public/discount', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(tier === undefined ? { email } : { email, tier }),
+    })
+
+    if (!response.ok)
+    {
+        const body = await response.json().catch(() => null) as { error?: string } | null
+
+        throw new ApiError(response.status, body?.error ?? `Could not send the code (${response.status})`)
+    }
+}
+
+export interface SubscribeInput
+{
+    readonly email: string
+    readonly password: string
+    readonly companyName: string
+    readonly tier: PricingTier
+    readonly billing: 'monthly' | 'annual'
+    readonly provinces: readonly string[]
+    readonly code?: string
+}
+
+export interface SubscribeCheckout extends PublicCheckout
+{
+    /** Resumes the charge in Paystack's on-page popup (empty if Paystack omitted it). */
+    readonly accessCode: string
+    readonly promo: boolean
+    readonly checkoutToken: string
+}
+
+/** Creates the account and starts its Paystack charge in one call. */
+export async function startSubscribe(input: SubscribeInput): Promise<SubscribeCheckout>
+{
+    const response = await fetch('/api/public/subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(input),
+    })
+
+    if (!response.ok)
+    {
+        const body = await response.json().catch(() => null) as { error?: string } | null
+
+        throw new ApiError(response.status, body?.error ?? `Could not start checkout (${response.status})`)
+    }
+
+    return await response.json() as SubscribeCheckout
 }
 
 /** The org's settings (the provider key is never returned). */

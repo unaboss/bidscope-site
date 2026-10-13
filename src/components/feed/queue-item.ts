@@ -66,8 +66,8 @@ export function fromFeedItem(item: FeedItem): QueueItem
         reAdvert: item.reAdvert === 1,
         relevant: item.relevance === 'relevant',
         reasons: item.reasons,
-        eligibility: item.eligibility.state,
-        requirements: item.eligibility.gates,
+        eligibility: item.eligibility?.state,
+        requirements: item.eligibility?.gates ?? [],
         deliverables: item.brief?.deliverables ?? [],
     }
 }
