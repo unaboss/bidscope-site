@@ -4,8 +4,9 @@ import { ChevronDown, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { DeadlineMeter, URGENCY_TEXT } from '@/components/feed/deadline-meter'
 import { fromTender } from '@/components/feed/queue-item'
-import { compactRand, urgencyOf } from '@/components/feed/signals'
+import { urgencyOf } from '@/components/feed/signals'
 import type { UrgencyTone } from '@/components/feed/signals'
+import { EstimateCompact } from '@/components/tender/estimate-value'
 import { TenderCaseFile } from '@/components/tender/tender-case-file'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -68,7 +69,6 @@ export function DeadlineRow({ tender, expanded, busy, retiring, onToggle, onRemo
     const item = fromTender(tender)
     const urgency = urgencyOf(tender.closing_date)
     const parts = dateParts(tender.closing_date)
-    const value = compactRand(item.estimatedValue)
     const panelId = useId()
     const titleId = useId()
 
@@ -127,7 +127,7 @@ export function DeadlineRow({ tender, expanded, busy, retiring, onToggle, onRemo
                                 <span className={URGENCY_TEXT[urgency.tone]}>
                                     {tender.closing_date !== null ? `closes ${formatDate(tender.closing_date)} · ${urgency.label}` : urgency.label}
                                 </span>
-                                {value !== null && <span className="tabular-nums">{value}</span>}
+                                <EstimateCompact estimate={item.estimate} />
                             </p>
                         </div>
 

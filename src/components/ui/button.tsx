@@ -15,7 +15,7 @@ export const buttonVariants = cva(
     {
         variants: {
             variant: {
-                primary: 'bg-navy text-cream hover:bg-navy/90',
+                primary: 'bg-gradient-to-b from-[#D9B97E] to-navy text-cream shadow-[0_0_30px_-12px_rgb(var(--color-navy)/0.7)] hover:from-[#F0D9A4] hover:to-[#D9B97E]',
                 secondary: 'border border-line bg-panel text-ink hover:bg-ink/5',
                 ghost: 'text-ink/70 hover:bg-ink/5 hover:text-ink',
                 /** Quiet until hovered, then unmistakably destructive. */

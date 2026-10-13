@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent, ReactElement } from 'react'
 import { Link } from 'react-router-dom'
-import { Countdown, DeadlineMeter } from '@/components/feed/deadline-meter'
-import { DeadlineDial } from '@/components/feed/deadline-dial'
+import { Countdown } from '@/components/feed/deadline-meter'
 import type { QueueItem } from '@/components/feed/queue-item'
 import { prefersReducedMotion, urgencyOf } from '@/components/feed/signals'
 import { EligibilityChip } from '@/components/tender/eligibility-chip'
+import { EstimateValue } from '@/components/tender/estimate-value'
+import { DeliverablesChecklist, RequirementChecklist } from '@/components/tender/requirements-section'
 import { Badge } from '@/components/ui/badge'
 import { IconArrowRight, IconBookmark, IconClose } from '@/components/ui/icons'
-import { formatDate, formatZAR } from '@/lib/format'
+import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 export type SwipeDecision = 'save' | 'pass'
@@ -67,8 +68,8 @@ function SwipeCard({ item, saved, standing }: CardProps): ReactElement
     const reasons = item.reasons.slice(0, 3)
 
     return (
-        <article aria-label={item.title} className="flex h-full flex-col">
-            <header className="nt-grain flex flex-col gap-3 border-b border-line bg-cream/60 px-5 py-4">
+        <article aria-label={item.title} className="flex h-full flex-1 flex-col xl:grid xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+            <header className="nt-grain flex flex-col gap-3 border-b border-line bg-cream/60 px-5 py-4 xl:border-b-0 xl:border-e xl:py-5">
                 <div className="flex items-center justify-between gap-3">
                     <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-wax">For you</span>
                     <span className="rounded-full border border-line bg-panel px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">
@@ -93,45 +94,84 @@ function SwipeCard({ item, saved, standing }: CardProps): ReactElement
                 )}
             </header>
 
-            <div className="flex flex-1 flex-col gap-4 px-5 py-4">
-                <section aria-label="Closing date" className="flex items-center gap-4">
-                    <DeadlineDial urgency={urgency} />
-                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink/45">Closing</span>
-                        <p className="font-serif text-2xl font-semibold leading-none tracking-tight text-ink">
-                            {item.closingDate !== null ? formatDate(item.closingDate) : 'Not published'}
-                        </p>
-                        <Countdown urgency={urgency} />
-                    </div>
-                </section>
+            {/* One column up to a laptop. On a wide screen the card lies landscape, the facts in two
+                columns beside the title, so it fits the window without scrolling. */}
+            <div className="grid flex-1 gap-4 px-5 py-4 xl:grid-cols-2 xl:gap-x-6 xl:py-5">
+                <div className="flex flex-col gap-4">
+                    <p className="flex items-baseline justify-between gap-3 border-b border-line/70 pb-2 text-sm">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">Closing</span>
+                        <span className="flex flex-wrap items-baseline justify-end gap-x-2">
+                            <span className="text-ink">{item.closingDate !== null ? formatDate(item.closingDate) : 'Not published'}</span>
+                            <Countdown urgency={urgency} />
+                        </span>
+                    </p>
 
-                <DeadlineMeter urgency={urgency} className="-mt-1" />
+                    <p className="flex items-baseline justify-between gap-3 border-b border-line/70 pb-2 text-sm">
+                        <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">Est. value</span>
+                        <EstimateValue estimate={item.estimate} className="justify-end text-right" />
+                    </p>
 
-                <p className="flex items-baseline justify-between gap-3 border-b border-line/70 pb-2 text-sm">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">Est. value</span>
-                    <span className="text-ink">{item.estimatedValue !== null ? formatZAR(item.estimatedValue) : 'Not published'}</span>
-                </p>
+                    {item.deliverables !== undefined && (
+                        <DeliverablesChecklist deliverables={item.deliverables} className="border-b border-line/70 pb-3 xl:border-b-0 xl:pb-0" />
+                    )}
+                </div>
 
-                {reasons.length > 0 && (
-                    <ul aria-label="Why this tender" className="flex flex-col gap-1.5">
-                        {reasons.map((reason) => (
-                            <li key={reason} className="flex gap-2.5 text-sm leading-snug text-ink/80">
-                                <span aria-hidden="true" className="mt-[0.55rem] size-1 shrink-0 rounded-full bg-navy/50" />
-                                <span className="first-letter:uppercase">{reason}</span>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                <div className="flex flex-col gap-4">
+                    {item.requirements !== undefined && (
+                        <RequirementChecklist gates={item.requirements} className={cn(reasons.length > 0 && 'border-b border-line/70 pb-3')} />
+                    )}
 
-                <Link
-                    to={`/tenders/${item.id}`}
-                    className="focus-ring-panel group mt-auto inline-flex items-center gap-1.5 self-start rounded-sm font-mono text-[10px] uppercase tracking-[0.14em] text-navy"
-                >
-                    Open case file
-                    <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
-                </Link>
+                    {reasons.length > 0 && (
+                        <ul aria-label="Why this tender" className="flex flex-col gap-1.5">
+                            {reasons.map((reason) => (
+                                <li key={reason} className="flex gap-2.5 text-sm leading-snug text-ink/80">
+                                    <span aria-hidden="true" className="mt-[0.55rem] size-1 shrink-0 rounded-full bg-navy/50" />
+                                    <span className="first-letter:uppercase">{reason}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <Link
+                        to={`/tenders/${item.id}`}
+                        className="focus-ring-panel group mt-auto inline-flex items-center gap-1.5 self-start rounded-sm font-mono text-[10px] uppercase tracking-[0.14em] text-navy"
+                    >
+                        Open case file
+                        <IconArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
+                    </Link>
+                </div>
             </div>
         </article>
+    )
+}
+
+interface DeckButtonProps
+{
+    readonly decision: SwipeDecision
+    readonly title: string
+    readonly disabled: boolean
+    readonly onClick: () => void
+    readonly className?: string
+}
+
+function DeckButton({ decision, title, disabled, onClick, className }: DeckButtonProps): ReactElement
+{
+    const save = decision === 'save'
+
+    return (
+        <button
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            aria-label={save ? `Bookmark ${title}` : `Pass on ${title}`}
+            className={cn(
+                'focus-ring inline-flex size-14 shrink-0 items-center justify-center rounded-full shadow-panel transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 motion-reduce:transition-none',
+                save ? 'bg-navy text-cream' : 'border border-line bg-panel text-danger',
+                className,
+            )}
+        >
+            {save ? <IconBookmark className="size-6" /> : <IconClose className="size-6" />}
+        </button>
     )
 }
 
@@ -286,91 +326,83 @@ export function SwipeDeck({ items, savedIds, total, triaged, busy, onDecide }: S
     const behind = items.slice(1, 1 + STACK_DEPTH)
 
     return (
-        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-5">
-            <div className="relative w-full select-none">
-                {behind.map((item, index) =>
-                {
-                    const depth = index + 1 - progress
-                    const scale = 1 - depth * 0.04
-                    const lift = depth * 12
+        <div className="mx-auto flex w-full max-w-md flex-col items-center gap-5 xl:max-w-none">
+            {/* On a wide screen pass and save flank the card, on the side it would fly to. */}
+            <div className="flex w-full items-center gap-5">
+                <DeckButton decision="pass" title={top.title} disabled={locked} onClick={() => void decide('pass')} className="hidden xl:inline-flex" />
 
-                    return (
-                        <div
-                            key={item.id}
-                            aria-hidden="true"
-                            className="absolute inset-0 overflow-hidden rounded-2xl border border-line bg-panel shadow-panel transition-transform duration-200 ease-out"
-                            style={{ transform: `translate3d(0, ${lift}px, 0) scale(${scale})`, zIndex: STACK_DEPTH - index }}
-                        >
-                            <SwipeCard item={item} saved={savedIds.has(item.id)} standing={`${rank + index + 1} of ${total}`} />
-                        </div>
-                    )
-                })}
-
-                <div
-                    key={top.id}
-                    ref={cardRef}
-                    onDragStart={(event) => event.preventDefault()}
-                    onPointerDown={onPointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerUp={onPointerUp}
-                    onPointerCancel={onPointerCancel}
-                    onClickCapture={(event) =>
+                <div className="relative min-w-0 flex-1 select-none">
+                    {behind.map((item, index) =>
                     {
-                        // The click that ends a drag must not open the case file.
-                        if (dragged.current) {
-                            event.preventDefault()
-                            event.stopPropagation()
-                            dragged.current = false
-                        }
-                    }}
-                    className={cn(
-                        'relative min-h-[24rem] cursor-grab touch-none overflow-hidden rounded-2xl border border-line bg-panel shadow-panel active:cursor-grabbing',
-                        phase !== 'dragging' && 'transition-transform ease-out motion-reduce:transition-none',
-                        phase === 'flying' ? 'duration-[280ms]' : 'duration-300',
-                    )}
-                    style={{
-                        transform: `translate3d(${drag.x}px, ${drag.y * 0.3}px, 0) rotate(${drag.x / 18}deg)`,
-                        zIndex: STACK_DEPTH + 1,
-                    }}
-                >
-                    <SwipeCard item={top} saved={savedIds.has(top.id)} standing={`${rank} of ${total}`} />
+                        const depth = index + 1 - progress
+                        const scale = 1 - depth * 0.04
+                        const lift = depth * 12
 
-                    <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute start-5 top-5 rotate-[-12deg] rounded-md border-2 border-success px-2.5 py-1 font-mono text-sm font-semibold uppercase tracking-[0.18em] text-success"
-                        style={{ opacity: drag.x > 0 ? progress : 0 }}
+                        return (
+                            <div
+                                key={item.id}
+                                aria-hidden="true"
+                                className="absolute inset-0 flex flex-col overflow-hidden rounded-2xl border border-line bg-panel shadow-panel transition-transform duration-200 ease-out"
+                                style={{ transform: `translate3d(0, ${lift}px, 0) scale(${scale})`, zIndex: STACK_DEPTH - index }}
+                            >
+                                <SwipeCard item={item} saved={savedIds.has(item.id)} standing={`${rank + index + 1} of ${total}`} />
+                            </div>
+                        )
+                    })}
+
+                    <div
+                        key={top.id}
+                        ref={cardRef}
+                        onDragStart={(event) => event.preventDefault()}
+                        onPointerDown={onPointerDown}
+                        onPointerMove={onPointerMove}
+                        onPointerUp={onPointerUp}
+                        onPointerCancel={onPointerCancel}
+                        onClickCapture={(event) =>
+                        {
+                            // The click that ends a drag must not open the case file.
+                            if (dragged.current) {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                dragged.current = false
+                            }
+                        }}
+                        className={cn(
+                            'relative flex min-h-[24rem] cursor-grab touch-none flex-col overflow-hidden rounded-2xl border border-line bg-panel shadow-panel active:cursor-grabbing',
+                            phase !== 'dragging' && 'transition-transform ease-out motion-reduce:transition-none',
+                            phase === 'flying' ? 'duration-[280ms]' : 'duration-300',
+                        )}
+                        style={{
+                            transform: `translate3d(${drag.x}px, ${drag.y * 0.3}px, 0) rotate(${drag.x / 18}deg)`,
+                            zIndex: STACK_DEPTH + 1,
+                        }}
                     >
-                        Bookmark
-                    </span>
-                    <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute end-5 top-5 rotate-[12deg] rounded-md border-2 border-danger px-2.5 py-1 font-mono text-sm font-semibold uppercase tracking-[0.18em] text-danger"
-                        style={{ opacity: drag.x < 0 ? progress : 0 }}
-                    >
-                        Pass
-                    </span>
+                        <SwipeCard item={top} saved={savedIds.has(top.id)} standing={`${rank} of ${total}`} />
+
+                        <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute start-5 top-5 rotate-[-12deg] rounded-md border-2 border-success px-2.5 py-1 font-mono text-sm font-semibold uppercase tracking-[0.18em] text-success"
+                            style={{ opacity: drag.x > 0 ? progress : 0 }}
+                        >
+                            Bookmark
+                        </span>
+                        <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute end-5 top-5 rotate-[12deg] rounded-md border-2 border-danger px-2.5 py-1 font-mono text-sm font-semibold uppercase tracking-[0.18em] text-danger"
+                            style={{ opacity: drag.x < 0 ? progress : 0 }}
+                        >
+                            Pass
+                        </span>
+                    </div>
                 </div>
+
+                <DeckButton decision="save" title={top.title} disabled={locked} onClick={() => void decide('save')} className="hidden xl:inline-flex" />
             </div>
 
-            <div className="flex items-center justify-center gap-6 pt-2">
-                <button
-                    type="button"
-                    disabled={locked}
-                    onClick={() => void decide('pass')}
-                    aria-label={`Pass on ${top.title}`}
-                    className="focus-ring inline-flex size-14 items-center justify-center rounded-full border border-line bg-panel text-danger shadow-panel transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 motion-reduce:transition-none"
-                >
-                    <IconClose className="size-6" />
-                </button>
-                <button
-                    type="button"
-                    disabled={locked}
-                    onClick={() => void decide('save')}
-                    aria-label={`Bookmark ${top.title}`}
-                    className="focus-ring inline-flex size-14 items-center justify-center rounded-full bg-navy text-cream shadow-panel transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 motion-reduce:transition-none"
-                >
-                    <IconBookmark className="size-6" />
-                </button>
+            {/* Pinned to the bottom of the catalog window, so a long card never hides the buttons. */}
+            <div className="sticky bottom-0 z-10 flex w-full items-center justify-center gap-6 bg-gradient-to-t from-cream from-50% to-transparent pb-1 pt-5 xl:hidden">
+                <DeckButton decision="pass" title={top.title} disabled={locked} onClick={() => void decide('pass')} />
+                <DeckButton decision="save" title={top.title} disabled={locked} onClick={() => void decide('save')} />
             </div>
 
             <p className="text-center font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">

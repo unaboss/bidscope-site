@@ -3,8 +3,9 @@ import type { FocusEvent, KeyboardEvent, ReactElement, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Countdown, DeadlineMeter, URGENCY_SPINE } from '@/components/feed/deadline-meter'
 import type { QueueItem } from '@/components/feed/queue-item'
-import { compactRand, urgencyOf } from '@/components/feed/signals'
+import { urgencyOf } from '@/components/feed/signals'
 import { EligibilityChip } from '@/components/tender/eligibility-chip'
+import { EstimateCompact } from '@/components/tender/estimate-value'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { IconBookmark, IconClose } from '@/components/ui/icons'
@@ -210,7 +211,6 @@ export function TenderQueue({
                 const isActive = item.id === activeId
                 const isSaved = savedIds.has(item.id)
                 const isBusy = busyId === item.id
-                const value = compactRand(item.estimatedValue)
                 const reason = item.reasons[0]
 
                 return (
@@ -274,8 +274,8 @@ export function TenderQueue({
 
                                     <span className="flex shrink-0 flex-col items-end gap-1">
                                         <Countdown urgency={urgency} />
-                                        {value !== null && (
-                                            <span className="font-mono text-[11px] tabular-nums text-ink/40">{value}</span>
+                                        {item.estimate !== null && (
+                                            <EstimateCompact estimate={item.estimate} className="font-mono text-[11px] text-ink/40" />
                                         )}
                                     </span>
                                 </div>

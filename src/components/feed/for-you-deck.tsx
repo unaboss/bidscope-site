@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Layers, List, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { dismissTender, getFeed } from '@/api'
 import { FeedEmpty } from '@/components/feed/feed-empty'
 import { fromFeedItem } from '@/components/feed/queue-item'
-import type { QueueItem } from '@/components/feed/queue-item'
-import { prefersReducedMotion, urgencyOf } from '@/components/feed/signals'
-import { BriefSkeleton, QueueSkeleton } from '@/components/feed/skeleton'
+import { prefersReducedMotion } from '@/components/feed/signals'
+import { BriefSkeleton } from '@/components/feed/skeleton'
 import { TenderBrief } from '@/components/feed/tender-brief'
 import { SwipeDeck } from '@/components/feed/swipe-deck'
 import type { SwipeDecision } from '@/components/feed/swipe-deck'
 import { TenderQueue } from '@/components/feed/tender-queue'
 import { InlineError, LiveStatus, ShortcutLegend, Workspace } from '@/components/feed/workspace'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { IconArrowRight, IconBookmark, IconShieldCheck } from '@/components/ui/icons'
+import { SegmentedTabsList } from '@/components/ui/segmented-tabs'
+import type { SegmentedTab } from '@/components/ui/segmented-tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { useBookmarks } from '@/hooks/use-bookmarks'
 import { cn } from '@/lib/utils'
 import type { FeedItem } from '@/types'
@@ -50,136 +53,88 @@ function rememberView(view: DeckView): void
     }
 }
 
-const VIEWS: ReadonlyArray<{ value: DeckView, label: string }> = [
-    { value: 'swipe', label: 'Swipe' },
-    { value: 'list', label: 'List' },
+const VIEWS: ReadonlyArray<SegmentedTab<DeckView>> = [
+    { value: 'swipe', label: 'Swipe', icon: <Layers className="size-3.5" /> },
+    { value: 'list', label: 'List', icon: <List className="size-3.5" /> },
 ]
 
-function ViewToggle({ value, onChange }: { readonly value: DeckView, readonly onChange: (view: DeckView) => void }): ReactElement
+function isView(value: string): value is DeckView
+{
+    return value === 'swipe' || value === 'list'
+}
+
+/** The fanned card backs on the cover: a hint of the pile, with no tender on show. */
+function CatalogStack(): ReactElement
 {
     return (
-        <div role="group" aria-label="For You view" className="inline-flex rounded-full border border-line bg-cream/60 p-0.5">
-            {VIEWS.map((view) => (
-                <button
-                    key={view.value}
-                    type="button"
-                    aria-pressed={value === view.value}
-                    onClick={() => onChange(view.value)}
-                    className={cn(
-                        'focus-ring rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors',
-                        value === view.value ? 'bg-ink text-cream' : 'text-ink/55 hover:text-ink',
-                    )}
+        <div aria-hidden="true" className="relative me-4 hidden h-40 w-48 shrink-0 md:block">
+            {[-9, -3, 4].map((tilt, index) => (
+                <div
+                    key={tilt}
+                    className="absolute inset-0 flex flex-col gap-2.5 rounded-xl border border-line bg-cream p-4 shadow-panel"
+                    style={{ transform: `translate3d(${index * 14}px, ${index * -8}px, 0) rotate(${tilt}deg)` }}
                 >
-                    {view.label}
-                </button>
+                    <span className="h-1.5 w-12 rounded-full bg-wax/50" />
+                    <span className="h-3 w-full rounded-full bg-ink/10" />
+                    <span className="h-3 w-4/5 rounded-full bg-ink/10" />
+                    <span className="h-2 w-1/2 rounded-full bg-ink/[0.07]" />
+                    <span className="mt-auto flex gap-1.5">
+                        <span className="h-4 w-14 rounded-full bg-success/20" />
+                        <span className="h-4 w-10 rounded-full bg-navy/20" />
+                    </span>
+                </div>
             ))}
         </div>
     )
 }
 
-function countClosingThisWeek(items: readonly QueueItem[]): number
-{
-    return items.filter((item) =>
-    {
-        const { days } = urgencyOf(item.closingDate)
-
-        return days !== null && days <= 7
-    }).length
-}
-
-interface TriageStripProps
+interface CatalogCoverProps
 {
     readonly remaining: number
-    readonly closingThisWeek: number
     readonly triaged: number
-    readonly view: DeckView
-    readonly onViewChange: (view: DeckView) => void
+    readonly onOpen: () => void
 }
 
-interface StatProps
-{
-    readonly value: number
-    readonly label: string
-    readonly tone?: 'ink' | 'danger' | 'navy'
-}
-
-const STAT_TONE = {
-    ink: 'text-ink',
-    danger: 'text-danger',
-    navy: 'text-navy',
-} as const
-
-/** One figure in the session strip: a serif numeral over a mono caption. */
-function Stat({ value, label, tone = 'ink' }: StatProps): ReactElement
+/** What For You shows before the catalog opens: the size of the pile and the way in. */
+function CatalogCover({ remaining, triaged, onOpen }: CatalogCoverProps): ReactElement
 {
     return (
-        // Caption first in the DOM (dt before dd), numeral first on screen.
-        <div className="flex flex-col-reverse gap-1 px-5 first:ps-0 last:pe-0">
-            <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/45">{label}</dt>
-            <dd className={cn('font-serif text-2xl font-semibold leading-none tabular-nums tracking-tight', STAT_TONE[tone])}>
-                {value}
-            </dd>
-        </div>
-    )
-}
+        <section aria-labelledby="foryou-cover-title" className="nt-grain animate-rise relative overflow-hidden rounded-2xl border border-line bg-panel shadow-panel">
+            <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-navy/40 to-transparent" />
 
-/**
- * The state of the session at a glance: what is left, what is burning, and how
- * far through the pile you are. The progress bar is the reward for triaging —
- * it is the only thing on the page that fills up.
- */
-function TriageStrip({ remaining, closingThisWeek, triaged, view, onViewChange }: TriageStripProps): ReactElement
-{
-    const handled = triaged + remaining
-    const progress = handled === 0 ? 0 : Math.round((triaged / handled) * 100)
-
-    return (
-        <Card asChild className="rounded-2xl">
-            <section aria-label="Feed progress" className="flex flex-col gap-4 px-4 py-4 sm:px-5">
-                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-                    <dl className="flex items-stretch divide-x divide-line">
-                        <Stat value={remaining} label="Ranked for you" />
-                        <Stat value={closingThisWeek} label="Close this week" tone={closingThisWeek > 0 ? 'danger' : 'ink'} />
-                        <Stat value={triaged} label="Triaged" tone="navy" />
-                    </dl>
-
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                        {view === 'list' && <ShortcutLegend dismissable />}
-                        <ViewToggle value={view} onChange={onViewChange} />
+            <div className="flex items-center justify-between gap-10 px-6 py-7 sm:px-8">
+                <div className="flex max-w-2xl flex-col gap-3">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-wax">Your catalog</span>
+                    <h2 id="foryou-cover-title" className="font-serif text-2xl font-semibold leading-tight tracking-tight text-ink">
+                        <span className="tabular-nums text-navy">{remaining}</span> tender{remaining === 1 ? '' : 's'} ranked for your profile
+                    </h2>
+                    <p className="text-sm leading-relaxed text-ink/70">
+                        Each card shows what the work delivers, what you need to qualify and why it was picked for you.
+                        Swipe through them one at a time, or switch to the list.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
+                        <Button onClick={onOpen} className="h-11 px-6">
+                            <Layers aria-hidden="true" className="size-4" />
+                            View catalog
+                        </Button>
+                        {triaged > 0 && (
+                            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">
+                                {triaged} worked through this visit
+                            </span>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <span
-                        role="progressbar"
-                        aria-label="Session progress"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={progress}
-                        aria-valuetext={`${triaged} of ${handled} triaged`}
-                        className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink/[0.07]"
-                    >
-                        <span
-                            className="block h-full rounded-full bg-navy/70 transition-[width] duration-500 ease-out"
-                            style={{ width: `${progress}%` }}
-                        />
-                    </span>
-                    <p aria-hidden="true" className="shrink-0 font-mono text-[10px] uppercase tabular-nums tracking-[0.14em] text-ink/40">
-                        {progress}%
-                    </p>
-                </div>
-            </section>
-        </Card>
+                <CatalogStack />
+            </div>
+        </section>
     )
 }
 
 /**
- * For You — a triage workspace rather than a deck.
- *
- * The old full-screen snap scroller showed one tender at a time and hid the
- * shape of the pile. This shows the ranked queue and the argument for the
- * selected tender side by side: scan on the left, decide on the right, and on
- * narrow screens the brief folds in beneath its own row.
+ * For You opens on a cover, not on the cards. "View catalog" lifts the ranked
+ * pile into a large window over the page, where it can be swiped one card at a
+ * time or worked as a list; the page stays in view, dimmed, behind it.
  */
 export function ForYouDeck(): ReactElement
 {
@@ -194,6 +149,8 @@ export function ForYouDeck(): ReactElement
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [triaged, setTriaged] = useState(0)
     const [view, setView] = useState<DeckView>(storedView)
+    const [open, setOpen] = useState(false)
+    const panel = useRef<HTMLDivElement>(null)
     const fetched = useRef(0)
     const bookmarks = useBookmarks()
 
@@ -226,7 +183,6 @@ export function ForYouDeck(): ReactElement
     // Selection is derived, so a retired row hands the brief to its neighbour
     // without a second render pass fighting over state.
     const active = queue.find((item) => item.id === selectedId) ?? queue[0] ?? null
-    const closingThisWeek = useMemo(() => countClosingThisWeek(queue), [queue])
     const rank = active === null ? -1 : queue.findIndex((item) => item.id === active.id)
 
     async function loadMore(): Promise<void>
@@ -316,34 +272,30 @@ export function ForYouDeck(): ReactElement
     }
 
     if (loading) {
-        return (
-            <Workspace queue={<QueueSkeleton />} brief={<BriefSkeleton />} />
-        )
+        return <div aria-hidden="true" className="nt-skeleton h-72 rounded-2xl" />
     }
 
-    if (error !== '' && queue.length === 0) {
+    if (error !== '' && queue.length === 0 && !open) {
         return <InlineError message={error} />
     }
 
-    if (queue.length === 0) {
-        return (
-            <FeedEmpty
-                eyebrow="For You"
-                icon={<IconShieldCheck className="size-6" />}
-                title="You're all caught up"
-                description={triaged > 0
-                    ? `${triaged} tender${triaged === 1 ? '' : 's'} triaged. Nothing else is ranked for your profile right now — new work appears after the next sync.`
-                    : 'Nothing is ranked for your profile right now. New advertised tenders appear here after the next sync.'}
-            >
-                <Button asChild>
-                    <Link to="/bookmarks">
-                        <IconBookmark className="size-3.5" />
-                        Review your shortlist
-                    </Link>
-                </Button>
-            </FeedEmpty>
-        )
-    }
+    const caughtUp = (
+        <FeedEmpty
+            eyebrow="For You"
+            icon={<IconShieldCheck className="size-6" />}
+            title="You're all caught up"
+            description={triaged > 0
+                ? `${triaged} tender${triaged === 1 ? '' : 's'} triaged. Nothing else is ranked for your profile right now — new work appears after the next sync.`
+                : 'Nothing is ranked for your profile right now. New advertised tenders appear here after the next sync.'}
+        >
+            <Button asChild>
+                <Link to="/bookmarks">
+                    <IconBookmark className="size-3.5" />
+                    Review your shortlist
+                </Link>
+            </Button>
+        </FeedEmpty>
+    )
 
     const brief = active === null
         ? <BriefSkeleton />
@@ -359,76 +311,144 @@ export function ForYouDeck(): ReactElement
         )
 
     return (
-        <div className="flex flex-col gap-4">
+        <Dialog.Root open={open} onOpenChange={setOpen}>
             <LiveStatus message={status} />
 
-            <TriageStrip
-                remaining={queue.length}
-                closingThisWeek={closingThisWeek}
-                triaged={triaged}
-                view={view}
-                onViewChange={(next) =>
-                {
-                    setView(next)
-                    rememberView(next)
-                }}
-            />
+            {queue.length === 0
+                ? caughtUp
+                : <CatalogCover remaining={Math.max(total - triaged, queue.length)} triaged={triaged} onOpen={() => setOpen(true)} />}
 
-            {/* `useBookmarks` absorbs its own failures, so surface them here too. */}
-            {error !== '' && <InlineError message={error} />}
-            {error === '' && bookmarks.error !== '' && <InlineError message={bookmarks.error} />}
+            <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 z-50 bg-night/40 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
 
-            {view === 'swipe' && (
-                <SwipeDeck
-                    items={queue}
-                    savedIds={bookmarks.ids}
-                    total={total}
-                    triaged={triaged}
-                    busy={busyId !== null}
-                    onDecide={(id: string, decision: SwipeDecision) => act(id, decision === 'save' ? 'save' : 'dismiss', true)}
-                />
-            )}
-
-            {view === 'list' && (
-                <Workspace
-                    brief={brief}
-                    queue={(
-                        <div className="flex flex-col gap-4">
-                            <TenderQueue
-                                ranked
-                                label="Tenders ranked for you"
-                                items={queue}
-                                activeId={active?.id ?? null}
-                                savedIds={bookmarks.ids}
-                                busyId={busyId}
-                                retiringId={retiringId}
-                                onSelect={setSelectedId}
-                                onSave={(id) => void act(id, 'save')}
-                                onDismiss={(id) => void act(id, 'dismiss')}
-                                renderInlineBrief={(item) => (
-                                    <TenderBrief
-                                        variant="inline"
-                                        item={item}
-                                        saved={bookmarks.ids.has(item.id)}
-                                        busy={busyId === item.id}
-                                        onSave={() => void act(item.id, 'save')}
-                                        onDismiss={() => void act(item.id, 'dismiss')}
-                                    />
-                                )}
-                            />
-
-                            {fetched.current < total && (
-                                <div className="flex justify-center">
-                                    <Button variant="secondary" disabled={loadingMore} onClick={() => void loadMore()}>
-                                        {loadingMore ? 'Loading…' : `Load ${Math.min(PAGE_SIZE, total - fetched.current)} more`}
-                                        <IconArrowRight className="size-3.5" />
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
+                <Dialog.Content
+                    ref={panel}
+                    aria-describedby={undefined}
+                    // Focus the window itself, so the arrow keys swipe straight away
+                    // instead of moving between the Swipe and List tabs.
+                    onOpenAutoFocus={(event) =>
+                    {
+                        event.preventDefault()
+                        panel.current?.focus()
+                    }}
+                    className={cn(
+                        'fixed inset-0 z-50 m-auto flex h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] flex-col overflow-hidden',
+                        'rounded-2xl border border-line bg-cream text-ink shadow-[0_30px_80px_-20px_rgb(0_0_0/0.75)] outline-none',
+                        'sm:h-[min(900px,calc(100dvh-3rem))] sm:w-[calc(100vw-3rem)] lg:w-[min(1600px,84vw)]',
+                        'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-[0.97] data-[state=open]:slide-in-from-bottom-4 data-[state=open]:duration-300',
+                        'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.97] data-[state=closed]:duration-200',
+                        'motion-reduce:animate-none',
                     )}
-                />
-            )}
-        </div>
+                >
+                    <Tabs
+                        value={view}
+                        onValueChange={(next) =>
+                        {
+                            if (isView(next)) {
+                                setView(next)
+                                rememberView(next)
+                            }
+                        }}
+                        className="flex min-h-0 flex-1 flex-col"
+                    >
+                        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-line bg-panel px-4 py-3 sm:px-6">
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                                <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-wax">For you</span>
+                                <Dialog.Title className="font-serif text-xl font-semibold leading-tight tracking-tight text-ink">
+                                    Catalog
+                                    <span className="ms-2 font-mono text-[11px] font-normal uppercase tracking-[0.14em] text-ink/45">
+                                        {queue.length === 0 ? 'Cleared' : `${Math.max(total - triaged, queue.length)} ranked`}
+                                    </span>
+                                </Dialog.Title>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <SegmentedTabsList tabs={VIEWS} value={view} label="Catalog view" />
+                                <Dialog.Close asChild>
+                                    <Button variant="secondary" className="h-10 px-3 sm:px-4">
+                                        <X aria-hidden="true" className="size-4" />
+                                        <span className="sr-only sm:not-sr-only">Close</span>
+                                    </Button>
+                                </Dialog.Close>
+                            </div>
+                        </header>
+
+                        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 sm:py-6">
+                            <div className="flex min-h-full flex-col gap-4">
+                                {/* `useBookmarks` absorbs its own failures, so surface them here too. */}
+                                {error !== '' && <InlineError message={error} />}
+                                {error === '' && bookmarks.error !== '' && <InlineError message={bookmarks.error} />}
+
+                                {queue.length === 0 && caughtUp}
+
+                                {queue.length > 0 && (
+                                    <>
+                                        <TabsContent
+                                            value="swipe"
+                                            className="my-auto rounded-2xl py-2 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-6 data-[state=active]:duration-300 motion-reduce:animate-none"
+                                        >
+                                            <SwipeDeck
+                                                items={queue}
+                                                savedIds={bookmarks.ids}
+                                                total={total}
+                                                triaged={triaged}
+                                                busy={busyId !== null}
+                                                onDecide={(id: string, decision: SwipeDecision) => act(id, decision === 'save' ? 'save' : 'dismiss', true)}
+                                            />
+                                        </TabsContent>
+
+                                        <TabsContent
+                                            value="list"
+                                            className="mt-0 flex flex-col gap-4 rounded-2xl data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-right-6 data-[state=active]:duration-300 motion-reduce:animate-none"
+                                        >
+                                            <ShortcutLegend dismissable className="justify-end" />
+                                            <Workspace
+                                                framed
+                                                brief={brief}
+                                                queue={(
+                                                    <div className="flex flex-col gap-4">
+                                                        <TenderQueue
+                                                            ranked
+                                                            label="Tenders ranked for you"
+                                                            items={queue}
+                                                            activeId={active?.id ?? null}
+                                                            savedIds={bookmarks.ids}
+                                                            busyId={busyId}
+                                                            retiringId={retiringId}
+                                                            onSelect={setSelectedId}
+                                                            onSave={(id) => void act(id, 'save')}
+                                                            onDismiss={(id) => void act(id, 'dismiss')}
+                                                            renderInlineBrief={(item) => (
+                                                                <TenderBrief
+                                                                    variant="inline"
+                                                                    item={item}
+                                                                    saved={bookmarks.ids.has(item.id)}
+                                                                    busy={busyId === item.id}
+                                                                    onSave={() => void act(item.id, 'save')}
+                                                                    onDismiss={() => void act(item.id, 'dismiss')}
+                                                                />
+                                                            )}
+                                                        />
+
+                                                        {fetched.current < total && (
+                                                            <div className="flex justify-center">
+                                                                <Button variant="secondary" disabled={loadingMore} onClick={() => void loadMore()}>
+                                                                    {loadingMore ? 'Loading…' : `Load ${Math.min(PAGE_SIZE, total - fetched.current)} more`}
+                                                                    <IconArrowRight className="size-3.5" />
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            />
+                                        </TabsContent>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </Tabs>
+                </Dialog.Content>
+            </Dialog.Portal>
+        </Dialog.Root>
     )
 }

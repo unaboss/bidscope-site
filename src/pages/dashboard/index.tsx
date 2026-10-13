@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getPortfolio } from '@/api'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { ReactElement, RefObject } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { getPortfolio, getTenderMap } from '@/api'
+import { EstimateCompact } from '@/components/tender/estimate-value'
 import { EmptyState } from '@/components/ui/empty-state'
 import { IconArrowRight, IconDashboard } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
-import { daysUntil, formatDate, formatZAR, relativeDays } from '@/lib/format'
+import { estimateFrom } from '@/lib/estimate'
+import { compactRand, daysUntil, formatDate, relativeDays } from '@/lib/format'
 import { serviceLabel } from '@/lib/service-lines'
 import { cn } from '@/lib/utils'
-import type { Portfolio, PortfolioClient, PortfolioSector } from '@/types'
+import type { Portfolio, PortfolioClient, PortfolioSector, TenderMapResponse, TenderScope } from '@/types'
 
 const SECTOR_LABEL: Record<string, string> = {
     government: 'Government structures',
@@ -18,10 +21,46 @@ const SECTOR_LABEL: Record<string, string> = {
 function Stat({ value, label }: { readonly value: number, readonly label: string })
 {
     return (
-        <div className="flex min-w-0 flex-col rounded-lg border border-line bg-panel px-4 py-3 shadow-panel">
+        <div className="flex min-w-0 flex-col rounded-lg border border-line bg-panel px-3 py-2 shadow-panel sm:px-4 sm:py-3">
             <span className="font-serif text-xl font-semibold text-ink">{value}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">{label}</span>
         </div>
+    )
+}
+
+/** Deliverables shown on a dashboard row before the rest fold into "+N more". */
+const DELIVERABLES_SHOWN = 3
+
+/** The understanding job's summary and deliverables, compact enough for a dashboard row. */
+function ScopeLines({ scope }: { readonly scope: TenderScope })
+{
+    const shown = scope.deliverables.slice(0, DELIVERABLES_SHOWN)
+    const more = scope.deliverables.length - shown.length
+
+    if (scope.summary === null && shown.length === 0) {
+        return null
+    }
+
+    return (
+        <span className="flex flex-col gap-1.5 pt-0.5">
+            {scope.summary !== null && (
+                <span className="line-clamp-3 text-xs leading-relaxed text-ink/70">{scope.summary}</span>
+            )}
+            {shown.length > 0 && (
+                <span className="flex flex-col gap-0.5">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-wax">Deliverables</span>
+                    {shown.map((item, index) => (
+                        <span key={`${item}-${index}`} className="flex items-start gap-1.5 text-xs text-ink/75">
+                            <span aria-hidden="true" className="mt-1.5 size-1 shrink-0 rounded-full bg-wax/70" />
+                            <span className="line-clamp-2">{item}</span>
+                        </span>
+                    ))}
+                    {more > 0 && (
+                        <span className="ps-2.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/45">+{more} more</span>
+                    )}
+                </span>
+            )}
+        </span>
     )
 }
 
@@ -67,7 +106,7 @@ function ClientCard({ client, openRows, onToggleRow }: ClientCardProps)
                                 </span>
                                 <span className="ms-auto font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
                                     {service.count}
-                                    {service.estimatedValue !== null && service.estimatedValue > 0 && ` · ${formatZAR(service.estimatedValue)}`}
+                                    {service.estimatedValue !== null && service.estimatedValue > 0 && ` · avg ${compactRand(service.estimatedValue)}`}
                                 </span>
                             </button>
 
@@ -84,10 +123,14 @@ function ClientCard({ client, openRows, onToggleRow }: ClientCardProps)
                                                     <span className="line-clamp-3 text-sm leading-snug text-ink group-hover:underline">
                                                         {tender.title ?? 'Untitled tender'}
                                                     </span>
-                                                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
-                                                        {tender.closingDate !== null
-                                                            ? `Closes ${formatDate(tender.closingDate)} · ${relativeDays(daysUntil(tender.closingDate))}`
-                                                            : 'No closing date'}
+                                                    {tender.brief !== null && <ScopeLines scope={tender.brief} />}
+                                                    <span className="flex flex-wrap gap-x-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
+                                                        <span>
+                                                            {tender.closingDate !== null
+                                                                ? `Closes ${formatDate(tender.closingDate)} · ${relativeDays(daysUntil(tender.closingDate))}`
+                                                                : 'No closing date'}
+                                                        </span>
+                                                        <EstimateCompact estimate={estimateFrom(tender)} />
                                                     </span>
                                                 </span>
                                                 <IconArrowRight aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-ink/30 transition-colors group-hover:text-navy" />
@@ -125,6 +168,98 @@ function SectorBlock({ sector, openRows, onToggleRow }: SectorBlockProps)
                     <ClientCard key={client.name} client={client} openRows={openRows} onToggleRow={onToggleRow} />
                 ))}
             </div>
+        </div>
+    )
+}
+
+const TenderMap = lazy(() => import('@/components/map/tender-map'))
+
+/** Screen left under the map, so its bottom edge shows on first load. */
+const MAP_FIT_GAP = 24
+
+/** On screens too short to fit everything, the map keeps this height and the page scrolls a little. */
+const MAP_MIN_HEIGHT = 160
+
+/**
+ * A height that takes the map from where it sits to just above the bottom of the
+ * screen, so the header, stats and map all show without scrolling. It uses the
+ * small viewport height (`svh`), so a phone's URL bar showing and hiding while
+ * scrolling never resizes the map; only a change in what sits above it does.
+ */
+function useFitToScreen(): [RefObject<HTMLDivElement | null>, string | undefined]
+{
+    const ref = useRef<HTMLDivElement>(null)
+    const [top, setTop] = useState<number | null>(null)
+
+    useLayoutEffect(() =>
+    {
+        const element = ref.current
+
+        if (element === null) {
+            return
+        }
+
+        const measure = (): void => setTop(Math.round(element.getBoundingClientRect().top + window.scrollY))
+
+        measure()
+        window.addEventListener('resize', measure)
+
+        // Late web fonts or rewrapped text above the map move it without a window resize.
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
+        observer?.observe(document.body)
+
+        return () =>
+        {
+            window.removeEventListener('resize', measure)
+            observer?.disconnect()
+        }
+    }, [])
+
+    return [ref, top === null ? undefined : `max(${MAP_MIN_HEIGHT}px, calc(100svh - ${top + MAP_FIT_GAP}px))`]
+}
+
+/** Where the work is: the tenders this page counts (open and relevant to the org), as pins. */
+function PortfolioMap(): ReactElement
+{
+    const navigate = useNavigate()
+    const [frame, height] = useFitToScreen()
+    const [points, setPoints] = useState<TenderMapResponse | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+
+    useEffect(() =>
+    {
+        const controller = new AbortController()
+
+        getTenderMap({ relevantOnly: true }, controller.signal)
+            .then(setPoints)
+            .catch((cause: unknown) =>
+            {
+                if (!(cause instanceof DOMException && cause.name === 'AbortError')) {
+                    setError(cause instanceof Error ? cause.message : 'Failed to load the map')
+                }
+            })
+            .finally(() => setLoading(false))
+
+        return () => controller.abort()
+    }, [])
+
+    return (
+        <div className="flex flex-col gap-2">
+            <div ref={frame} style={{ height }} className={cn(height === undefined && 'h-80')}>
+                <Suspense fallback={<div aria-hidden="true" className="nt-skeleton h-full rounded-2xl" />}>
+                    <TenderMap
+                        size="compact"
+                        points={points?.points ?? []}
+                        unplaced={points?.unplaced ?? 0}
+                        loading={loading}
+                        onOpen={(id) => navigate(`/tenders/${id}`)}
+                    />
+                </Suspense>
+            </div>
+            {error !== '' && (
+                <p className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger" role="alert">{error}</p>
+            )}
         </div>
     )
 }
@@ -180,7 +315,8 @@ export function DashboardPage()
 
             {!loading && error === '' && portfolio !== null && (
                 <>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+                    {/* Three across even on a phone, so the stats take two short rows and leave room for the map. */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:grid-cols-6">
                         <Stat value={portfolio.summary.clients} label="clients" />
                         <Stat value={portfolio.summary.tenders} label="tenders" />
                         <Stat value={portfolio.summary.government} label="government" />
@@ -188,6 +324,8 @@ export function DashboardPage()
                         <Stat value={portfolio.summary.external} label="external" />
                         <Stat value={portfolio.summary.provinces} label="provinces" />
                     </div>
+
+                    <PortfolioMap />
 
                     {portfolio.provinces.length === 0 && (
                         <EmptyState
@@ -209,11 +347,11 @@ export function DashboardPage()
                                         type="button"
                                         onClick={() => toggleProvince(province.province)}
                                         aria-expanded={isOpen}
-                                        className="flex items-center gap-3 rounded-lg bg-ink px-4 py-2.5 text-left text-cream transition-colors hover:bg-ink/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+                                        className="flex items-center gap-3 rounded-lg border border-navy/25 bg-panel px-4 py-2.5 text-left text-ink transition-colors hover:border-navy/50 hover:bg-navy/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
                                     >
                                         <span className={cn('font-mono text-xs transition-transform', isOpen && 'rotate-90')} aria-hidden="true">▸</span>
                                         <span className="font-serif text-base font-semibold">{province.province}</span>
-                                        <span className="ms-auto font-mono text-[10px] uppercase tracking-[0.14em] text-cream/70">
+                                        <span className="ms-auto font-mono text-[10px] uppercase tracking-[0.14em] text-navy/80">
                                             {province.sectors.reduce((sum, sector) => sum + sector.clients.length, 0)} clients
                                         </span>
                                     </button>

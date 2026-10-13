@@ -1,15 +1,16 @@
 import type { ReactElement, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { Countdown, DeadlineMeter } from '@/components/feed/deadline-meter'
-import { DeadlineDial } from '@/components/feed/deadline-dial'
+import { Countdown } from '@/components/feed/deadline-meter'
 import type { QueueItem } from '@/components/feed/queue-item'
 import { urgencyOf } from '@/components/feed/signals'
 import { EligibilityChip } from '@/components/tender/eligibility-chip'
+import { EstimateValue } from '@/components/tender/estimate-value'
+import { DeliverablesChecklist, RequirementChecklist } from '@/components/tender/requirements-section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { IconArrowRight, IconBookmark, IconClose } from '@/components/ui/icons'
-import { formatDate, formatZAR } from '@/lib/format'
+import { formatDate } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 /**
@@ -41,17 +42,6 @@ function Fact({ label, children }: { readonly label: string, readonly children: 
             <dd className="text-sm leading-snug text-ink">{children}</dd>
         </div>
     )
-}
-
-function valueText(item: QueueItem): string
-{
-    if (item.estimatedValue === null) {
-        return 'Not published'
-    }
-
-    const amount = formatZAR(item.estimatedValue)
-
-    return item.valueBasis !== null ? `${amount} · ${item.valueBasis}` : amount
 }
 
 /**
@@ -119,26 +109,23 @@ export function TenderBrief({
                 )}
 
                 <CardContent className="flex flex-col gap-5 px-5 py-5">
-                    <section aria-label="Closing date" className="flex items-center gap-4">
-                        <DeadlineDial urgency={urgency} />
-                        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink/45">Closing</span>
-                            <p className="font-serif text-2xl font-semibold leading-none tracking-tight text-ink">
-                                {item.closingDate !== null ? formatDate(item.closingDate) : 'Not published'}
-                            </p>
-                            <Countdown urgency={urgency} />
-                        </div>
-                    </section>
-
-                    <DeadlineMeter urgency={urgency} className="-mt-1" />
-
                     <dl className="flex flex-col">
-                        <Fact label="Est. value">{valueText(item)}</Fact>
+                        <Fact label="Closing">
+                            <span className="flex flex-wrap items-baseline gap-x-2">
+                                {item.closingDate !== null ? formatDate(item.closingDate) : 'Not published'}
+                                <Countdown urgency={urgency} />
+                            </span>
+                        </Fact>
+                        <Fact label="Est. value"><EstimateValue estimate={item.estimate} /></Fact>
                         <Fact label="Published">{formatDate(item.publishedDate)}</Fact>
                         {item.briefing !== null && <Fact label="Briefing">{item.briefing}</Fact>}
                         {item.category !== null && <Fact label="Category">{item.category}</Fact>}
                         {!isPane && item.province !== null && <Fact label="Province">{item.province}</Fact>}
                     </dl>
+
+                    {item.deliverables !== undefined && <DeliverablesChecklist deliverables={item.deliverables} />}
+
+                    {item.requirements !== undefined && <RequirementChecklist gates={item.requirements} />}
 
                     {reasons.length > 0 && (
                         <section

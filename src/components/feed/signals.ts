@@ -1,4 +1,4 @@
-import { daysUntil, formatZAR, relativeDays } from '@/lib/format'
+import { daysUntil, relativeDays } from '@/lib/format'
 
 /** Colour intent for a deadline. Never the only signal — always paired with text. */
 export type UrgencyTone = 'danger' | 'warn' | 'neutral'
@@ -94,38 +94,6 @@ export function urgencyOf(closingDate: string | null | undefined): Urgency
         label: labelFor(days),
         pressure: days <= 0 ? 1 : 1 - Math.min(days, HORIZON_DAYS) / HORIZON_DAYS,
     }
-}
-
-function trimTenth(value: number): string
-{
-    return value.toFixed(1).replace(/\.0$/, '')
-}
-
-/**
- * Rand formatted to fit a card corner: "R1.2m", "R450k". Falls back to the full
- * locale currency below R10 000, where abbreviating loses more than it saves.
- */
-export function compactRand(value: number | null | undefined): string | null
-{
-    if (value === null || value === undefined || !Number.isFinite(value)) {
-        return null
-    }
-
-    const magnitude = Math.abs(value)
-
-    if (magnitude >= 1_000_000_000) {
-        return `R${trimTenth(value / 1_000_000_000)}bn`
-    }
-
-    if (magnitude >= 1_000_000) {
-        return `R${trimTenth(value / 1_000_000)}m`
-    }
-
-    if (magnitude >= 10_000) {
-        return `R${Math.round(value / 1_000)}k`
-    }
-
-    return formatZAR(value)
 }
 
 /** True when the user has asked the OS to minimise animation. */

@@ -69,7 +69,7 @@ export function SegmentedTabsList<T extends string>({ tabs, value, label, classN
             <span
                 aria-hidden="true"
                 className={cn(
-                    'absolute inset-y-1 start-0 rounded-lg bg-ink transition-[transform,width] duration-300 ease-out',
+                    'absolute inset-y-1 start-0 rounded-lg bg-navy transition-[transform,width] duration-300 ease-out',
                     thumb === null && 'opacity-0',
                 )}
                 style={thumb ?? undefined}

@@ -26,9 +26,16 @@ export interface Tender
     readonly source_status: string
     readonly raw_id: number | null
     readonly support_documents: string | null
-    /** Derived estimate from award medians (null until enough history exists). */
+    /** Likely value from the strongest evidence the tender has; see `src/lib/estimate.ts`. */
     readonly estimated_value?: number | null
+    /** The likely range; either end is null when it is open (up to / over). */
+    readonly estimate_low?: number | null
+    readonly estimate_high?: number | null
     readonly estimate_basis?: string | null
+    /** The CIDB grade asked for (e.g. "4GB") or the number of awards behind the estimate. */
+    readonly estimate_detail?: string | null
+    /** Only on `/api/tenders/:id`: the sentence a value stated in the documents was read from. */
+    readonly estimate_quote?: string | null
     /** 1 when the tender text marks it as a re-advertisement. */
     readonly re_advert?: number
     /** Profile token when the tender matches the client's work, else `other`. */
@@ -40,6 +47,20 @@ export interface Tender
     readonly bookmarked_at?: string | null
     /** Present on `/api/tenders/:id` only. */
     readonly eligibility?: EligibilitySummary
+    /** Present on `/api/tenders/:id` only; null until the understanding job has read the tender. */
+    readonly brief?: TenderScope | null
+}
+
+/** The understanding job's plain-language read of a tender. */
+export interface TenderScope
+{
+    readonly summary: string | null
+    readonly subject: string | null
+    readonly nature: string | null
+    readonly deliverables: string[]
+    readonly skills: string[]
+    /** What was read: title_only | title+desc | full_documents. */
+    readonly basis: string | null
 }
 
 export type GateState =
@@ -54,6 +75,8 @@ export interface GateSummary
 {
     readonly type: string
     readonly subjectKey: string
+    /** What the requirement asks for, in plain words. */
+    readonly label: string
     readonly state: GateState
     readonly evidence: string | null
     readonly asAt: string | null
@@ -224,7 +247,17 @@ export interface ComplianceCheckResult
     readonly detail: string
 }
 
-export interface FeedItem
+/** The camelCase estimate fields the feed, map and portfolio responses carry. */
+export interface EstimateFields
+{
+    readonly estimatedValue: number | null
+    readonly estimateLow?: number | null
+    readonly estimateHigh?: number | null
+    readonly estimateBasis?: string | null
+    readonly estimateDetail?: string | null
+}
+
+export interface FeedItem extends EstimateFields
 {
     readonly id: string
     readonly title: string | null
@@ -232,12 +265,13 @@ export interface FeedItem
     readonly serviceLine: string | null
     readonly closingDate: string | null
     readonly publishedDate: string | null
-    readonly estimatedValue: number | null
     readonly organ: string | null
     readonly reAdvert: number
     readonly score: number
     readonly reasons: string[]
     readonly eligibility: EligibilitySummary
+    /** DeepSeek's read of the scope; null until it has run on this tender. */
+    readonly brief?: TenderScope | null
 }
 
 export interface FeedResponse
@@ -246,12 +280,40 @@ export interface FeedResponse
     readonly total: number
 }
 
-export interface PortfolioTender
+/** How a map pin is placed: a named site or town, the buyer's own town, or only the province. */
+export type MapPrecision = 'site' | 'town' | 'municipality' | 'buyer' | 'province'
+
+export interface TenderMapPoint extends EstimateFields
+{
+    readonly id: string
+    readonly title: string | null
+    readonly organ: string | null
+    readonly province: string | null
+    readonly closingDate: string | null
+    readonly relevant: boolean
+    readonly lat: number
+    readonly lng: number
+    readonly precision: MapPrecision
+    /** What the pin stands for, e.g. "Durnacol cemeteries, Dannhauser Local Municipality". */
+    readonly place: string
+    /** True when the place was quoted from the tender text. */
+    readonly verified: boolean
+}
+
+export interface TenderMapResponse
+{
+    readonly points: TenderMapPoint[]
+    /** Matching open tenders with no place yet, e.g. national ones with no single site. */
+    readonly unplaced: number
+    readonly total: number
+}
+
+export interface PortfolioTender extends EstimateFields
 {
     readonly id: string
     readonly title: string | null
     readonly closingDate: string | null
-    readonly estimatedValue: number | null
+    readonly brief: TenderScope | null
 }
 
 export interface PortfolioService

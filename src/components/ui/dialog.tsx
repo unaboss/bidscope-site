@@ -49,7 +49,7 @@ export function Dialog({ open, title, onClose, size = 'md', children }: DialogPr
             aria-labelledby={titleId}
             onClose={onClose}
             className={cn(
-                'w-[calc(100%-2rem)] rounded-xl border border-line bg-panel p-6 text-ink shadow-panel backdrop:bg-ink/50',
+                'w-[calc(100%-2rem)] rounded-xl border border-line bg-panel p-6 text-ink shadow-panel backdrop:bg-black/60',
                 SIZES[size],
             )}
         >

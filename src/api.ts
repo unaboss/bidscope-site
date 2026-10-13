@@ -1,4 +1,4 @@
-import type { Account, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse } from '@/types'
+import type { Account, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse, TenderMapResponse } from '@/types'
 
 /** URL of the subscribable iCalendar feed for the current org. */
 export const CALENDAR_FEED_URL = '/api/calendar/feed.ics'
@@ -33,8 +33,8 @@ export interface TenderQuery
     readonly offset?: number
 }
 
-/** Lists tenders with the given filters. */
-export function listTenders(query: TenderQuery, signal?: AbortSignal): Promise<TenderListResponse>
+/** The query string the list and the map share. */
+function tenderParams(query: TenderQuery): URLSearchParams
 {
     const params = new URLSearchParams()
 
@@ -74,7 +74,19 @@ export function listTenders(query: TenderQuery, signal?: AbortSignal): Promise<T
         params.set('offset', String(query.offset))
     }
 
-    return getJson<TenderListResponse>(`/api/tenders?${params.toString()}`, signal)
+    return params
+}
+
+/** Lists tenders with the given filters. */
+export function listTenders(query: TenderQuery, signal?: AbortSignal): Promise<TenderListResponse>
+{
+    return getJson<TenderListResponse>(`/api/tenders?${tenderParams(query).toString()}`, signal)
+}
+
+/** Every open tender matching the filters, placed for the map. Sort, limit and offset are ignored. */
+export function getTenderMap(query: TenderQuery, signal?: AbortSignal): Promise<TenderMapResponse>
+{
+    return getJson<TenderMapResponse>(`/api/tenders/map?${tenderParams(query).toString()}`, signal)
 }
 
 /** Returns one tender by id. */

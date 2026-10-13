@@ -174,15 +174,3 @@ export function isVerifiedRef(tenderNo: string | null | undefined): boolean
 
     return !ALL_ZERO.test(value)
 }
-
-/** Friendly label for an estimate basis code. */
-export function estimateBasisLabel(basis: string | null | undefined): string
-{
-    const labels: Record<string, string> = {
-        'client similar awards': 'this client\u2019s similar awards',
-        'client history': 'this client\u2019s award history',
-        'market median': 'the market median',
-    }
-
-    return basis !== null && basis !== undefined ? labels[basis] ?? basis : ''
-}

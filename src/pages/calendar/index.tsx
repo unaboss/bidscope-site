@@ -177,7 +177,7 @@ export function CalendarPage()
                                 className={cn(
                                     'rounded-md px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors',
                                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream',
-                                    view === value ? 'bg-ink text-cream' : 'text-ink/60 hover:bg-ink/5',
+                                    view === value ? 'bg-navy text-cream' : 'text-ink/60 hover:bg-ink/5',
                                 )}
                             >
                                 {label}

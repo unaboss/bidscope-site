@@ -3,7 +3,8 @@ import { Badge } from '@/components/ui/badge'
 import { EligibilityChip } from '@/components/tender/eligibility-chip'
 import { RequirementsSection } from '@/components/tender/requirements-section'
 import { Button } from '@/components/ui/button'
-import { formatDate, formatZAR, daysUntil, relativeDays } from '@/lib/format'
+import { estimateText, tenderEstimate } from '@/lib/estimate'
+import { formatDate, daysUntil, relativeDays } from '@/lib/format'
 import { serviceLabel } from '@/lib/service-lines'
 import type { Tender } from '@/types'
 
@@ -81,12 +82,7 @@ export function TenderCaseFile({ tender, bookmarked = false, onToggleBookmark }:
                 />
                 <Fact label="Province" value={tender.province ?? '—'} />
                 <Fact label="Category" value={tender.category ?? '—'} />
-                <Fact
-                    label="Est. value"
-                    value={tender.estimated_value !== null && tender.estimated_value !== undefined
-                        ? `${tender.estimate_basis === 'CIDB grade ceiling' ? 'up to ' : ''}${formatZAR(tender.estimated_value)} (${tender.estimate_basis ?? 'estimate'})`
-                        : (tender.contract_value !== null ? formatZAR(tender.contract_value) : 'Not published')}
-                />
+                <Fact label="Est. value" value={estimateText(tenderEstimate(tender))} />
                 <Fact label="Bid type" value={tender.bid_type ?? '—'} />
                 <Fact label="Validity" value={tender.validity_days !== null ? `${tender.validity_days} days` : '—'} />
                 <Fact label="Submission" value={tender.two_envelope ? 'Two-envelope' : 'Standard'} />

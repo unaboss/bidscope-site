@@ -3,63 +3,67 @@
 @tailwind utilities;
 
 /**
- * North Tech design tokens.
+ * Design tokens.
  *
  * Values are RGB channel triplets so Tailwind can compose them with opacity
  * modifiers (`bg-navy/10`) through the `<alpha-value>` slots in
  * `tailwind.config.js`. Keep the channels here and the semantic names there.
+ *
+ * Bidscope dark green and gold, carried over from the intro screen. Text is a
+ * warm parchment on near-black green; the primary (still named `navy`) is brass
+ * gold, and `cream` is the page.
  */
 :root {
-    color-scheme: light;
+    color-scheme: dark;
 
-    /* Navy with an olive-green undertone — petrol primary on a cool page. */
-    --color-ink: 18 32 31; /* #12201F deep blue-green near-black */
-    --color-navy: 30 74 71; /* #1E4A47 petrol blue-green, the primary */
-    --color-wax: 122 74 42; /* #7A4A2A warm accent */
-    --color-cream: 244 247 244; /* #F4F7F4 cool off-white page */
-    --color-panel: 255 255 255; /* #FFFFFF */
+    --color-ink: 233 223 198; /* #E9DFC6 parchment text */
+    --color-navy: 201 164 100; /* #C9A464 brass gold, the primary */
+    --color-wax: 222 150 108; /* #DE966C warm copper accent */
+    --color-cream: 6 20 15; /* #06140F near-black green page */
+    --color-panel: 11 31 24; /* #0B1F18 raised green surface */
+    --color-night: 3 11 8; /* #030B08 deepest green, the nav rail */
 
-    /* Cool blue-grey neutral scale */
-    --color-neutral-50: 245 247 246; /* #F5F7F6 */
-    --color-neutral-100: 233 238 236; /* #E9EEEC */
-    --color-neutral-200: 220 228 224; /* #DCE4E0 line */
-    --color-neutral-300: 196 207 201; /* #C4CFC9 strong line */
-    --color-neutral-400: 154 168 162; /* #9AA8A2 */
-    --color-neutral-500: 117 131 124; /* #75837C */
-    --color-neutral-600: 90 102 95; /* #5A665F */
-    --color-neutral-700: 69 79 73; /* #454F49 */
-    --color-neutral-800: 49 58 53; /* #313A35 */
-    --color-neutral-900: 31 39 35; /* #1F2723 */
+    /* Green-to-parchment scale: low steps are surfaces and lines, high steps are text. */
+    --color-neutral-50: 9 26 20; /* #091A14 */
+    --color-neutral-100: 16 36 28; /* #10241C */
+    --color-neutral-200: 40 52 38; /* #283426 line */
+    --color-neutral-300: 62 72 54; /* #3E4836 strong line */
+    --color-neutral-400: 112 116 96; /* #707460 */
+    --color-neutral-500: 146 145 124; /* #92917C */
+    --color-neutral-600: 172 168 146; /* #ACA892 */
+    --color-neutral-700: 196 189 166; /* #C4BDA6 */
+    --color-neutral-800: 216 207 184; /* #D8CFB8 */
+    --color-neutral-900: 233 223 198; /* #E9DFC6 */
 
-    /* Status */
-    --color-success: 46 108 70; /* #2E6C46 */
-    --color-warn: 166 106 16; /* #A66A10 */
-    --color-danger: 150 62 45; /* #963E2D */
+    /* Status, lifted to read on dark green */
+    --color-success: 110 178 130; /* #6EB282 */
+    --color-warn: 226 170 84; /* #E2AA54 */
+    --color-danger: 224 116 96; /* #E07460 */
 
     /*
      * shadcn/ui semantic layer. `H S% L%` triples consumed as `hsl(var(--…))`
      * in `tailwind.config.js`. Each one restates a token above — change the
      * token first, then its mirror here.
      */
-    --background: 120 16% 96%; /* cream */
-    --foreground: 176 28% 10%; /* ink */
-    --card: 0 0% 100%; /* panel */
-    --card-foreground: 176 28% 10%; /* ink */
-    --popover: 0 0% 100%; /* panel */
-    --popover-foreground: 176 28% 10%; /* ink */
-    --primary: 176 42% 20%; /* navy */
-    --primary-foreground: 0 0% 100%; /* panel */
-    --secondary: 156 13% 92%; /* neutral-100 */
-    --secondary-foreground: 176 28% 10%; /* ink */
-    --muted: 156 13% 92%; /* neutral-100 */
-    --muted-foreground: 145 6% 38%; /* neutral-600 */
-    --accent: 156 13% 92%; /* neutral-100 */
-    --accent-foreground: 176 28% 10%; /* ink */
-    --destructive: 10 54% 38%; /* danger */
-    --destructive-foreground: 0 0% 100%; /* panel */
-    --border: 150 13% 88%; /* neutral-200 (line) */
-    --input: 147 10% 79%; /* neutral-300 (strong line) */
-    --ring: 150 6% 49%; /* neutral-500 — darkest line tone that clears 3:1 */
+    --background: 159 54% 5%; /* cream */
+    --foreground: 43 44% 85%; /* ink */
+    --card: 159 48% 8%; /* panel */
+    --card-foreground: 43 44% 85%; /* ink */
+    --popover: 159 48% 8%; /* panel */
+    --popover-foreground: 43 44% 85%; /* ink */
+    --primary: 38 48% 59%; /* navy */
+    --primary-foreground: 159 54% 5%; /* cream */
+    --secondary: 156 38% 10%; /* neutral-100 */
+    --secondary-foreground: 43 44% 85%; /* ink */
+    --muted: 156 38% 10%; /* neutral-100 */
+    --muted-foreground: 51 14% 62%; /* neutral-600 */
+    --accent: 156 38% 10%; /* neutral-100 */
+    --accent-foreground: 43 44% 85%; /* ink */
+    --destructive: 9 67% 63%; /* danger */
+    --destructive-foreground: 159 54% 5%; /* cream */
+    --border: 111 16% 18%; /* neutral-200 */
+    --input: 93 14% 25%; /* neutral-300 */
+    --ring: 38 48% 59%; /* navy */
     --radius: 0.75rem;
 }
 
@@ -111,7 +115,7 @@
     }
 
     ::selection {
-        background-color: rgb(var(--color-navy) / 0.15);
+        background-color: rgb(var(--color-navy) / 0.3);
     }
 }
 

@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 import { addBookmark, listBookmarks, removeBookmark } from '@/api'
 import { FeedEmpty } from '@/components/feed/feed-empty'
-import { compactRand, prefersReducedMotion, urgencyOf } from '@/components/feed/signals'
+import { prefersReducedMotion, urgencyOf } from '@/components/feed/signals'
 import type { UrgencyBand } from '@/components/feed/signals'
 import { QueueSkeleton } from '@/components/feed/skeleton'
 import { InlineError, LiveStatus } from '@/components/feed/workspace'
@@ -17,6 +17,8 @@ import { Separator } from '@/components/ui/separator'
 import { StackedBar } from '@/components/ui/stacked-bar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { UndoToast } from '@/components/ui/undo-toast'
+import { isRoughEstimate, tenderEstimate } from '@/lib/estimate'
+import { compactRand } from '@/lib/format'
 import { DeadlineRow } from '@/pages/bookmarks/deadline-row'
 import { cn } from '@/lib/utils'
 import type { Tender } from '@/types'
@@ -192,8 +194,14 @@ export function BookmarksPage(): ReactElement
         return buckets
     }, [sorted])
 
+    // Rough AI ranges are left out: a total should only add up evidence.
     const trackedValue = useMemo(
-        () => sorted.reduce((sum, tender) => sum + (tender.estimated_value ?? tender.contract_value ?? 0), 0),
+        () => sorted.reduce((sum, tender) =>
+        {
+            const estimate = tenderEstimate(tender)
+
+            return sum + (estimate !== null && !isRoughEstimate(estimate) ? estimate.value : 0)
+        }, 0),
         [sorted],
     )
 

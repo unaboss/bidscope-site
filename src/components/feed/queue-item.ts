@@ -1,7 +1,8 @@
 import { urgencyOf } from '@/components/feed/signals'
+import { estimateFrom, tenderEstimate, type ValueEstimate } from '@/lib/estimate'
 import { daysUntil, formatDate } from '@/lib/format'
 import { serviceLabel } from '@/lib/service-lines'
-import type { FeedItem, GateState, Tender } from '@/types'
+import type { FeedItem, GateState, GateSummary, Tender } from '@/types'
 
 /**
  * The single shape the Discover queue renders.
@@ -21,9 +22,8 @@ export interface QueueItem
     readonly service: string | null
     readonly closingDate: string | null
     readonly publishedDate: string | null
-    readonly estimatedValue: number | null
-    /** How the value was derived, when the API says. */
-    readonly valueBasis: string | null
+    /** The likely value and where it came from; null when nothing gives a clue. */
+    readonly estimate: ValueEstimate | null
     readonly briefing: string | null
     readonly reAdvert: boolean
     readonly relevant: boolean
@@ -31,6 +31,10 @@ export interface QueueItem
     readonly reasons: readonly string[]
     /** Overall gate state; absent in Browse, where rows carry no eligibility. */
     readonly eligibility?: GateState
+    /** Each requirement read from the tender; absent in Browse, like `eligibility`. */
+    readonly requirements?: readonly GateSummary[]
+    /** What has to be delivered, as DeepSeek read it; absent in Browse, empty until it has run. */
+    readonly deliverables?: readonly string[]
 }
 
 const UNTITLED = 'Untitled tender'
@@ -57,13 +61,14 @@ export function fromFeedItem(item: FeedItem): QueueItem
         service: serviceLabel(item.serviceLine),
         closingDate: item.closingDate,
         publishedDate: item.publishedDate,
-        estimatedValue: item.estimatedValue,
-        valueBasis: null,
+        estimate: estimateFrom(item),
         briefing: null,
         reAdvert: item.reAdvert === 1,
         relevant: item.relevance === 'relevant',
         reasons: item.reasons,
         eligibility: item.eligibility.state,
+        requirements: item.eligibility.gates,
+        deliverables: item.brief?.deliverables ?? [],
     }
 }
 
@@ -127,8 +132,6 @@ function briefingFor(tender: Tender): string | null
 /** Maps a catalogue tender, which carries province and category the feed omits. */
 export function fromTender(tender: Tender): QueueItem
 {
-    const estimated = tender.estimated_value ?? null
-
     return {
         id: tender.id,
         title: nonEmpty(tender.title) ?? UNTITLED,
@@ -138,8 +141,7 @@ export function fromTender(tender: Tender): QueueItem
         service: serviceLabel(tender.service_line),
         closingDate: tender.closing_date,
         publishedDate: tender.published_date,
-        estimatedValue: estimated ?? tender.contract_value,
-        valueBasis: estimated !== null ? nonEmpty(tender.estimate_basis) : null,
+        estimate: tenderEstimate(tender),
         briefing: briefingFor(tender),
         reAdvert: tender.re_advert === 1,
         relevant: tender.relevance === 'relevant',

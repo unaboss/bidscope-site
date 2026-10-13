@@ -7,6 +7,8 @@ interface WorkspaceProps
 {
     readonly queue: ReactNode
     readonly brief: ReactNode
+    /** Inside a scrolling window rather than the page: the brief sticks to the window's top edge. */
+    readonly framed?: boolean
 }
 
 /**
@@ -16,14 +18,17 @@ interface WorkspaceProps
  * brief wide enough that narrower screens leave the queue no readable column. Below it the brief folds into the queue, under the row it
  * belongs to, so small screens get one column and no modal.
  */
-export function Workspace({ queue, brief }: WorkspaceProps): ReactElement
+export function Workspace({ queue, brief, framed = false }: WorkspaceProps): ReactElement
 {
     return (
         <div className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
             <div className="min-w-0">{queue}</div>
             <aside
                 aria-label="Tender brief"
-                className="hidden 2xl:sticky 2xl:top-20 2xl:block 2xl:max-h-[calc(100dvh-7rem)] 2xl:overflow-y-auto"
+                className={cn(
+                    'hidden 2xl:sticky 2xl:block 2xl:overflow-y-auto',
+                    framed ? '2xl:top-0 2xl:max-h-[calc(100dvh-10rem)]' : '2xl:top-20 2xl:max-h-[calc(100dvh-7rem)]',
+                )}
             >
                 {brief}
             </aside>

@@ -9,25 +9,35 @@ interface AppSidebarProps
     readonly onNavigate?: () => void
 }
 
-/** Navy navigation rail shared by the desktop rail and the mobile drawer. */
+const RAIL_FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-night'
+
+/** Deep green navigation rail, shared by the desktop rail and the mobile drawer. */
 export function AppSidebar({ onNavigate }: AppSidebarProps)
 {
     return (
-        <div className="flex h-full flex-col gap-8 bg-ink px-4 py-6 text-cream">
+        <div className="flex h-full flex-col gap-8 border-e border-navy/15 bg-night px-4 py-6 text-ink">
             <Link
                 to="/"
                 onClick={onNavigate}
-                aria-label="North Tech Procurement"
-                className="flex items-center gap-3 rounded-md px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                aria-label="Bidscope"
+                className={cn('flex items-center gap-3 rounded-md px-2 py-1', RAIL_FOCUS)}
             >
+                <span
+                    aria-hidden="true"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full border border-navy/45 font-serif text-base font-semibold text-navy"
+                >
+                    B
+                </span>
                 <span className="flex flex-col leading-tight">
-                    <span className="font-mono text-[11px] uppercase tracking-[0.18em]">North Tech</span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-cream/50">Procurement</span>
+                    <span className="bg-gradient-to-b from-[#F0D9A4] via-[#C9A464] to-[#8A6A3F] bg-clip-text font-serif text-lg font-semibold tracking-tight text-transparent">
+                        Bidscope
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.24em] text-navy/70">by North Tech</span>
                 </span>
             </Link>
 
             <nav aria-label="Primary" className="flex flex-col gap-1">
-                <span className="px-3 pb-2 font-mono text-[9px] uppercase tracking-[0.24em] text-cream/40">
+                <span className="px-3 pb-2 font-mono text-[9px] uppercase tracking-[0.24em] text-navy/60">
                     Workspace
                 </span>
                 {NAV_ITEMS.map((item) => (
@@ -37,11 +47,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps)
                         end={item.to === '/'}
                         onClick={onNavigate}
                         className={({ isActive }) => cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-ink',
+                            'flex items-center gap-3 rounded-md border px-3 py-2.5 text-sm transition-colors',
+                            RAIL_FOCUS,
                             isActive
-                                ? 'bg-cream font-medium text-ink'
-                                : 'text-cream/70 hover:bg-cream/10 hover:text-cream',
+                                ? 'border-navy/40 bg-navy/10 font-medium text-[#F0D9A4]'
+                                : 'border-transparent text-ink/60 hover:bg-navy/[0.06] hover:text-ink',
                         )}
                     >
                         <item.icon className="size-4 shrink-0" />
@@ -51,7 +61,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps)
             </nav>
 
             <div className="mt-auto flex flex-col gap-3">
-                <p className="px-3 font-mono text-[9px] uppercase leading-relaxed tracking-[0.18em] text-cream/40">
+                <p className="px-3 font-mono text-[9px] uppercase leading-relaxed tracking-[0.18em] text-ink/35">
                     Unified tender workspace
                     <br />
                     Phase 0
@@ -59,7 +69,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps)
                 <form method="post" action="/logout">
                     <button
                         type="submit"
-                        className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-cream/70 transition-colors hover:bg-cream/10 hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                        className={cn('flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-ink/60 transition-colors hover:bg-navy/[0.06] hover:text-ink', RAIL_FOCUS)}
                     >
                         <IconLogout className="size-4 shrink-0" />
                         <span>Sign out</span>

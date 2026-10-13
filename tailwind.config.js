@@ -12,6 +12,7 @@ export default {
                 wax: 'rgb(var(--color-wax) / <alpha-value>)',
                 cream: 'rgb(var(--color-cream) / <alpha-value>)',
                 panel: 'rgb(var(--color-panel) / <alpha-value>)',
+                night: 'rgb(var(--color-night) / <alpha-value>)',
                 line: 'rgb(var(--color-neutral-200) / <alpha-value>)',
                 success: 'rgb(var(--color-success) / <alpha-value>)',
                 warn: 'rgb(var(--color-warn) / <alpha-value>)',
@@ -77,7 +78,7 @@ export default {
                 mono: ['"Space Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
             },
             boxShadow: {
-                panel: '0 1px 2px rgb(var(--color-ink) / 0.04), 0 10px 30px rgb(var(--color-ink) / 0.06)',
+                panel: '0 1px 2px rgb(0 0 0 / 0.25), 0 18px 40px -12px rgb(0 0 0 / 0.55)',
             },
         },
     },

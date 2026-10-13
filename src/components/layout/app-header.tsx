@@ -35,10 +35,10 @@ export function AppHeader({ navOpen, onOpenNav, toggleRef }: AppHeaderProps)
 
             <Link
                 to="/"
-                aria-label="North Tech Procurement"
+                aria-label="Bidscope"
                 className="flex items-center gap-2 rounded-md py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream lg:hidden"
             >
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink/70">Procurement</span>
+                <span className="bg-gradient-to-b from-[#F0D9A4] via-[#C9A464] to-[#8A6A3F] bg-clip-text font-serif text-base font-semibold tracking-tight text-transparent">Bidscope</span>
             </Link>
 
             <p className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-ink/50 lg:block">

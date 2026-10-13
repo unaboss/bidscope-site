@@ -32,6 +32,38 @@ export function formatZAR(value: number): string
     }).format(value)
 }
 
+function trimTenth(value: number): string
+{
+    return value.toFixed(1).replace(/\.0$/, '')
+}
+
+/**
+ * Rand formatted to fit a card corner: "R1.2m", "R450k". Falls back to the full
+ * locale currency below R10 000, where abbreviating loses more than it saves.
+ */
+export function compactRand(value: number | null | undefined): string | null
+{
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+        return null
+    }
+
+    const magnitude = Math.abs(value)
+
+    if (magnitude >= 1_000_000_000) {
+        return `R${trimTenth(value / 1_000_000_000)}bn`
+    }
+
+    if (magnitude >= 1_000_000) {
+        return `R${trimTenth(value / 1_000_000)}m`
+    }
+
+    if (magnitude >= 10_000) {
+        return `R${Math.round(value / 1_000)}k`
+    }
+
+    return formatZAR(value)
+}
+
 /**
  * Inclusive date bounds for a "closing within N days" filter: from today to
  * today + N. Returns empty bounds for a non-positive window (meaning "any").
