@@ -35,6 +35,10 @@ function useIsTall(): boolean
 interface AdPlayerProps
 {
     readonly onDone: () => void
+    /** The corner button's label; by default "Skip ad", or "See pricing" while the ad is missing. */
+    readonly closeLabel?: string
+    /** Open on the title card before the video (the intro does; the pricing page's preview goes straight in). */
+    readonly titleCard?: boolean
 }
 
 /** How long the "ad will play here" card holds before it fades into the ad. */
@@ -45,13 +49,13 @@ const CARD_MS = 2200
  * on a title card that fades out into the video; if the video file is missing
  * the card simply stays, with a way on to pricing.
  */
-function AdPlayer({ onDone }: AdPlayerProps)
+export function AdPlayer({ onDone, closeLabel, titleCard = true }: AdPlayerProps)
 {
     const tall = useIsTall()
     const videoRef = useRef<HTMLVideoElement>(null)
     const skipRef = useRef<HTMLButtonElement>(null)
     const [missing, setMissing] = useState(false)
-    const [showCard, setShowCard] = useState(true)
+    const [showCard, setShowCard] = useState(titleCard)
 
     useEffect(() =>
     {
@@ -143,7 +147,7 @@ function AdPlayer({ onDone }: AdPlayerProps)
                 onClick={onDone}
                 className="absolute right-4 top-4 rounded-md border border-[#B08D57]/50 bg-[#06140F]/70 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#E9DFC6]/70 backdrop-blur transition-colors hover:bg-[#B08D57]/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D9B97E] sm:right-6 sm:top-6"
             >
-                {missing ? 'See pricing' : 'Skip ad'}
+                {closeLabel ?? (missing ? 'See pricing' : 'Skip ad')}
             </button>
         </div>
     )

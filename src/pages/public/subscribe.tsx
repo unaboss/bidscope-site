@@ -4,35 +4,25 @@ import { ApiError, confirmPublicCheckout, requestDiscountCode, startSubscribe, t
 import { PROVINCES } from '@/lib/profile'
 import {
     addonProvinces,
-    annualCents,
     INCLUDED_PROVINCES,
     isBilling,
     isPricingTier,
     isPromoTier,
     MAX_PROVINCES,
-    monthlyTotalCents,
     PROMO_MONTHS,
     PROMO_PERCENT,
-    promoCents,
     PROVINCE_ADDON_CENTS,
     TIER_NAMES,
     type Billing,
 } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
 import { BUTTON_GOLD, BUTTON_OUTLINE, EYEBROW, FOCUS, formatRands, GOLD_TEXT, INPUT, PANEL } from './brand'
+import { codeLooksValid, FieldLabel, normaliseCode, PlanPanel, PriceBlock, todayCentsFor } from './plan-panel'
 
 type Step = 'preview' | 'pay' | 'confirming' | 'done'
 
 const TOKEN_KEY = 'bidscope.checkoutToken'
 const PAYSTACK_SCRIPT = 'https://js.paystack.co/v2/inline.js'
-
-/** The shape of a typed code once normalised (see worker/lib/discount-code.ts). */
-const CODE_PATTERN = /^BID50-[0-9A-Z]{8}$/
-
-function normaliseCode(raw: string): string
-{
-    return raw.trim().toUpperCase().replace(/\s+/g, '')
-}
 
 interface PaystackTransaction
 {
@@ -112,17 +102,6 @@ function provinceLimit(tier: PricingTier): { readonly min: number, readonly max:
     return tier === 'all' ? { min: 0, max: 0 } : { min: 1, max: MAX_PROVINCES[tier] }
 }
 
-/** What is charged today for a plan, billing period, province count and code. */
-function todayCentsFor(tier: PricingTier, billing: Billing, count: number, promo: boolean): number
-{
-    if (billing === 'annual')
-    {
-        return annualCents(tier, count)
-    }
-
-    return promo ? promoCents(tier, count) : monthlyTotalCents(tier, count)
-}
-
 function SiteHeader()
 {
     return (
@@ -166,40 +145,6 @@ function Progress({ current }: { readonly current: number })
                 </li>
             ))}
         </ol>
-    )
-}
-
-interface PriceBlockProps
-{
-    readonly tier: PricingTier
-    readonly billing: Billing
-    readonly count: number
-    readonly promo: boolean
-}
-
-/** The price due today, with the full price struck through while a discount applies. */
-function PriceBlock({ tier, billing, count, promo }: PriceBlockProps)
-{
-    const monthly = monthlyTotalCents(tier, count)
-    const full = formatRands(monthly)
-    const today = todayCentsFor(tier, billing, count, promo)
-    const struck = billing === 'annual' ? formatRands(monthly * 12) : promo ? full : null
-
-    return (
-        <div>
-            <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                {struck !== null && <s className="font-serif text-xl font-semibold text-[#E9DFC6]/40 decoration-[#D9B97E]/80 decoration-2">{struck}</s>}
-                <span className={cn('font-serif text-4xl font-semibold tracking-tight', GOLD_TEXT)}>{formatRands(today)}</span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#E9DFC6]/45">today</span>
-            </p>
-            <p className="mt-2 text-[13px] leading-relaxed text-[#E9DFC6]/60">
-                {billing === 'annual'
-                    ? <>Twelve months for the price of ten ({full}/month), renewing yearly. Cancel anytime.</>
-                    : promo
-                        ? <>{PROMO_PERCENT}% off for {PROMO_MONTHS} months ({formatRands(today)}/month), then {full}/month. Cancel anytime.</>
-                        : <>{full}/month, billed monthly. Cancel anytime.</>}
-            </p>
-        </div>
     )
 }
 
@@ -254,7 +199,7 @@ function SetupPreview({ tier, billing, promo, email, onContinue }: PreviewProps)
                     <button type="button" onClick={onContinue} className={cn('h-12 px-8', BUTTON_GOLD)}>
                         Continue to payment
                     </button>
-                    <Link to="/pricing#pricing" className={cn('h-12 px-6', BUTTON_OUTLINE)}>Change plan</Link>
+                    <Link to="/pricing" className={cn('h-12 px-6', BUTTON_OUTLINE)}>Change plan</Link>
                 </div>
             </div>
 
@@ -306,11 +251,6 @@ function SectionTitle({ number, title }: { readonly number: number, readonly tit
     )
 }
 
-function Label({ htmlFor, children }: { readonly htmlFor: string, readonly children: React.ReactNode })
-{
-    return <label htmlFor={htmlFor} className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#E9DFC6]/55">{children}</label>
-}
-
 /**
  * Subscribe: a setup preview, then one payment gate holding the login details
  * and the card step (Paystack's popup), so a visitor goes from a pricing card to
@@ -338,10 +278,10 @@ export function SubscribePage()
     const [error, setError] = useState('')
     const [doneMessage, setDoneMessage] = useState('')
 
-    const codeLooksValid = CODE_PATTERN.test(normaliseCode(code))
-    const promo = billing === 'monthly' && isPromoTier(tier) && codeLooksValid
+    const codeIsWellFormed = codeLooksValid(code)
+    const promo = billing === 'monthly' && isPromoTier(tier) && codeIsWellFormed
     // On the preview a promo-tier visitor without a code yet still sees the promo price they are after.
-    const previewPromo = billing === 'monthly' && isPromoTier(tier) && (codeLooksValid || code === '')
+    const previewPromo = billing === 'monthly' && isPromoTier(tier) && (codeIsWellFormed || code === '')
     const limit = provinceLimit(tier)
     const count = tier === 'all' ? 0 : provinces.length
     const extras = addonProvinces(tier, count)
@@ -465,7 +405,7 @@ export function SubscribePage()
             return 'Choose the province you work in.'
         }
 
-        if (code.trim() !== '' && !codeLooksValid)
+        if (code.trim() !== '' && !codeIsWellFormed)
         {
             return 'That discount code does not look right. It starts with BID50-.'
         }
@@ -575,11 +515,11 @@ export function SubscribePage()
                             <section className={cn('flex flex-col gap-4 p-5 sm:p-6', PANEL)}>
                                 <SectionTitle number={1} title="Login details" />
                                 <div>
-                                    <Label htmlFor="sub-email">Email</Label>
+                                    <FieldLabel htmlFor="sub-email">Email</FieldLabel>
                                     <input id="sub-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className={INPUT} />
                                 </div>
                                 <div>
-                                    <Label htmlFor="sub-password">Password (10+ characters)</Label>
+                                    <FieldLabel htmlFor="sub-password">Password (10+ characters)</FieldLabel>
                                     <div className="relative">
                                         <input
                                             id="sub-password"
@@ -599,7 +539,7 @@ export function SubscribePage()
                                     </div>
                                 </div>
                                 <div>
-                                    <Label htmlFor="sub-company">Company name</Label>
+                                    <FieldLabel htmlFor="sub-company">Company name</FieldLabel>
                                     <input id="sub-company" autoComplete="organization" value={companyName} onChange={(event) => setCompanyName(event.target.value)} className={INPUT} />
                                 </div>
 
@@ -659,84 +599,36 @@ export function SubscribePage()
                             </section>
                         </div>
 
-                        <aside className={cn('order-first flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6 lg:order-2', PANEL, 'border-[#D9B97E]/35')}>
-                            <div>
-                                <p className={EYEBROW}>Your plan</p>
-                                <div role="radiogroup" aria-label="Plan" className="mt-3 grid grid-cols-3 gap-1.5 rounded-lg border border-[#B08D57]/20 bg-[#06140F]/60 p-1">
-                                    {(['single', 'mid', 'all'] as const).map((option) => (
-                                        <button
-                                            key={option}
-                                            type="button"
-                                            role="radio"
-                                            aria-checked={tier === option}
-                                            onClick={() => changeTier(option)}
-                                            className={cn(
-                                                'rounded-md px-1 py-2 text-center font-mono text-[10px] uppercase leading-tight tracking-[0.08em] transition-colors',
-                                                tier === option ? 'bg-[#D9B97E] font-bold text-[#06140F]' : 'text-[#E9DFC6]/60 hover:text-[#D9B97E]',
-                                                FOCUS,
-                                            )}
-                                        >
-                                            {TIER_NAMES[option]}
-                                            {billing === 'monthly' && isPromoTier(option) && <span className="block text-[9px] opacity-80">{PROMO_PERCENT}% off</span>}
-                                        </button>
-                                    ))}
-                                </div>
-                                <p className="mt-4 font-serif text-xl font-semibold text-[#E9DFC6]">{TIER_NAMES[tier]}</p>
-                            </div>
-
-                            <div role="radiogroup" aria-label="Billing" className="grid grid-cols-2 gap-1.5 rounded-lg border border-[#B08D57]/20 bg-[#06140F]/60 p-1">
-                                {(['monthly', 'annual'] as const).map((option) => (
-                                    <button
-                                        key={option}
-                                        type="button"
-                                        role="radio"
-                                        aria-checked={billing === option}
-                                        onClick={() => setBilling(option)}
-                                        className={cn(
-                                            'rounded-md px-1 py-2 text-center font-mono text-[10px] uppercase tracking-[0.08em] transition-colors',
-                                            billing === option ? 'bg-[#D9B97E] font-bold text-[#06140F]' : 'text-[#E9DFC6]/60 hover:text-[#D9B97E]',
-                                            FOCUS,
-                                        )}
-                                    >
-                                        {option === 'monthly' ? 'Monthly' : 'Yearly · 2 free'}
+                        <aside className="order-first lg:sticky lg:top-6 lg:order-2">
+                            <PlanPanel
+                                tier={tier}
+                                billing={billing}
+                                count={Math.max(count, tier === 'all' ? 0 : 1)}
+                                promo={promo}
+                                code={code}
+                                codeId="sub-code"
+                                onTierChange={changeTier}
+                                onBillingChange={setBilling}
+                                onCodeChange={setCode}
+                                note={extras > 0 && (
+                                    <p className="-mt-2 text-[12px] text-[#E9DFC6]/55">Includes {extras} extra province{extras === 1 ? '' : 's'} at R{PROVINCE_ADDON_CENTS / 100}/month each.</p>
+                                )}
+                                codeHelp={promo ? (
+                                    <p className="mt-2 text-[12px] text-[#9FD3B0]">✓ Code added: {PROMO_PERCENT}% off for {PROMO_MONTHS} months. It is checked against your email when you pay.</p>
+                                ) : codeSent ? (
+                                    <p className="mt-2 text-[12px] text-[#E9DFC6]/60">Sent to {email}. Paste it above, or open the email&rsquo;s button to come back with it filled in.</p>
+                                ) : (
+                                    <button type="button" onClick={() => void sendCode()} className={cn('mt-2 text-left text-[12px] text-[#D9B97E] underline-offset-2 hover:underline', FOCUS)}>
+                                        No code yet? Email it to me
                                     </button>
-                                ))}
-                            </div>
-
-                            <PriceBlock tier={tier} billing={billing} count={Math.max(count, tier === 'all' ? 0 : 1)} promo={promo} />
-
-                            {extras > 0 && (
-                                <p className="-mt-2 text-[12px] text-[#E9DFC6]/55">Includes {extras} extra province{extras === 1 ? '' : 's'} at R{PROVINCE_ADDON_CENTS / 100}/month each.</p>
-                            )}
-
-                            {isPromoTier(tier) && billing === 'monthly' && (
-                                <div>
-                                    <Label htmlFor="sub-code">Discount code</Label>
-                                    <input
-                                        id="sub-code"
-                                        value={code}
-                                        onChange={(event) => setCode(event.target.value)}
-                                        placeholder="BID50-XXXXXXXX"
-                                        autoCapitalize="characters"
-                                        spellCheck={false}
-                                        className={cn(INPUT, 'font-mono uppercase tracking-[0.1em]')}
-                                    />
-                                    {promo ? (
-                                        <p className="mt-2 text-[12px] text-[#9FD3B0]">✓ Code added: {PROMO_PERCENT}% off for {PROMO_MONTHS} months. It is checked against your email when you pay.</p>
-                                    ) : codeSent ? (
-                                        <p className="mt-2 text-[12px] text-[#E9DFC6]/60">Sent to {email}. Paste it above, or open the email&rsquo;s button to come back with it filled in.</p>
-                                    ) : (
-                                        <button type="button" onClick={() => void sendCode()} className={cn('mt-2 text-left text-[12px] text-[#D9B97E] underline-offset-2 hover:underline', FOCUS)}>
-                                            No code yet? Email it to me
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="flex items-center justify-between border-t border-[#B08D57]/20 pt-4">
-                                <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#E9DFC6]/55">Due today</span>
-                                <span className="font-serif text-2xl font-semibold text-[#F0D9A4]">{formatRands(todayCents)}</span>
-                            </div>
+                                )}
+                                footer={(
+                                    <div className="flex items-center justify-between border-t border-[#B08D57]/20 pt-4">
+                                        <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#E9DFC6]/55">Due today</span>
+                                        <span className="font-serif text-2xl font-semibold text-[#F0D9A4]">{formatRands(todayCents)}</span>
+                                    </div>
+                                )}
+                            />
                         </aside>
                     </form>
                 )}
