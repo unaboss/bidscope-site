@@ -8,7 +8,6 @@ import { AppPages } from '@/router'
 import { BUTTON_GOLD, FOCUS } from '../public/brand'
 import { TierToggle } from '../public/plan-panel'
 import { demoAccount, setDemoTier } from './demo-api'
-import { PilotNotice, type PreviewExit } from './pilot-notice'
 
 export { installDemoApi } from './demo-api'
 
@@ -29,8 +28,6 @@ interface PreviewBarProps
 {
     readonly tier: PricingTier
     readonly onTierChange: (tier: PricingTier) => void
-    /** Both ways out pass through the pilot page first. */
-    readonly onLeave: (exit: PreviewExit) => void
 }
 
 /**
@@ -38,7 +35,7 @@ interface PreviewBarProps
  * floating at the foot of the screen; on a desktop, a card at the foot of the
  * navigation rail, so it never covers the page.
  */
-function PreviewBar({ tier, onTierChange, onLeave }: PreviewBarProps)
+function PreviewBar({ tier, onTierChange }: PreviewBarProps)
 {
     return (
         <div
@@ -51,23 +48,21 @@ function PreviewBar({ tier, onTierChange, onLeave }: PreviewBarProps)
                 <div className="w-[10.5rem] sm:w-56 lg:order-3 lg:col-span-2 lg:w-auto">
                     <TierToggle tier={tier} onChange={onTierChange} pill />
                 </div>
-                <button
-                    type="button"
-                    onClick={() => onLeave({ href: `/subscribe?tier=${tier}`, label: 'Continue to subscribe' })}
+                <a
+                    href={`/subscribe?tier=${tier}`}
                     className={cn(BUTTON_GOLD, 'h-8 rounded-full px-3 text-[10px] tracking-[0.14em] sm:px-4 lg:order-4 lg:col-span-2 lg:h-9')}
                 >
                     Subscribe
-                </button>
-                <button
-                    type="button"
-                    onClick={() => onLeave({ href: '/pricing', label: 'See pricing' })}
+                </a>
+                <a
+                    href="/pricing"
                     aria-label="Close the preview"
                     className={cn('grid size-8 shrink-0 place-items-center rounded-full text-[#E9DFC6]/60 transition-colors hover:text-[#D9B97E] lg:order-2', FOCUS)}
                 >
                     <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">
                         <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
-                </button>
+                </a>
             </div>
         </div>
     )
@@ -76,8 +71,7 @@ function PreviewBar({ tier, onTierChange, onLeave }: PreviewBarProps)
 /**
  * The public preview of the app (`/preview`): the real pages, on a sample
  * company and sample tenders, with a switch between Starter, Growth and Pro.
- * Nothing can be saved; the company profile is view only. Leaving passes
- * through a page on the pilot and its pricing.
+ * Nothing can be saved; the company profile is view only.
  */
 export function PreviewApp()
 {
@@ -97,8 +91,6 @@ export function PreviewApp()
     }, [])
 
     const preview = useMemo(() => ({ tier, setTier }), [tier, setTier])
-    const [leaving, setLeaving] = useState<PreviewExit | null>(null)
-    const stay = useCallback(() => setLeaving(null), [])
 
     return (
         <MemoryRouter>
@@ -110,8 +102,7 @@ export function PreviewApp()
                         <AppPages />
                     </div>
                 </FixedPlanProvider>
-                <PreviewBar tier={tier} onTierChange={setTier} onLeave={setLeaving} />
-                {leaving !== null && <PilotNotice next={leaving} onBack={stay} />}
+                <PreviewBar tier={tier} onTierChange={setTier} />
             </PreviewContext.Provider>
         </MemoryRouter>
     )

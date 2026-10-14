@@ -1,6 +1,13 @@
+import { Link } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+import { BUTTON_GOLD, EYEBROW, FOCUS, GOLD_TEXT } from './brand'
+
+/** The date after which pilot prices may change. */
+export const PILOT_PRICES_UNTIL = '31 August 2027'
+
 /**
- * The front door: the name, one line on what it does, and a "Demo app" button
- * that opens the app itself on sample data (its Close leads on to pricing).
+ * The front door: Bidscope is in its pilot, prices may change after it, and
+ * clients who join during it keep their price. Continue opens the site.
  */
 export function IntroPage()
 {
@@ -16,39 +23,35 @@ export function IntroPage()
             <header className="relative flex justify-end py-6 sm:px-4 sm:py-8 [@media(max-height:560px)]:py-4">
                 <a
                     href="/login"
-                    className="rounded-sm font-mono text-[11px] uppercase tracking-[0.14em] text-[#E9DFC6]/35 transition-colors hover:text-[#D9B97E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D9B97E]"
+                    className={cn('rounded-sm font-mono text-[11px] uppercase tracking-[0.14em] text-[#E9DFC6]/35 transition-colors hover:text-[#D9B97E]', FOCUS)}
                 >
                     Sign in
                 </a>
             </header>
 
-            <main className="relative mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center py-6 text-center [@media(max-height:560px)]:py-2">
+            <main className="relative mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center py-6 text-center [@media(max-height:560px)]:py-2">
                 <span
                     aria-hidden="true"
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full [@media(max-height:560px)]:hidden border border-[#B08D57]/40 font-serif text-xl font-semibold text-[#B08D57]"
+                    className="mb-8 flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#B08D57]/40 font-serif text-xl font-semibold text-[#B08D57] [@media(max-height:560px)]:hidden"
                 >
                     B
                 </span>
-                <h1 className="mt-7 font-serif text-5xl [@media(max-height:560px)]:mt-0 [@media(max-height:560px)]:text-4xl font-semibold tracking-tight text-[#D9B97E] sm:text-6xl bg-gradient-to-b from-[#F0D9A4] via-[#C9A464] to-[#8A6A3F] bg-clip-text text-transparent">Bidscope</h1>
-                <div className="mt-4 flex items-center gap-3" aria-hidden="true">
-                    <span className="h-px w-10 bg-[#B08D57]/35" />
-                    <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#B08D57]/80">by North Tech</span>
-                    <span className="h-px w-10 bg-[#B08D57]/35" />
-                </div>
-                <p className="sr-only">by North Tech</p>
-                <p className="mt-9 max-w-md text-base [@media(max-height:560px)]:mt-5 leading-relaxed text-[#E9DFC6]/50">
-                    Every South African tender that fits your business, ranked in one feed,
-                    with reminders before briefings and closing dates.
+                <p className={EYEBROW}>Pilot phase</p>
+                <h1 className={cn('mt-4 font-serif text-4xl font-semibold tracking-tight sm:text-5xl [@media(max-height:560px)]:mt-2 [@media(max-height:560px)]:text-3xl', GOLD_TEXT)}>
+                    Bidscope is in its pilot.
+                </h1>
+                <p className="mt-6 text-[15px] leading-relaxed text-[#E9DFC6]/60 [@media(max-height:560px)]:mt-3">
+                    Prices may change after {PILOT_PRICES_UNTIL}. Clients who join during the pilot keep their price for life.
                 </p>
             </main>
 
-            <footer className="relative flex justify-center pb-14 pt-4 sm:pb-20 [@media(max-height:560px)]:pb-8">
-                <a
-                    href="/preview"
-                    className="inline-flex h-12 items-center rounded-md border border-[#B08D57]/60 bg-transparent px-10 font-mono text-[11px] font-semibold uppercase tracking-[0.24em] text-[#D9B97E] shadow-[0_0_40px_-8px_rgba(176,141,87,0.35)] transition-colors hover:border-[#D9B97E] hover:bg-[#B08D57] hover:text-[#06140F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D9B97E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#06140F]"
-                >
-                    Demo app
-                </a>
+            <footer className="relative flex flex-col items-center pb-8 pt-4 sm:pb-10 [@media(max-height:560px)]:pb-5 [@media(max-height:560px)]:pt-0">
+                <Link to="/pricing" className={cn(BUTTON_GOLD, 'h-12 px-12')}>
+                    Continue
+                </Link>
+                <p className="mt-8 max-w-xs text-center text-[11px] leading-relaxed text-[#E9DFC6]/30 sm:max-w-none [@media(max-height:560px)]:mt-4">
+                    The lifetime price lock is a North Tech policy, which North Tech may change.
+                </p>
             </footer>
         </div>
     )
