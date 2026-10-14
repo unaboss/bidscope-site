@@ -69,8 +69,9 @@ function PreviewBar({ tier, onTierChange }: PreviewBarProps)
 }
 
 /**
- * The public preview of the app (`/preview`): the real pages, on a sample
- * company and sample tenders, with a switch between Starter, Growth and Pro.
+ * The public preview of the app (`/preview`): the real pages, on North Tech's
+ * own profile and the tenders matched to it, with a switch between Starter,
+ * Growth and Pro.
  * Nothing can be saved; the company profile is view only.
  */
 export function PreviewApp()

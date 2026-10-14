@@ -139,7 +139,7 @@ export function CalendarPage()
                 eyebrow="Workspace"
                 title="Calendar"
                 description="Every bookmarked tender's briefing and closing dates — a month view or a timeline — with clash warnings."
-                // The preview's sample bookmarks have no feed to subscribe to.
+                // The preview's bookmarks live in the page, so there is no feed to subscribe to.
                 actions={preview === null ? (
                     <a
                         href={CALENDAR_FEED_URL}

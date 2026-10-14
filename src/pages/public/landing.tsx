@@ -509,7 +509,7 @@ function HeroPlan({ onSubscribe }: HeroPlanProps)
     return (
         <div>
             <div className="mb-2.5 flex justify-center lg:justify-end">
-                {/* The app itself on sample data, opened on the plan picked here. */}
+                {/* The app itself on North Tech's account, opened on the plan picked here. */}
                 <a
                     href={`/preview?plan=${tier}`}
                     className={cn('inline-flex items-center gap-1.5 rounded-sm font-mono text-[10px] uppercase tracking-[0.2em] text-[#D9B97E]/80 transition-colors hover:text-[#F0D9A4]', FOCUS)}

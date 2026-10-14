@@ -1,35 +1,28 @@
 import type { PricingTier } from '@/api'
 import type {
     Account,
+    EligibilitySummary,
     FeedItem,
     Portfolio,
     PortfolioClient,
     PortfolioProvince,
-    PortfolioTender,
+    PortfolioService,
     Taxonomy,
     Tender,
     TenderMapPoint,
     TenderScope,
 } from '@/types'
 import { CATEGORY_BUCKETS, TENDER_CATEGORIES } from '../../../worker/domain/categories'
+import { eligibilityWeight } from '../../../worker/domain/eligibility'
 import { BASIS_SCOPE } from '../../../worker/domain/estimates'
 import { scoreTender } from '../../../worker/domain/feed'
-import { aggregateGateStates } from '../../../worker/domain/gates'
 import { accountFor, FEATURES, hasFeature, type PlanId } from '../../../worker/domain/plans'
 import { redactForPlan } from '../../../worker/middleware/plan'
-import {
-    DEMO_BOOKMARKS,
-    DEMO_CATEGORIES,
-    DEMO_PROVINCES,
-    DEMO_TENDERS,
-    dayFromToday,
-    demoClaims,
-    demoSettings,
-    type DemoTender,
-} from './demo-data'
+import { coverage, dayFromToday, demoSettings, provinceOf, type PreviewTender } from './demo-data'
 
 /**
- * The app's API, answered in the browser from sample data, for the public
+ * The app's API, answered in the browser for the public preview: North Tech's
+ * real matched tenders, loaded once, served under the plan picked in the
  * preview. The plan rules are the server's own (features, locked data, the
  * feed ranking), so each plan shows exactly what it would in a real account.
  * Bookmarks and dismissals live in memory; everything else is read-only.
@@ -37,11 +30,24 @@ import {
 
 const PLAN_FOR_TIER: Readonly<Record<PricingTier, PlanId>> = { single: 'starter', mid: 'growth', all: 'pro' }
 
-let tier: PricingTier = 'mid'
-const bookmarked = new Map<string, string>(DEMO_BOOKMARKS.map((id, index) => [id, dayFromToday(-(index + 2))]))
-const dismissed = new Set<string>()
+interface Entry
+{
+    readonly row: Tender
+    readonly eligibility: EligibilitySummary
+    readonly brief: TenderScope | null
+    readonly sector: string
+    readonly point: PreviewTender['point']
+}
 
-/** Switches the plan the sample data is served for. */
+let tier: PricingTier = 'mid'
+let entries: Entry[] = []
+let provinces = coverage([])
+let bookmarked = new Map<string, string>()
+const dismissed = new Set<string>()
+/** Settles once the tenders have loaded: false when they could not be. */
+let loading: Promise<boolean> = Promise.resolve(true)
+
+/** Switches the plan the tenders are served for. */
 export function setDemoTier(next: PricingTier): void
 {
     tier = next
@@ -60,127 +66,99 @@ function featureEnabled(key: string): boolean
     return hasFeature(accountFor(PLAN_FOR_TIER[tier], null, new Date()), key)
 }
 
-function isRelevant(tender: DemoTender): boolean
+/** National and unstated tenders show on every plan; the rest only where the plan works. */
+function covered(row: Tender, forTier: PricingTier = tier): boolean
 {
-    return DEMO_CATEGORIES.includes(tender.category) && DEMO_PROVINCES[tier].includes(tender.province)
+    const province = provinceOf(row)
+
+    return province === null || provinces[forTier].includes(province)
 }
 
-function scope(tender: DemoTender): TenderScope
+function isRelevant(row: Tender): boolean
+{
+    return row.relevance === 'relevant' && covered(row)
+}
+
+/** Puts the preview's tenders in place, with a few already saved so Growth and Pro open with bookmarks. */
+export function setPreviewTenders(tenders: readonly PreviewTender[]): void
+{
+    entries = tenders.map(({ eligibility, brief, sector, point, ...row }) => ({ row, eligibility, brief, sector, point }))
+    provinces = coverage(tenders)
+    dismissed.clear()
+
+    const soon = dayFromToday(3)
+    // Ones with time left to work on first, then any with a date for the calendar.
+    const rank = (entry: Entry): number => entry.row.closing_date === null ? 2 : entry.row.closing_date >= soon ? 0 : 1
+
+    bookmarked = new Map(
+        entries
+            .filter((entry) => covered(entry.row, 'mid'))
+            .sort((a, b) => rank(a) - rank(b))
+            .slice(0, 4)
+            .map((entry, index) => [entry.row.id, dayFromToday(-(index + 2))]),
+    )
+}
+
+function estimateFields(row: Tender)
 {
     return {
-        summary: tender.summary,
-        subject: null,
-        nature: null,
-        deliverables: [...tender.deliverables],
-        skills: [...tender.skills],
-        basis: 'full_documents',
+        estimatedValue: row.estimated_value ?? null,
+        estimateLow: row.estimate_low ?? null,
+        estimateHigh: row.estimate_high ?? null,
+        estimateBasis: row.estimate_basis ?? null,
+        estimateDetail: row.estimate_detail ?? null,
     }
 }
 
-function eligibility(tender: DemoTender): FeedItem['eligibility']
+function toTender(entry: Entry, detail: boolean): Tender
 {
-    const gates = tender.gates.map((gate) => ({
-        type: gate.type,
-        subjectKey: '',
-        label: gate.label,
-        state: gate.state,
-        evidence: null,
-        asAt: null,
-    }))
-
-    return { state: aggregateGateStates(gates.map((gate) => gate.state)), gates }
-}
-
-function estimateFields(tender: DemoTender)
-{
-    return {
-        estimatedValue: tender.estimate.value,
-        estimateLow: tender.estimate.low,
-        estimateHigh: tender.estimate.high,
-        estimateBasis: tender.estimate.basis,
-        estimateDetail: tender.estimate.detail,
-    }
-}
-
-function toTender(tender: DemoTender, detail: boolean): Tender
-{
-    const estimate = estimateFields(tender)
+    const saved = bookmarked.get(entry.row.id)
 
     return {
-        id: tender.id,
-        tender_no: tender.tenderNo,
-        title: tender.title,
-        description: tender.description,
-        organ_of_state: tender.organ,
-        department: tender.department,
-        province: tender.province,
-        category: tender.category,
-        client_type: tender.sector === 'state-owned' ? 'State-owned entity' : 'Government',
-        bid_type: tender.bidType,
-        contract_value: null,
-        published_date: dayFromToday(-tender.publishedAgo),
-        closing_date: dayFromToday(tender.closesIn),
-        briefing_required: tender.briefing === null ? 0 : 1,
-        briefing_compulsory: tender.briefing?.compulsory === true ? 1 : 0,
-        briefing_date: tender.briefing === null ? null : dayFromToday(tender.briefing.inDays),
-        contact_person: null,
-        email: null,
-        telephone: null,
-        validity_days: 90,
-        two_envelope: tender.estimate.value >= 5_000_000 ? 1 : 0,
-        // Shown as the source badge; a source the app does not know gets no "Open on…" link.
-        source: 'sample',
-        source_status: 'Published',
-        raw_id: null,
-        support_documents: JSON.stringify([
-            { filename: 'Bid document.pdf', url: null },
-            { filename: 'Specification and bill of quantities.pdf', url: null },
-        ]),
-        estimated_value: estimate.estimatedValue,
-        estimate_low: estimate.estimateLow,
-        estimate_high: estimate.estimateHigh,
-        estimate_basis: estimate.estimateBasis,
-        estimate_detail: estimate.estimateDetail,
-        estimate_quote: null,
-        re_advert: tender.reAdvert ? 1 : 0,
-        relevance: isRelevant(tender) ? 'relevant' : 'other',
-        service_line: tender.bucket,
-        ...(bookmarked.has(tender.id) ? { bookmark_note: null, bookmarked_at: bookmarked.get(tender.id) ?? null } : {}),
-        ...(detail ? { eligibility: eligibility(tender), brief: scope(tender) } : {}),
+        ...entry.row,
+        relevance: isRelevant(entry.row) ? 'relevant' : 'other',
+        ...(saved === undefined ? {} : { bookmark_note: null, bookmarked_at: saved }),
+        ...(detail ? { eligibility: entry.eligibility, brief: entry.brief } : {}),
     }
 }
 
 /** Open, relevant, not dismissed: what the feed and the dashboard count. */
-function workable(): DemoTender[]
+function workable(): Entry[]
 {
-    return DEMO_TENDERS.filter((tender) => isRelevant(tender) && !dismissed.has(tender.id))
+    return entries.filter((entry) => isRelevant(entry.row) && !dismissed.has(entry.row.id))
 }
 
+/** The For-You ranking, weighted by the requirement checks, as the server ranks it. */
 function feed(limit: number, offset: number): { items: FeedItem[], total: number }
 {
     const today = new Date()
     // Starter cannot bookmark, so it has no saved buyers to rank by.
-    const saved = featureEnabled('bookmarks_calendar') ? DEMO_TENDERS.filter((tender) => bookmarked.has(tender.id)) : []
-    const savedOrgans = new Set(saved.map((tender) => tender.organ.toLowerCase()))
+    const saved = featureEnabled('bookmarks_calendar') ? entries.filter((entry) => bookmarked.has(entry.row.id)) : []
+    const savedOrgans = new Set(saved.map((entry) => (entry.row.organ_of_state ?? '').toLowerCase()).filter((organ) => organ !== ''))
     const ranked = workable()
-        .map((tender): FeedItem =>
+        .map((entry) =>
         {
             const base = {
-                id: tender.id,
-                title: tender.title,
+                id: entry.row.id,
+                title: entry.row.title,
                 relevance: 'relevant',
-                serviceLine: tender.bucket,
-                closingDate: dayFromToday(tender.closesIn),
-                publishedDate: dayFromToday(-tender.publishedAgo),
-                organ: tender.organ,
-                reAdvert: tender.reAdvert ? 1 : 0,
-                ...estimateFields(tender),
+                serviceLine: entry.row.service_line ?? null,
+                closingDate: entry.row.closing_date,
+                publishedDate: entry.row.published_date,
+                organ: entry.row.organ_of_state,
+                reAdvert: entry.row.re_advert ?? 0,
+                ...estimateFields(entry.row),
             }
             const { score, reasons } = scoreTender(base, { relevantToken: 'relevant', savedOrgans, dismissedOrgans: new Set() }, today)
+            const weight = eligibilityWeight(entry.eligibility.state)
+            // Scaling a negative score by a weight < 1 would raise it, so divide instead.
+            const weighted = score >= 0 ? score * weight : score / Math.max(weight, 0.01)
+            const item: FeedItem = { ...base, score: weighted, reasons, eligibility: entry.eligibility, brief: entry.brief }
 
-            return { ...base, score, reasons, eligibility: eligibility(tender), brief: scope(tender) }
+            return { item, failed: entry.eligibility.state === 'fails' }
         })
-        .sort((a, b) => b.score - a.score)
+        .sort((a, b) => Number(a.failed) - Number(b.failed) || b.item.score - a.item.score)
+        .map((entry) => entry.item)
 
     return { items: ranked.slice(offset, offset + limit), total: ranked.length }
 }
@@ -205,16 +183,23 @@ function filtersOf(params: URLSearchParams): TenderFilters
     }
 }
 
-function matches(tender: DemoTender, filters: TenderFilters): boolean
+function matches(row: Tender, filters: TenderFilters): boolean
 {
-    const closing = dayFromToday(tender.closesIn)
-    const text = `${tender.title} ${tender.description} ${tender.organ} ${tender.tenderNo}`.toLowerCase()
+    const closing = row.closing_date ?? ''
+    const text = [row.title, row.description, row.organ_of_state, row.tender_no].filter((part) => part !== null).join(' ').toLowerCase()
 
     return (filters.search === '' || text.includes(filters.search))
-        && (filters.province === '' || tender.province === filters.province)
+        && (filters.province === '' || row.province === filters.province)
         && (filters.closingFrom === '' || closing >= filters.closingFrom)
-        && (filters.closingTo === '' || closing <= filters.closingTo)
-        && (!filters.relevantOnly || isRelevant(tender))
+        && (filters.closingTo === '' || (closing !== '' && closing <= filters.closingTo))
+        && (!filters.relevantOnly || isRelevant(row))
+}
+
+/** Undated last. */
+function byClosing(a: Entry, b: Entry): number
+{
+    return Number(a.row.closing_date === null) - Number(b.row.closing_date === null)
+        || (a.row.closing_date ?? '').localeCompare(b.row.closing_date ?? '')
 }
 
 function listTenders(params: URLSearchParams): { tenders: Tender[], total: number }
@@ -223,39 +208,35 @@ function listTenders(params: URLSearchParams): { tenders: Tender[], total: numbe
     const sort = params.get('sort') ?? 'relevant'
     const limit = Number(params.get('limit') ?? '50')
     const offset = Number(params.get('offset') ?? '0')
-    const found = DEMO_TENDERS.filter((tender) => matches(tender, filters))
-    const byClosing = (a: DemoTender, b: DemoTender): number => a.closesIn - b.closesIn
+    const found = entries.filter((entry) => matches(entry.row, filters))
 
     if (sort === 'newest') {
-        found.sort((a, b) => a.publishedAgo - b.publishedAgo)
+        found.sort((a, b) => (b.row.published_date ?? '').localeCompare(a.row.published_date ?? ''))
     } else if (sort === 'closing') {
         found.sort(byClosing)
     } else {
-        found.sort((a, b) => Number(isRelevant(b)) - Number(isRelevant(a)) || byClosing(a, b))
+        found.sort((a, b) => Number(isRelevant(b.row)) - Number(isRelevant(a.row)) || byClosing(a, b))
     }
 
-    return { tenders: found.slice(offset, offset + limit).map((tender) => toTender(tender, false)), total: found.length }
+    return { tenders: found.slice(offset, offset + limit).map((entry) => toTender(entry, false)), total: found.length }
 }
 
 function tenderMap(params: URLSearchParams): { points: TenderMapPoint[], unplaced: number, total: number }
 {
     const filters = filtersOf(params)
-    const points = DEMO_TENDERS.filter((tender) => matches(tender, filters)).map((tender): TenderMapPoint => ({
-        id: tender.id,
-        title: tender.title,
-        organ: tender.organ,
-        province: tender.province,
-        closingDate: dayFromToday(tender.closesIn),
-        relevant: isRelevant(tender),
-        lat: tender.place.lat,
-        lng: tender.place.lng,
-        precision: tender.place.precision,
-        place: tender.place.name,
-        verified: tender.place.verified,
-        ...estimateFields(tender),
-    }))
+    const found = entries.filter((entry) => matches(entry.row, filters))
+    const points = found.flatMap((entry): TenderMapPoint[] => entry.point === null ? [] : [{
+        id: entry.row.id,
+        title: entry.row.title,
+        organ: entry.row.organ_of_state,
+        province: entry.row.province,
+        closingDate: entry.row.closing_date,
+        relevant: isRelevant(entry.row),
+        ...entry.point,
+        ...estimateFields(entry.row),
+    }])
 
-    return { points, unplaced: 0, total: points.length }
+    return { points, unplaced: found.length - points.length, total: found.length }
 }
 
 const SECTOR_ORDER = ['government', 'state-owned', 'external']
@@ -264,54 +245,55 @@ const SECTOR_ORDER = ['government', 'state-owned', 'external']
 function portfolio(): Portfolio
 {
     const tenders = workable()
-    const provinces: PortfolioProvince[] = [...new Set(tenders.map((tender) => tender.province))]
+    const provinceOfEntry = (entry: Entry): string => (entry.row.province ?? '').trim() || 'Unspecified'
+    const services = (own: readonly Entry[]): PortfolioService[] => [...new Set(own.map((entry) => entry.row.service_line ?? 'OT'))]
+        .map((code) =>
+        {
+            const work = own.filter((entry) => (entry.row.service_line ?? 'OT') === code).sort(byClosing)
+            const valued = work.filter((entry) => entry.row.estimated_value != null && entry.row.estimate_basis !== BASIS_SCOPE)
+
+            return {
+                code,
+                count: work.length,
+                estimatedValue: valued.length === 0
+                    ? null
+                    : Math.round(valued.reduce((sum, entry) => sum + (entry.row.estimated_value ?? 0), 0) / valued.length),
+                tenders: work.map((entry) => ({
+                    id: entry.row.id,
+                    title: entry.row.title,
+                    closingDate: entry.row.closing_date,
+                    brief: entry.brief,
+                    ...estimateFields(entry.row),
+                })),
+            }
+        })
+        .sort((a, b) => b.count - a.count)
+    const provinceList: PortfolioProvince[] = [...new Set(tenders.map(provinceOfEntry))]
         .sort((a, b) => a.localeCompare(b))
         .map((province) =>
         {
-            const here = tenders.filter((tender) => tender.province === province)
+            const here = tenders.filter((entry) => provinceOfEntry(entry) === province)
 
             return {
                 province,
                 sectors: SECTOR_ORDER
-                    .filter((sector) => here.some((tender) => tender.sector === sector))
+                    .filter((sector) => here.some((entry) => entry.sector === sector))
                     .map((sector) =>
                     {
-                        const inSector = here.filter((tender) => tender.sector === sector)
-                        const clients: PortfolioClient[] = [...new Set(inSector.map((tender) => tender.organ))].map((name) =>
-                        {
-                            const own = inSector.filter((tender) => tender.organ === name)
+                        const inSector = here.filter((entry) => entry.sector === sector)
+                        const clients: PortfolioClient[] = [...new Set(inSector.map((entry) => entry.row.organ_of_state ?? 'Unknown buyer'))]
+                            .map((name) =>
+                            {
+                                const own = inSector.filter((entry) => (entry.row.organ_of_state ?? 'Unknown buyer') === name)
 
-                            return {
-                                name,
-                                tenderCount: own.length,
-                                services: [...new Set(own.map((tender) => tender.bucket))].map((code) =>
-                                {
-                                    const work = own.filter((tender) => tender.bucket === code).sort((a, b) => a.closesIn - b.closesIn)
-                                    const valued = work.filter((tender) => tender.estimate.basis !== BASIS_SCOPE)
-
-                                    return {
-                                        code,
-                                        count: work.length,
-                                        estimatedValue: valued.length === 0
-                                            ? null
-                                            : Math.round(valued.reduce((sum, tender) => sum + tender.estimate.value, 0) / valued.length),
-                                        tenders: work.map((tender): PortfolioTender => ({
-                                            id: tender.id,
-                                            title: tender.title,
-                                            closingDate: dayFromToday(tender.closesIn),
-                                            brief: scope(tender),
-                                            ...estimateFields(tender),
-                                        })),
-                                    }
-                                }),
-                            }
-                        })
+                                return { name, tenderCount: own.length, services: services(own) }
+                            })
 
                         return { sector, clients: clients.sort((a, b) => b.tenderCount - a.tenderCount) }
                     }),
             }
         })
-    const sectorOf = new Map(tenders.map((tender) => [tender.organ, tender.sector]))
+    const sectorOf = new Map(tenders.map((entry) => [entry.row.organ_of_state ?? 'Unknown buyer', entry.sector]))
     const count = (sector: string): number => [...sectorOf.values()].filter((value) => value === sector).length
 
     return {
@@ -320,10 +302,10 @@ function portfolio(): Portfolio
             tenders: tenders.length,
             government: count('government'),
             stateOwned: count('state-owned'),
-            external: count('external'),
-            provinces: provinces.length,
+            external: sectorOf.size - count('government') - count('state-owned'),
+            provinces: provinceList.length,
         },
-        provinces,
+        provinces: provinceList,
     }
 }
 
@@ -356,14 +338,18 @@ function planned(body: unknown): Response
 
 async function answer(method: string, path: string, params: URLSearchParams, request: Request): Promise<Response>
 {
+    if (!await loading) {
+        return json({ error: 'The preview could not load its tenders. Refresh the page to try again.' }, 503)
+    }
+
     if (method === 'GET') {
         switch (path) {
             case '/api/account':
                 return json(demoAccount())
             case '/api/settings':
-                return json(demoSettings(tier))
+                return json(demoSettings(provinces[tier]))
             case '/api/claims':
-                return json({ claims: demoClaims() })
+                return json({ claims: [] })
             case '/api/categories':
                 return json(taxonomy())
             case '/api/feed':
@@ -376,7 +362,7 @@ async function answer(method: string, path: string, params: URLSearchParams, req
                 return featureEnabled('tender_map') ? planned(tenderMap(params)) : locked('tender_map')
             case '/api/bookmarks':
                 return featureEnabled('bookmarks_calendar')
-                    ? planned({ bookmarks: DEMO_TENDERS.filter((tender) => bookmarked.has(tender.id)).map((tender) => toTender(tender, false)) })
+                    ? planned({ bookmarks: entries.filter((entry) => bookmarked.has(entry.row.id)).map((entry) => toTender(entry, false)) })
                     : locked('bookmarks_calendar')
             default:
                 break
@@ -384,9 +370,9 @@ async function answer(method: string, path: string, params: URLSearchParams, req
 
         if (path.startsWith('/api/tenders/')) {
             const id = decodeURIComponent(path.slice('/api/tenders/'.length))
-            const tender = DEMO_TENDERS.find((entry) => entry.id === id)
+            const entry = entries.find((candidate) => candidate.row.id === id)
 
-            return tender === undefined ? json({ error: 'Not found' }, 404) : planned(toTender(tender, true))
+            return entry === undefined ? json({ error: 'Not found' }, 404) : planned(toTender(entry, true))
         }
 
         return json({ error: 'Not found' }, 404)
@@ -422,10 +408,10 @@ async function answer(method: string, path: string, params: URLSearchParams, req
         return json({ ok: true })
     }
 
-    return json({ error: 'This is a preview on sample data, so nothing here can be changed.' }, 403)
+    return json({ error: 'This is a preview, so nothing here can be changed.' }, 403)
 }
 
-/** Answers one `/api/` request from the sample data, on the current plan. */
+/** Answers one `/api/` request from the preview's tenders, on the current plan. */
 export function demoResponse(request: Request): Promise<Response>
 {
     const url = new URL(request.url)
@@ -436,8 +422,9 @@ export function demoResponse(request: Request): Promise<Response>
 let installed = false
 
 /**
- * Routes the page's `/api/` requests to the sample data. The preview is its
- * own page load, so this stays in place for as long as the page is open.
+ * Loads the preview's tenders and routes the page's `/api/` requests to them.
+ * The preview is its own page load, so this stays in place for as long as the
+ * page is open; requests made before the tenders arrive wait for them.
  */
 export function installDemoApi(): void
 {
@@ -448,6 +435,21 @@ export function installDemoApi(): void
     installed = true
 
     const network = window.fetch.bind(window)
+
+    loading = network('/api/preview/tenders')
+        .then(async (response) =>
+        {
+            if (!response.ok) {
+                return false
+            }
+
+            const body = await response.json() as { tenders?: PreviewTender[] }
+
+            setPreviewTenders(body.tenders ?? [])
+
+            return true
+        })
+        .catch(() => false)
 
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
     {

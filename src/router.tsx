@@ -18,7 +18,7 @@ import { TenderDetailPage } from '@/pages/tender-detail'
 
 /**
  * The application's pages, framed by the navy rail + header. The signed-in app
- * and the public preview (`/preview`, on sample data) both render these.
+ * and the public preview (`/preview`, on North Tech's account) both render these.
  */
 export function AppPages()
 {

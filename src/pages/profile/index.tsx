@@ -118,7 +118,7 @@ export function ProfilePage()
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
-    // The public preview shows a sample company's profile, which nobody can change.
+    // The public preview shows North Tech's profile, which nobody can change.
     const readOnly = usePreview() !== null
 
     useEffect(() =>
@@ -256,7 +256,7 @@ export function ProfilePage()
                         <div className="rounded-xl border border-wax/40 bg-wax/[0.08] px-5 py-4" role="note">
                             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Preview · view only</p>
                             <p className="mt-1 text-sm leading-relaxed text-ink/70">
-                                A sample company. In your own account you fill this in once, and every tender is matched to it.
+                                North Tech's own profile. In your account you fill this in once, and every tender is matched to it.
                             </p>
                         </div>
                     ) : (
@@ -331,69 +331,74 @@ export function ProfilePage()
                             />
                         </Section>
 
-                        <Section
-                            title="Eligibility"
-                            description="Common tender requirements. What you declare here marks matching requirements as met on each tender; leave anything you are unsure of unset."
-                        >
-                            <Field label="B-BBEE level" htmlFor="profile-bbee" hint="From your B-BBEE certificate or sworn affidavit.">
-                                <div className="flex items-center gap-3">
-                                    <Select
-                                        id="profile-bbee"
-                                        value={form.eligibility.bbeeLevel === null ? '' : String(form.eligibility.bbeeLevel)}
-                                        onChange={(event) => setForm({
-                                            ...form,
-                                            eligibility: { ...form.eligibility, bbeeLevel: event.target.value === '' ? null : Number(event.target.value) },
-                                        })}
-                                    >
-                                        <option value="">Not set</option>
-                                        {BBEE_LEVELS.map((level) => <option key={level} value={level}>Level {level}</option>)}
-                                    </Select>
-                                    <VerifiedBadge claims={claims} type="bbee_level" />
-                                </div>
-                            </Field>
+                        {/* What North Tech holds and where its reminders go are its own business, so the preview leaves them out. */}
+                        {!readOnly && (
+                            <>
+                                <Section
+                                    title="Eligibility"
+                                    description="Common tender requirements. What you declare here marks matching requirements as met on each tender; leave anything you are unsure of unset."
+                                >
+                                    <Field label="B-BBEE level" htmlFor="profile-bbee" hint="From your B-BBEE certificate or sworn affidavit.">
+                                        <div className="flex items-center gap-3">
+                                            <Select
+                                                id="profile-bbee"
+                                                value={form.eligibility.bbeeLevel === null ? '' : String(form.eligibility.bbeeLevel)}
+                                                onChange={(event) => setForm({
+                                                    ...form,
+                                                    eligibility: { ...form.eligibility, bbeeLevel: event.target.value === '' ? null : Number(event.target.value) },
+                                                })}
+                                            >
+                                                <option value="">Not set</option>
+                                                {BBEE_LEVELS.map((level) => <option key={level} value={level}>Level {level}</option>)}
+                                            </Select>
+                                            <VerifiedBadge claims={claims} type="bbee_level" />
+                                        </div>
+                                    </Field>
 
-                            <label className="flex items-center gap-2 text-sm text-ink/80">
-                                <input
-                                    type="checkbox"
-                                    checked={form.eligibility.csdRegistered}
-                                    onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, csdRegistered: event.target.checked } })}
-                                    className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-                                />
-                                Registered on the Central Supplier Database (CSD)
-                                <VerifiedBadge claims={claims} type="csd" />
-                            </label>
+                                    <label className="flex items-center gap-2 text-sm text-ink/80">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.eligibility.csdRegistered}
+                                            onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, csdRegistered: event.target.checked } })}
+                                            className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+                                        />
+                                        Registered on the Central Supplier Database (CSD)
+                                        <VerifiedBadge claims={claims} type="csd" />
+                                    </label>
 
-                            <label className="flex items-center gap-2 text-sm text-ink/80">
-                                <input
-                                    type="checkbox"
-                                    checked={form.eligibility.taxCompliant}
-                                    onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, taxCompliant: event.target.checked } })}
-                                    className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-                                />
-                                Tax compliant with SARS (valid tax compliance status PIN)
-                                <VerifiedBadge claims={claims} type="tax" />
-                            </label>
-                        </Section>
+                                    <label className="flex items-center gap-2 text-sm text-ink/80">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.eligibility.taxCompliant}
+                                            onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, taxCompliant: event.target.checked } })}
+                                            className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+                                        />
+                                        Tax compliant with SARS (valid tax compliance status PIN)
+                                        <VerifiedBadge claims={claims} type="tax" />
+                                    </label>
+                                </Section>
 
-                        <Section title="Notifications">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <Field label="Notification email" htmlFor="profile-email" className="sm:col-span-2">
-                                    <Input id="profile-email" type="email" value={form.notifyEmail} onChange={(event) => setForm({ ...form, notifyEmail: event.target.value })} />
-                                </Field>
-                                <label className="flex items-center gap-2 text-sm text-ink/80 sm:col-span-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.notifyEnabled}
-                                        onChange={(event) => setForm({ ...form, notifyEnabled: event.target.checked })}
-                                        className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-                                    />
-                                    Email me deadline reminders
-                                </label>
-                                <Field label="Tender reminder days" htmlFor="profile-tender-days" hint="Days before closing, e.g. 7, 3, 1">
-                                    <Input id="profile-tender-days" value={form.tenderLeadDays} onChange={(event) => setForm({ ...form, tenderLeadDays: event.target.value })} />
-                                </Field>
-                            </div>
-                        </Section>
+                                <Section title="Notifications">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <Field label="Notification email" htmlFor="profile-email" className="sm:col-span-2">
+                                            <Input id="profile-email" type="email" value={form.notifyEmail} onChange={(event) => setForm({ ...form, notifyEmail: event.target.value })} />
+                                        </Field>
+                                        <label className="flex items-center gap-2 text-sm text-ink/80 sm:col-span-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={form.notifyEnabled}
+                                                onChange={(event) => setForm({ ...form, notifyEnabled: event.target.checked })}
+                                                className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+                                            />
+                                            Email me deadline reminders
+                                        </label>
+                                        <Field label="Tender reminder days" htmlFor="profile-tender-days" hint="Days before closing, e.g. 7, 3, 1">
+                                            <Input id="profile-tender-days" value={form.tenderLeadDays} onChange={(event) => setForm({ ...form, tenderLeadDays: event.target.value })} />
+                                        </Field>
+                                    </div>
+                                </Section>
+                            </>
+                        )}
 
                         {account !== null && (
                             <Section title="Plan">

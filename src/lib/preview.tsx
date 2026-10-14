@@ -8,7 +8,7 @@ export interface PreviewState
     readonly setTier: (tier: PricingTier) => void
 }
 
-/** Set only inside the public preview of the app (`/preview`), which runs on sample data. */
+/** Set only inside the public preview of the app (`/preview`), which shows North Tech's account and nothing can be saved. */
 export const PreviewContext = createContext<PreviewState | null>(null)
 
 /** The preview's plan switch, or null in the real app. */
