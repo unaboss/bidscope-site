@@ -215,7 +215,11 @@ export default function TenderMap({ points, unplaced, loading, province = '', on
             return
         }
 
+        // On a touch screen one finger scrolls the page and two move the map; a
+        // mouse can still drag it. The scroll wheel always scrolls the page.
+        const touchFirst = window.matchMedia('(pointer: coarse)').matches
         const instance = L.map(container.current, {
+            dragging: !touchFirst,
             zoomControl: false,
             attributionControl: false,
             maxBounds: LIMITS,
@@ -257,7 +261,6 @@ export default function TenderMap({ points, unplaced, loading, province = '', on
 
                 path.on('mouseover', () => path.getElement()?.classList.add('bs-province--hover'))
                 path.on('mouseout', () => path.getElement()?.classList.remove('bs-province--hover'))
-                path.on('click', () => instance.flyToBounds((layer as L.Polygon).getBounds(), { padding: [24, 24], duration: 0.6 }))
                 provinceLayers.current.set(name, layer as L.Polygon)
             },
         }).addTo(instance)
@@ -310,10 +313,6 @@ export default function TenderMap({ points, unplaced, loading, province = '', on
 
         instance.on('zoomend', relabel)
         relabel()
-
-        // The page keeps the scroll wheel until the map is clicked into.
-        instance.on('click focus', () => instance.scrollWheelZoom.enable())
-        instance.on('mouseout blur', () => instance.scrollWheelZoom.disable())
 
         const group = L.markerClusterGroup({
             showCoverageOnHover: false,

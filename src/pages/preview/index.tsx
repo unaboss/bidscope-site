@@ -98,8 +98,8 @@ export function PreviewApp()
             <PreviewContext.Provider value={preview}>
                 {/* A new plan remounts the pages, so each one loads again on that plan's data. */}
                 <FixedPlanProvider key={tier} account={demoAccount(tier)}>
-                    {/* Below desktop the bar floats over the page: leave room under it, and under the dashboard's fitted map. */}
-                    <div className="[--screen-fit-gap:88px] [&_#main-content]:pb-28 lg:[--screen-fit-gap:24px] lg:[&_#main-content]:pb-12">
+                    {/* Below desktop the bar floats over the page: leave room under it. */}
+                    <div className="[&_#main-content]:pb-28 lg:[&_#main-content]:pb-12">
                         <AppPages />
                     </div>
                 </FixedPlanProvider>

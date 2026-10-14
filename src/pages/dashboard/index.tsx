@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { ReactElement, RefObject } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import type { ReactElement } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getPortfolio, getTenderMap } from '@/api'
 import { EstimateCompact } from '@/components/tender/estimate-value'
@@ -175,58 +175,10 @@ function SectorBlock({ sector, openRows, onToggleRow }: SectorBlockProps)
 
 const TenderMap = lazy(() => import('@/components/map/tender-map'))
 
-/**
- * Screen left under the map, so its bottom edge shows on first load. A page
- * can widen it with `--screen-fit-gap` (the preview does, for its floating bar).
- */
-const MAP_FIT_GAP = 24
-
-/** On screens too short to fit everything, the map keeps this height and the page scrolls a little. */
-const MAP_MIN_HEIGHT = 160
-
-/**
- * A height that takes the map from where it sits to just above the bottom of the
- * screen, so the header, stats and map all show without scrolling. It uses the
- * small viewport height (`svh`), so a phone's URL bar showing and hiding while
- * scrolling never resizes the map; only a change in what sits above it does.
- */
-function useFitToScreen(): [RefObject<HTMLDivElement | null>, string | undefined]
-{
-    const ref = useRef<HTMLDivElement>(null)
-    const [top, setTop] = useState<number | null>(null)
-
-    useLayoutEffect(() =>
-    {
-        const element = ref.current
-
-        if (element === null) {
-            return
-        }
-
-        const measure = (): void => setTop(Math.round(element.getBoundingClientRect().top + window.scrollY))
-
-        measure()
-        window.addEventListener('resize', measure)
-
-        // Late web fonts or rewrapped text above the map move it without a window resize.
-        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure)
-        observer?.observe(document.body)
-
-        return () =>
-        {
-            window.removeEventListener('resize', measure)
-            observer?.disconnect()
-        }
-    }, [])
-
-    return [ref, top === null ? undefined : `max(${MAP_MIN_HEIGHT}px, calc(100svh - ${top}px - var(--screen-fit-gap, ${MAP_FIT_GAP}px)))`]
-}
-
 /** Where the work is: the tenders this page counts (open and relevant to the org), as pins. */
 function PortfolioMap(): ReactElement
 {
     const navigate = useNavigate()
-    const [frame, height] = useFitToScreen()
     const [points, setPoints] = useState<TenderMapResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -250,7 +202,8 @@ function PortfolioMap(): ReactElement
 
     return (
         <div className="flex flex-col gap-2">
-            <div ref={frame} style={{ height }} className={cn(height === undefined && 'h-80')}>
+            {/* A fixed shape that fits the country, so the block never changes size as the page loads. */}
+            <div className="aspect-[8/7] max-h-[420px] w-full">
                 <Suspense fallback={<div aria-hidden="true" className="nt-skeleton h-full rounded-2xl" />}>
                     <TenderMap
                         size="compact"
