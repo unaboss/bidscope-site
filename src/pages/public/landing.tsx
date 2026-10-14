@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError, requestDiscountCode, type PricingTier } from '@/api'
-import { isPromoTier, PROMO_MONTHS, PROMO_PERCENT, type Billing } from '@/lib/pricing'
+import { PROMO_MONTHS, PROMO_PERCENT } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
-import { BUTTON_GOLD, BUTTON_OUTLINE, EYEBROW, FOCUS, formatRands, GOLD_TEXT, INPUT, PANEL, PANEL_HOVER } from './brand'
-import { AdPlayer } from './intro'
-import { codeLooksValid, normaliseCode, PlanPanel, todayCentsFor } from './plan-panel'
+import { BUTTON_GOLD, BUTTON_OUTLINE, EYEBROW, FOCUS, GOLD_TEXT, INPUT, PANEL, PANEL_HOVER } from './brand'
+import { PlanIncludes, PriceBlock, TierToggle } from './plan-panel'
 
 interface NavLink
 {
@@ -62,24 +61,13 @@ const FAQS: readonly FaqItem[] = [
     },
     {
         question: 'How does the 50% discount work?',
-        answer: 'Tap "No code yet? Email it to me" on the plan card and we send you a discount code. On Growth and Pro it halves your monthly price for your first six months, then the standard price applies. The code works with the email it was sent to, on monthly billing.',
+        answer: 'Put your email in at the bottom of the plan card and we send you a code. On Growth and Pro it halves your monthly price for your first six months, then the standard price applies. The code works with the email it was sent to.',
     },
     {
         question: 'What is the difference between the plans?',
         answer: 'Starter is the ranked feed with AI summaries for one province. Growth adds the working tools: bookmarks, the deadline calendar, email alerts, price estimates, buyer profiles, the tender map and requirement checks, for up to four provinces. Pro is Growth across all nine provinces. Extra provinces on Starter or Growth are R100 a month each.',
     },
-    {
-        question: 'Is there a yearly option?',
-        answer: 'Yes. Pay yearly and you get twelve months for the price of ten.',
-    },
 ]
-
-/** One line on what each plan includes, under the hero card's price. */
-const PLAN_SUMMARIES: Readonly<Record<PricingTier, string>> = {
-    single: 'Ranked feed and AI summaries for one province.',
-    mid: 'Adds alerts, the calendar, price estimates and buyer profiles. Up to 4 provinces.',
-    all: 'Everything in Growth, across all nine provinces.',
-}
 
 /** The intro's "— by North Tech —" rule, reused as a section divider. */
 function GoldRule({ label }: { readonly label: string })
@@ -463,42 +451,36 @@ function FaqRow({ item, index }: FaqRowProps)
     )
 }
 
-function PlayIcon()
+function ArrowIcon()
 {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3.5 w-3.5">
-            <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="h-3 w-3">
+            <path d="M5 12h13m-5-5 5 5-5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     )
 }
 
 interface HeroPlanProps
 {
-    readonly onSubscribe: (choice: { tier: PricingTier, billing: Billing, code: string, email: string }) => void
-    readonly onTrial: () => void
-    readonly onPreview: () => void
+    readonly onSubscribe: (choice: { tier: PricingTier, email: string }) => void
 }
 
 /**
- * The hero's plan picker: the same panel as the payment page, so a visitor
- * picks a plan, sees the price (with their 50% code) and goes straight on.
+ * The hero's plan card: pick a plan, see what it includes and its monthly
+ * price, subscribe. The email box at the bottom sends the 50% code; its email
+ * links straight to the payment page with the code filled in.
  */
-function HeroPlan({ onSubscribe, onTrial, onPreview }: HeroPlanProps)
+function HeroPlan({ onSubscribe }: HeroPlanProps)
 {
     const [tier, setTier] = useState<PricingTier>('mid')
-    const [billing, setBilling] = useState<Billing>('monthly')
-    const [code, setCode] = useState('')
-    const [asking, setAsking] = useState(false)
     const [email, setEmail] = useState('')
     const [sendState, setSendState] = useState<CodeState>('idle')
     const [error, setError] = useState('')
 
-    const promo = billing === 'monthly' && isPromoTier(tier) && codeLooksValid(code)
-    const count = tier === 'all' ? 0 : 1
-    const today = todayCentsFor(tier, billing, count, promo)
-
-    async function send(): Promise<void>
+    async function send(event: React.FormEvent): Promise<void>
     {
+        event.preventDefault()
+
         if (!email.includes('@'))
         {
             setSendState('error')
@@ -511,7 +493,8 @@ function HeroPlan({ onSubscribe, onTrial, onPreview }: HeroPlanProps)
 
         try
         {
-            await requestDiscountCode(email.trim(), tier)
+            // The code is for Growth and Pro, so a Starter visitor's email opens Growth.
+            await requestDiscountCode(email.trim(), tier === 'single' ? 'mid' : tier)
             setSendState('sent')
         }
         catch (caught)
@@ -523,89 +506,75 @@ function HeroPlan({ onSubscribe, onTrial, onPreview }: HeroPlanProps)
         }
     }
 
-    const codeHelp = promo ? (
-        <p className="mt-2 text-[12px] text-[#9FD3B0]">✓ Code added: {PROMO_PERCENT}% off for {PROMO_MONTHS} months.</p>
-    ) : sendState === 'sent' ? (
-        <p role="status" className="mt-2 text-[12px] text-[#E9DFC6]/60">Sent to {email}. Paste it above, or open the email&rsquo;s button.</p>
-    ) : asking ? (
-        <div className="mt-2 flex flex-col gap-2">
-            <div className="flex gap-2">
-                <label htmlFor="hero-code-email" className="sr-only">Email address</label>
-                <input
-                    id="hero-code-email"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    placeholder="you@company.co.za"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    className={cn(INPUT, 'h-10 text-[14px]')}
-                />
-                <button type="button" onClick={() => void send()} disabled={sendState === 'sending'} className={cn('h-10 shrink-0 px-4', BUTTON_OUTLINE)}>
-                    {sendState === 'sending' ? 'Sending…' : 'Send'}
-                </button>
-            </div>
-            {sendState === 'error' && <p role="alert" className="text-[12px] text-[#F2A38A]">{error}</p>}
-        </div>
-    ) : (
-        <button type="button" onClick={() => setAsking(true)} className={cn('mt-2 text-left text-[12px] text-[#D9B97E] underline-offset-2 hover:underline', FOCUS)}>
-            No code yet? Email it to me
-        </button>
-    )
-
     return (
-        <PlanPanel
-            tier={tier}
-            billing={billing}
-            count={count}
-            promo={promo}
-            code={code}
-            codeId="hero-code"
-            compact
-            header={(
-                <button type="button" onClick={onPreview} className={cn('h-9 w-full gap-2', BUTTON_OUTLINE)}>
-                    <PlayIcon />
+        <div>
+            <div className="mb-2.5 flex justify-center lg:justify-end">
+                {/* The app itself on sample data, opened on the plan picked here. */}
+                <a
+                    href={`/preview?plan=${tier}`}
+                    className={cn('inline-flex items-center gap-1.5 rounded-sm font-mono text-[10px] uppercase tracking-[0.2em] text-[#D9B97E]/80 transition-colors hover:text-[#F0D9A4]', FOCUS)}
+                >
                     Preview the app
+                    <ArrowIcon />
+                </a>
+            </div>
+
+            <div className={cn('flex flex-col gap-3.5 p-4 sm:p-5 lg:gap-3', PANEL, 'border-[#D9B97E]/35')}>
+                <TierToggle tier={tier} onChange={setTier} />
+
+                <PriceBlock tier={tier} count={tier === 'all' ? 0 : 1} promo={false} compact />
+
+                <PlanIncludes tier={tier} />
+
+                <button
+                    type="button"
+                    onClick={() => onSubscribe({ tier, email: email.trim() })}
+                    className={cn('mt-1 h-11 w-full lg:h-10', BUTTON_GOLD)}
+                >
+                    Subscribe
                 </button>
-            )}
-            onTierChange={setTier}
-            onBillingChange={setBilling}
-            onCodeChange={setCode}
-            codeHelp={codeHelp}
-            note={<p className="-mt-1 text-[12px] leading-relaxed text-[#E9DFC6]/45">{PLAN_SUMMARIES[tier]}</p>}
-            footer={(
-                <div className="flex flex-col gap-2.5 border-t border-[#B08D57]/20 pt-3">
-                    <button
-                        type="button"
-                        onClick={() => onSubscribe({ tier, billing, code: promo ? normaliseCode(code) : '', email: email.trim() })}
-                        className={cn('h-11 w-full', BUTTON_GOLD)}
-                    >
-                        Subscribe · {formatRands(today)} today
-                    </button>
-                    <p className="text-center text-[12px] text-[#E9DFC6]/45">
-                        Prefer to try first?{' '}
-                        <button type="button" onClick={onTrial} className={cn('underline underline-offset-2 hover:text-[#D9B97E]', FOCUS)}>Start a free week</button>
-                    </p>
+
+                <div className="mt-1 border-t border-[#B08D57]/20 pt-3.5 lg:pt-3">
+                    {sendState === 'sent' ? (
+                        <p role="status" className="text-[12px] leading-relaxed text-[#9FD3B0]">
+                            ✓ Code sent to {email.trim()}. Open the email and tap its button to subscribe at {PROMO_PERCENT}% off.
+                        </p>
+                    ) : (
+                        <form onSubmit={(event) => void send(event)} noValidate>
+                            <label htmlFor="hero-code-email" className="block text-[12px] text-[#E9DFC6]/60">
+                                Get {PROMO_PERCENT}% off Growth or Pro for {PROMO_MONTHS} months
+                            </label>
+                            <div className="mt-2 flex gap-2">
+                                <input
+                                    id="hero-code-email"
+                                    type="email"
+                                    inputMode="email"
+                                    autoComplete="email"
+                                    placeholder="you@company.co.za"
+                                    value={email}
+                                    onChange={(event) => setEmail(event.target.value)}
+                                    className={cn(INPUT, 'h-10 text-[14px] lg:h-9')}
+                                />
+                                <button type="submit" disabled={sendState === 'sending'} className={cn('h-10 shrink-0 px-4 lg:h-9', BUTTON_OUTLINE)}>
+                                    {sendState === 'sending' ? 'Sending…' : 'Send code'}
+                                </button>
+                            </div>
+                            {sendState === 'error' && <p role="alert" className="mt-2 text-[12px] text-[#F2A38A]">{error}</p>}
+                        </form>
+                    )}
                 </div>
-            )}
-        />
+            </div>
+        </div>
     )
 }
 
 export function LandingPage()
 {
     const navigate = useNavigate()
-    const [previewing, setPreviewing] = useState(false)
-    const closePreview = useCallback(() => setPreviewing(false), [])
 
-    function startFromHero(choice: { tier: PricingTier, billing: Billing, code: string, email: string }): void
+    function startFromHero(choice: { tier: PricingTier, email: string }): void
     {
-        const query = new URLSearchParams({ tier: choice.tier, billing: choice.billing })
-
-        if (choice.code !== '')
-        {
-            query.set('code', choice.code)
-        }
+        const query = new URLSearchParams({ tier: choice.tier })
 
         if (choice.email.includes('@'))
         {
@@ -626,19 +595,16 @@ export function LandingPage()
             <SiteNav />
 
             <main className="relative mx-auto max-w-6xl px-5 pb-16 sm:px-6 sm:pb-24">
-                <section className="pt-6 sm:pt-8">
+                <section className="pt-6 sm:pt-8 lg:pt-4">
                     <div className="grid items-center gap-7 lg:grid-cols-[1fr_23rem] lg:gap-16">
                         <div className="text-center lg:text-left">
                             <p className={EYEBROW}>Tender intelligence</p>
                             <h1 className="mt-3 font-serif text-[1.85rem] font-semibold leading-[1.12] tracking-tight text-[#E9DFC6] sm:mt-5 sm:text-5xl sm:leading-[1.08] lg:text-[3.25rem]">
                                 Every South African tender that <span className={GOLD_TEXT}>actually fits</span> your business.
                             </h1>
-                            <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-[#E9DFC6]/55 sm:mt-5 sm:text-lg lg:mx-0">
-                                Ranked in one feed, with reminders before briefings and closing dates.
-                            </p>
                         </div>
                         <div className="mx-auto w-full max-w-sm lg:max-w-none">
-                            <HeroPlan onSubscribe={startFromHero} onTrial={() => navigate('/join')} onPreview={() => setPreviewing(true)} />
+                            <HeroPlan onSubscribe={startFromHero} />
                         </div>
                     </div>
 
@@ -720,7 +686,6 @@ export function LandingPage()
                 </div>
             </footer>
 
-            {previewing && <AdPlayer onDone={closePreview} closeLabel="Close" titleCard={false} />}
         </div>
     )
 }

@@ -7,6 +7,8 @@ interface CategoryPickerProps
     readonly taxonomy: Taxonomy | null
     readonly value: readonly string[]
     readonly onChange: (next: string[]) => void
+    /** Show only the chosen categories, with no search or groups to pick from. */
+    readonly readOnly?: boolean
 }
 
 /** A toggle chip for a single category label. */
@@ -64,7 +66,7 @@ function CategorySection(props: {
  * flat list. While searching, categories from the buckets you have already
  * chosen are surfaced as "related".
  */
-export function CategoryPicker({ taxonomy, value, onChange }: CategoryPickerProps)
+export function CategoryPicker({ taxonomy, value, onChange, readOnly = false }: CategoryPickerProps)
 {
     const [query, setQuery] = useState('')
 
@@ -118,18 +120,25 @@ export function CategoryPicker({ taxonomy, value, onChange }: CategoryPickerProp
     const searching = needle !== ''
     const browsing = !searching || (matched.length === 0 && related.length === 0)
 
+    const chosen = value.length > 0 && (
+        <fieldset className="flex flex-col gap-2">
+            <legend className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">Selected ({value.length})</legend>
+            <div className="flex flex-wrap gap-2">
+                {value.map((label) => (
+                    <CategoryChip key={label} label={label} active onToggle={() => toggle(label)} />
+                ))}
+            </div>
+        </fieldset>
+    )
+
+    if (readOnly)
+    {
+        return chosen === false ? <p className="text-sm text-ink/60">No categories chosen.</p> : chosen
+    }
+
     return (
         <div className="flex flex-col gap-6">
-            {value.length > 0 && (
-                <fieldset className="flex flex-col gap-2">
-                    <legend className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">Selected ({value.length})</legend>
-                    <div className="flex flex-wrap gap-2">
-                        {value.map((label) => (
-                            <CategoryChip key={label} label={label} active onToggle={() => toggle(label)} />
-                        ))}
-                    </div>
-                </fieldset>
-            )}
+            {chosen}
 
             <div className="flex flex-col gap-1.5">
                 <label htmlFor="category-search" className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">Search categories</label>

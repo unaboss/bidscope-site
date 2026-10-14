@@ -16,43 +16,54 @@ import { SubscribePage } from '@/pages/public/subscribe'
 import { ProfilePage } from '@/pages/profile'
 import { TenderDetailPage } from '@/pages/tender-detail'
 
-/** The signed-in application, framed by the navy rail + header. */
+/**
+ * The application's pages, framed by the navy rail + header. The signed-in app
+ * and the public preview (`/preview`, on sample data) both render these.
+ */
+export function AppPages()
+{
+    return (
+        <Routes>
+            <Route element={<AppShell />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="discover" element={<DiscoverPage />} />
+                <Route
+                    path="bookmarks"
+                    element={(
+                        <FeatureGate feature="bookmarks_calendar" className="m-4 sm:m-8" title="Save tenders you are chasing" detail="Bookmarks keep your shortlist in one place, with email reminders before briefings and closing dates. They come with Growth and Pro.">
+                            <BookmarksPage />
+                        </FeatureGate>
+                    )}
+                />
+                <Route
+                    path="calendar"
+                    element={(
+                        <FeatureGate feature="bookmarks_calendar" className="m-4 sm:m-8" title="Every briefing and closing date on one calendar" detail="The calendar plots your saved tenders, flags clashes and syncs to your own calendar. It comes with Growth and Pro.">
+                            <CalendarPage />
+                        </FeatureGate>
+                    )}
+                />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<Navigate to="/profile" replace />} />
+                <Route path="billing" element={<BillingPage />} />
+                <Route path="tenders/:id" element={<TenderDetailPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+        </Routes>
+    )
+}
+
+/** The signed-in application, on the org's own plan. */
 function PrivateRoutes()
 {
     return (
         <PlanProvider>
-            <Routes>
-                <Route element={<AppShell />}>
-                    <Route index element={<DashboardPage />} />
-                    <Route path="discover" element={<DiscoverPage />} />
-                    <Route
-                        path="bookmarks"
-                        element={(
-                            <FeatureGate feature="bookmarks_calendar" className="m-4 sm:m-8" title="Save tenders you are chasing" detail="Bookmarks keep your shortlist in one place, with email reminders before briefings and closing dates. They come with Growth and Pro.">
-                                <BookmarksPage />
-                            </FeatureGate>
-                        )}
-                    />
-                    <Route
-                        path="calendar"
-                        element={(
-                            <FeatureGate feature="bookmarks_calendar" className="m-4 sm:m-8" title="Every briefing and closing date on one calendar" detail="The calendar plots your saved tenders, flags clashes and syncs to your own calendar. It comes with Growth and Pro.">
-                                <CalendarPage />
-                            </FeatureGate>
-                        )}
-                    />
-                    <Route path="profile" element={<ProfilePage />} />
-                    <Route path="settings" element={<Navigate to="/profile" replace />} />
-                    <Route path="billing" element={<BillingPage />} />
-                    <Route path="tenders/:id" element={<TenderDetailPage />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Route>
-            </Routes>
+            <AppPages />
         </PlanProvider>
     )
 }
 
-/** The public trial funnel: intro and ad, pricing/landing, onboarding, payment. */
+/** The public trial funnel: intro, pricing/landing, onboarding, payment. */
 function PublicRoutes()
 {
     return (

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { useFeature } from '@/lib/plan'
+import { UpgradeLink } from '@/lib/preview'
 
 interface LockedFeatureProps
 {
@@ -17,12 +17,11 @@ export function LockedFeature({ title, detail, className }: LockedFeatureProps)
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Growth and Pro</span>
             <p className="font-serif text-lg font-semibold text-ink">{title}</p>
             <p className="max-w-xl text-sm leading-relaxed text-ink/65">{detail}</p>
-            <Link
-                to="/billing"
+            <UpgradeLink
                 className="inline-flex h-9 items-center rounded-md bg-gradient-to-b from-[#D9B97E] to-[#B08D57] px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[#06140F] hover:from-[#F0D9A4]"
             >
                 Upgrade to Growth
-            </Link>
+            </UpgradeLink>
         </div>
     )
 }

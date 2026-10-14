@@ -8,6 +8,7 @@ import { IconCalendar, IconDownload } from '@/components/ui/icons'
 import { PageHeader } from '@/components/ui/page-header'
 import { buildEvents, eventsByDate, groupByDate, undated, type CalendarEvent, type DateGroup } from '@/lib/calendar'
 import { daysUntil, formatDate, relativeDays } from '@/lib/format'
+import { usePreview } from '@/lib/preview'
 import { cn } from '@/lib/utils'
 import type { Tender } from '@/types'
 
@@ -92,6 +93,7 @@ export function CalendarPage()
     const [error, setError] = useState('')
     const [view, setView] = useState<CalendarView>('calendar')
     const [cursor, setCursor] = useState(() => new Date())
+    const preview = usePreview()
     const [selected, setSelected] = useState<string | null>(null)
 
     useEffect(() =>
@@ -137,7 +139,8 @@ export function CalendarPage()
                 eyebrow="Workspace"
                 title="Calendar"
                 description="Every bookmarked tender's briefing and closing dates — a month view or a timeline — with clash warnings."
-                actions={
+                // The preview's sample bookmarks have no feed to subscribe to.
+                actions={preview === null ? (
                     <a
                         href={CALENDAR_FEED_URL}
                         className="inline-flex h-10 items-center gap-2 rounded-md border border-line bg-panel px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink transition-colors hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
@@ -145,7 +148,7 @@ export function CalendarPage()
                         <IconDownload className="size-4" />
                         Subscribe (ICS)
                     </a>
-                }
+                ) : undefined}
             />
 
             {loading && <p className="text-sm text-ink/60">Loading calendar…</p>}

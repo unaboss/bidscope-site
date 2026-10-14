@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { addBookmark, listBookmarks, removeBookmark } from '@/api'
 import { useFeature } from '@/lib/plan'
+import { usePreview } from '@/lib/preview'
 
 export interface BookmarksState
 {
@@ -24,6 +25,7 @@ export function useBookmarks(): BookmarksState
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const enabled = useFeature('bookmarks_calendar')
+    const preview = usePreview()
 
     const refresh = useCallback(async (signal?: AbortSignal) =>
     {
@@ -56,7 +58,9 @@ export function useBookmarks(): BookmarksState
     const toggle = useCallback(async (tenderId: string) =>
     {
         if (!enabled) {
-            setError('Saving tenders comes with Growth and Pro. Upgrade on the Billing page to bookmark this one.')
+            setError(preview === null
+                ? 'Saving tenders comes with Growth and Pro. Upgrade on the Billing page to bookmark this one.'
+                : 'Saving tenders comes with Growth and Pro. Switch the preview to Growth to try it.')
 
             return
         }
@@ -98,7 +102,7 @@ export function useBookmarks(): BookmarksState
             })
             setError(cause instanceof Error ? cause.message : 'Could not update bookmark')
         }
-    }, [ids, enabled])
+    }, [ids, enabled, preview])
 
     return { ids, loading, error, enabled, toggle, refresh: () => refresh() }
 }

@@ -21,6 +21,12 @@ export function PlanProvider({ children }: { readonly children: ReactNode })
     return <PlanContext.Provider value={account}>{children}</PlanContext.Provider>
 }
 
+/** Supplies a known plan without loading it, for the public preview of the app. */
+export function FixedPlanProvider({ account, children }: { readonly account: Account, readonly children: ReactNode })
+{
+    return <PlanContext.Provider value={account}>{children}</PlanContext.Provider>
+}
+
 /**
  * True when the plan includes `key`. While the plan is still loading (or could
  * not load) this answers true: the server enforces every lock, so the UI never

@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { NAV_ITEMS } from '@/components/layout/nav-items'
 import { IconLogout } from '@/components/ui/icons'
 import { useFeature } from '@/lib/plan'
+import { usePreview } from '@/lib/preview'
 import { cn } from '@/lib/utils'
 
 interface AppSidebarProps
@@ -23,6 +24,8 @@ function PlanTag({ feature }: { readonly feature: string })
 /** Deep green navigation rail, shared by the desktop rail and the mobile drawer. */
 export function AppSidebar({ onNavigate }: AppSidebarProps)
 {
+    const preview = usePreview()
+
     return (
         <div className="flex h-full flex-col gap-8 border-e border-navy/15 bg-night px-4 py-6 text-ink">
             <Link
@@ -76,15 +79,18 @@ export function AppSidebar({ onNavigate }: AppSidebarProps)
                     <br />
                     Phase 0
                 </p>
-                <form method="post" action="/logout">
-                    <button
-                        type="submit"
-                        className={cn('flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-ink/60 transition-colors hover:bg-navy/[0.06] hover:text-ink', RAIL_FOCUS)}
-                    >
-                        <IconLogout className="size-4 shrink-0" />
-                        <span>Sign out</span>
-                    </button>
-                </form>
+                {/* The preview has no session to end; its own bar leads back out. */}
+                {preview === null && (
+                    <form method="post" action="/logout">
+                        <button
+                            type="submit"
+                            className={cn('flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-ink/60 transition-colors hover:bg-navy/[0.06] hover:text-ink', RAIL_FOCUS)}
+                        >
+                            <IconLogout className="size-4 shrink-0" />
+                            <span>Sign out</span>
+                        </button>
+                    </form>
+                )}
             </div>
         </div>
     )

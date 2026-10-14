@@ -18,7 +18,9 @@ import {
     type CsdImport,
     type EligibilityAnswers,
 } from '@/lib/profile'
+import { usePreview } from '@/lib/preview'
 import { SERVICE_LABELS } from '@/lib/service-lines'
+import { cn } from '@/lib/utils'
 import type { Account, Claim, Settings, SettingsInput, Taxonomy } from '@/types'
 
 const CIDB_GRADES = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -116,6 +118,8 @@ export function ProfilePage()
     const [saving, setSaving] = useState(false)
     const [message, setMessage] = useState('')
     const [error, setError] = useState('')
+    // The public preview shows a sample company's profile, which nobody can change.
+    const readOnly = usePreview() !== null
 
     useEffect(() =>
     {
@@ -248,149 +252,167 @@ export function ProfilePage()
 
             {!loading && form !== null && stored !== null && (
                 <div className="flex max-w-3xl flex-col gap-6">
-                    <Section
-                        title="Set up from your CSD report"
-                        description="Upload your CSD Registration Summary Report (csd.gov.za → Reports) and we fill in your company, tender categories, CSD and tax status for you to check."
-                    >
-                        <CsdUpload taxonomy={taxonomy} onApply={applyCsd} />
-                    </Section>
-
-                    <Section title="Company" description="The kinds of work you do drive which tenders appear in your feed.">
-                        <Field label="Company name" htmlFor="profile-name">
-                            <Input
-                                id="profile-name"
-                                value={form.companyName}
-                                onChange={(event) => setForm({ ...form, companyName: event.target.value })}
-                                autoComplete="organization"
-                            />
-                        </Field>
-
-                        <CategoryPicker
-                            taxonomy={taxonomy}
-                            value={form.categories}
-                            onChange={(categories) => setForm({ ...form, categories })}
-                        />
-
-                        {stored.serviceLines.length > 0 && (
-                            <div className="flex flex-col gap-2">
-                                <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">Legacy service lines</span>
-                                <ul className="flex flex-wrap gap-2">
-                                    {stored.serviceLines.map((code) => (
-                                        <li key={code} className="rounded-full border border-line px-3 py-1 text-xs text-ink/70">{SERVICE_LABELS[code] ?? code}</li>
-                                    ))}
-                                </ul>
-                                <p className="text-xs text-ink/50">Set up by North Tech for your account. Choosing categories above switches matching to categories.</p>
-                            </div>
-                        )}
-                    </Section>
-
-                    {showCidb && (
-                        <Section title="CIDB grades" description="Your grade per class of works. Tenders that need a higher grade are flagged before you spend time on them.">
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                {cidbRows.map((entry) => (
-                                    <Field key={entry.code} label={entry.label} htmlFor={`profile-cidb-${entry.code}`}>
-                                        <Select
-                                            id={`profile-cidb-${entry.code}`}
-                                            value={form.cidbGrades[entry.code] ?? ''}
-                                            onChange={(event) => setForm({ ...form, cidbGrades: { ...form.cidbGrades, [entry.code]: event.target.value } })}
-                                        >
-                                            <option value="">Not graded</option>
-                                            {CIDB_GRADES.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}
-                                        </Select>
-                                    </Field>
-                                ))}
-                            </div>
+                    {readOnly ? (
+                        <div className="rounded-xl border border-wax/40 bg-wax/[0.08] px-5 py-4" role="note">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Preview · view only</p>
+                            <p className="mt-1 text-sm leading-relaxed text-ink/70">
+                                A sample company. In your own account you fill this in once, and every tender is matched to it.
+                            </p>
+                        </div>
+                    ) : (
+                        <Section
+                            title="Set up from your CSD report"
+                            description="Upload your CSD Registration Summary Report (csd.gov.za → Reports) and we fill in your company, tender categories, CSD and tax status for you to check."
+                        >
+                            <CsdUpload taxonomy={taxonomy} onApply={applyCsd} />
                         </Section>
                     )}
 
-                    <Section title="Where you work" description="Leave every province off to see tenders nationwide.">
-                        <ChipGroup
-                            label="Provinces"
-                            options={PROVINCES.map((province) => ({ value: province, text: province }))}
-                            selected={form.provinces}
-                            onToggle={(value) => setForm({ ...form, provinces: toggle(form.provinces, value) })}
-                        />
-                    </Section>
-
-                    <Section
-                        title="Eligibility"
-                        description="Common tender requirements. What you declare here marks matching requirements as met on each tender; leave anything you are unsure of unset."
+                    {/* Disabled as a whole in the preview; the controls keep full strength so the details stay readable. */}
+                    <fieldset
+                        disabled={readOnly}
+                        className={cn('flex min-w-0 flex-col gap-6', readOnly && '[&_:disabled]:cursor-default [&_:disabled]:!opacity-100')}
                     >
-                        <Field label="B-BBEE level" htmlFor="profile-bbee" hint="From your B-BBEE certificate or sworn affidavit.">
-                            <div className="flex items-center gap-3">
-                                <Select
-                                    id="profile-bbee"
-                                    value={form.eligibility.bbeeLevel === null ? '' : String(form.eligibility.bbeeLevel)}
-                                    onChange={(event) => setForm({
-                                        ...form,
-                                        eligibility: { ...form.eligibility, bbeeLevel: event.target.value === '' ? null : Number(event.target.value) },
-                                    })}
-                                >
-                                    <option value="">Not set</option>
-                                    {BBEE_LEVELS.map((level) => <option key={level} value={level}>Level {level}</option>)}
-                                </Select>
-                                <VerifiedBadge claims={claims} type="bbee_level" />
-                            </div>
-                        </Field>
-
-                        <label className="flex items-center gap-2 text-sm text-ink/80">
-                            <input
-                                type="checkbox"
-                                checked={form.eligibility.csdRegistered}
-                                onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, csdRegistered: event.target.checked } })}
-                                className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-                            />
-                            Registered on the Central Supplier Database (CSD)
-                            <VerifiedBadge claims={claims} type="csd" />
-                        </label>
-
-                        <label className="flex items-center gap-2 text-sm text-ink/80">
-                            <input
-                                type="checkbox"
-                                checked={form.eligibility.taxCompliant}
-                                onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, taxCompliant: event.target.checked } })}
-                                className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
-                            />
-                            Tax compliant with SARS (valid tax compliance status PIN)
-                            <VerifiedBadge claims={claims} type="tax" />
-                        </label>
-                    </Section>
-
-                    <Section title="Notifications">
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Notification email" htmlFor="profile-email" className="sm:col-span-2">
-                                <Input id="profile-email" type="email" value={form.notifyEmail} onChange={(event) => setForm({ ...form, notifyEmail: event.target.value })} />
+                        <Section title="Company" description="The kinds of work you do drive which tenders appear in your feed.">
+                            <Field label="Company name" htmlFor="profile-name">
+                                <Input
+                                    id="profile-name"
+                                    value={form.companyName}
+                                    onChange={(event) => setForm({ ...form, companyName: event.target.value })}
+                                    autoComplete="organization"
+                                />
                             </Field>
-                            <label className="flex items-center gap-2 text-sm text-ink/80 sm:col-span-2">
+
+                            <CategoryPicker
+                                taxonomy={taxonomy}
+                                value={form.categories}
+                                onChange={(categories) => setForm({ ...form, categories })}
+                                readOnly={readOnly}
+                            />
+
+                            {stored.serviceLines.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">Legacy service lines</span>
+                                    <ul className="flex flex-wrap gap-2">
+                                        {stored.serviceLines.map((code) => (
+                                            <li key={code} className="rounded-full border border-line px-3 py-1 text-xs text-ink/70">{SERVICE_LABELS[code] ?? code}</li>
+                                        ))}
+                                    </ul>
+                                    <p className="text-xs text-ink/50">Set up by North Tech for your account. Choosing categories above switches matching to categories.</p>
+                                </div>
+                            )}
+                        </Section>
+
+                        {showCidb && (
+                            <Section title="CIDB grades" description="Your grade per class of works. Tenders that need a higher grade are flagged before you spend time on them.">
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {cidbRows.map((entry) => (
+                                        <Field key={entry.code} label={entry.label} htmlFor={`profile-cidb-${entry.code}`}>
+                                            <Select
+                                                id={`profile-cidb-${entry.code}`}
+                                                value={form.cidbGrades[entry.code] ?? ''}
+                                                onChange={(event) => setForm({ ...form, cidbGrades: { ...form.cidbGrades, [entry.code]: event.target.value } })}
+                                            >
+                                                <option value="">Not graded</option>
+                                                {CIDB_GRADES.map((grade) => <option key={grade} value={grade}>Grade {grade}</option>)}
+                                            </Select>
+                                        </Field>
+                                    ))}
+                                </div>
+                            </Section>
+                        )}
+
+                        <Section title="Where you work" description="Leave every province off to see tenders nationwide.">
+                            <ChipGroup
+                                label="Provinces"
+                                options={PROVINCES.map((province) => ({ value: province, text: province }))}
+                                selected={form.provinces}
+                                onToggle={(value) => setForm({ ...form, provinces: toggle(form.provinces, value) })}
+                            />
+                        </Section>
+
+                        <Section
+                            title="Eligibility"
+                            description="Common tender requirements. What you declare here marks matching requirements as met on each tender; leave anything you are unsure of unset."
+                        >
+                            <Field label="B-BBEE level" htmlFor="profile-bbee" hint="From your B-BBEE certificate or sworn affidavit.">
+                                <div className="flex items-center gap-3">
+                                    <Select
+                                        id="profile-bbee"
+                                        value={form.eligibility.bbeeLevel === null ? '' : String(form.eligibility.bbeeLevel)}
+                                        onChange={(event) => setForm({
+                                            ...form,
+                                            eligibility: { ...form.eligibility, bbeeLevel: event.target.value === '' ? null : Number(event.target.value) },
+                                        })}
+                                    >
+                                        <option value="">Not set</option>
+                                        {BBEE_LEVELS.map((level) => <option key={level} value={level}>Level {level}</option>)}
+                                    </Select>
+                                    <VerifiedBadge claims={claims} type="bbee_level" />
+                                </div>
+                            </Field>
+
+                            <label className="flex items-center gap-2 text-sm text-ink/80">
                                 <input
                                     type="checkbox"
-                                    checked={form.notifyEnabled}
-                                    onChange={(event) => setForm({ ...form, notifyEnabled: event.target.checked })}
+                                    checked={form.eligibility.csdRegistered}
+                                    onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, csdRegistered: event.target.checked } })}
                                     className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
                                 />
-                                Email me deadline reminders
+                                Registered on the Central Supplier Database (CSD)
+                                <VerifiedBadge claims={claims} type="csd" />
                             </label>
-                            <Field label="Tender reminder days" htmlFor="profile-tender-days" hint="Days before closing, e.g. 7, 3, 1">
-                                <Input id="profile-tender-days" value={form.tenderLeadDays} onChange={(event) => setForm({ ...form, tenderLeadDays: event.target.value })} />
-                            </Field>
-                        </div>
-                    </Section>
 
-                    {account !== null && (
-                        <Section title="Plan">
-                            <div className="flex flex-wrap items-center gap-3">
-                                <Badge tone="navy">{account.effectivePlan}</Badge>
-                                {account.trialActive && account.trialDaysLeft !== null && (
-                                    <Badge tone="warn">Trial · {account.trialDaysLeft} day{account.trialDaysLeft === 1 ? '' : 's'} left</Badge>
-                                )}
+                            <label className="flex items-center gap-2 text-sm text-ink/80">
+                                <input
+                                    type="checkbox"
+                                    checked={form.eligibility.taxCompliant}
+                                    onChange={(event) => setForm({ ...form, eligibility: { ...form.eligibility, taxCompliant: event.target.checked } })}
+                                    className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+                                />
+                                Tax compliant with SARS (valid tax compliance status PIN)
+                                <VerifiedBadge claims={claims} type="tax" />
+                            </label>
+                        </Section>
+
+                        <Section title="Notifications">
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <Field label="Notification email" htmlFor="profile-email" className="sm:col-span-2">
+                                    <Input id="profile-email" type="email" value={form.notifyEmail} onChange={(event) => setForm({ ...form, notifyEmail: event.target.value })} />
+                                </Field>
+                                <label className="flex items-center gap-2 text-sm text-ink/80 sm:col-span-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.notifyEnabled}
+                                        onChange={(event) => setForm({ ...form, notifyEnabled: event.target.checked })}
+                                        className="size-4 rounded border-line text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+                                    />
+                                    Email me deadline reminders
+                                </label>
+                                <Field label="Tender reminder days" htmlFor="profile-tender-days" hint="Days before closing, e.g. 7, 3, 1">
+                                    <Input id="profile-tender-days" value={form.tenderLeadDays} onChange={(event) => setForm({ ...form, tenderLeadDays: event.target.value })} />
+                                </Field>
                             </div>
                         </Section>
-                    )}
 
-                    <div className="sticky bottom-0 -mx-1 flex items-center gap-4 border-t border-line bg-cream/95 px-1 py-4 backdrop-blur">
-                        <Button onClick={() => void save()} disabled={saving}>{saving ? 'Saving…' : 'Save profile'}</Button>
-                        {message !== '' && <span className="text-sm text-success" role="status">{message}</span>}
-                    </div>
+                        {account !== null && (
+                            <Section title="Plan">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <Badge tone="navy">{account.effectivePlan}</Badge>
+                                    {account.trialActive && account.trialDaysLeft !== null && (
+                                        <Badge tone="warn">Trial · {account.trialDaysLeft} day{account.trialDaysLeft === 1 ? '' : 's'} left</Badge>
+                                    )}
+                                </div>
+                            </Section>
+                        )}
+                    </fieldset>
+
+                    {!readOnly && (
+                        <div className="sticky bottom-0 -mx-1 flex items-center gap-4 border-t border-line bg-cream/95 px-1 py-4 backdrop-blur">
+                            <Button onClick={() => void save()} disabled={saving}>{saving ? 'Saving…' : 'Save profile'}</Button>
+                            {message !== '' && <span className="text-sm text-success" role="status">{message}</span>}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

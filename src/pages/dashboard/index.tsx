@@ -175,7 +175,10 @@ function SectorBlock({ sector, openRows, onToggleRow }: SectorBlockProps)
 
 const TenderMap = lazy(() => import('@/components/map/tender-map'))
 
-/** Screen left under the map, so its bottom edge shows on first load. */
+/**
+ * Screen left under the map, so its bottom edge shows on first load. A page
+ * can widen it with `--screen-fit-gap` (the preview does, for its floating bar).
+ */
 const MAP_FIT_GAP = 24
 
 /** On screens too short to fit everything, the map keeps this height and the page scrolls a little. */
@@ -216,7 +219,7 @@ function useFitToScreen(): [RefObject<HTMLDivElement | null>, string | undefined
         }
     }, [])
 
-    return [ref, top === null ? undefined : `max(${MAP_MIN_HEIGHT}px, calc(100svh - ${top + MAP_FIT_GAP}px))`]
+    return [ref, top === null ? undefined : `max(${MAP_MIN_HEIGHT}px, calc(100svh - ${top}px - var(--screen-fit-gap, ${MAP_FIT_GAP}px)))`]
 }
 
 /** Where the work is: the tenders this page counts (open and relevant to the org), as pins. */
