@@ -3,6 +3,8 @@ import { AppShell } from '@/components/layout/app-shell'
 import { FeatureGate } from '@/components/ui/locked-feature'
 import { PlanProvider } from '@/lib/plan'
 import { useSession } from '@/lib/session'
+import { BidPackPage } from '@/pages/bid-pack'
+import { BidProfilePage } from '@/pages/bid-profile'
 import { BillingPage } from '@/pages/billing'
 import { BookmarksPage } from '@/pages/bookmarks'
 import { CalendarPage } from '@/pages/calendar'
@@ -46,7 +48,9 @@ export function AppPages()
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<Navigate to="/profile" replace />} />
                 <Route path="billing" element={<BillingPage />} />
+                <Route path="bid-profile" element={<BidProfilePage />} />
                 <Route path="tenders/:id" element={<TenderDetailPage />} />
+                <Route path="tenders/:id/bid-pack" element={<BidPackPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
         </Routes>

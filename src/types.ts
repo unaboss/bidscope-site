@@ -1,3 +1,6 @@
+import type { BidDirector, BidPerson, BidProfile, BidReference } from '../worker/domain/bid-profile'
+import type { PackAttachment, PackInputs, PackTender, PricingLine, PricingTotals } from '../worker/domain/bid-pack'
+
 /** A tender as returned by `/api/tenders`. Mirrors the D1 `tender` row. */
 export interface Tender
 {
@@ -426,4 +429,38 @@ export interface ComplianceInput
     readonly recheckIntervalDays: number | null
     readonly lastVerifiedDate: string | null
     readonly notes: string | null
+}
+
+export type { BidDirector, BidPerson, BidProfile, BidReference }
+
+export interface BidProfileResponse
+{
+    readonly profile: BidProfile
+    readonly updatedAt: string | null
+}
+
+export type { PackAttachment, PackInputs as BidPackInputs, PackTender, PricingLine, PricingTotals }
+
+/** One document of a bid pack, as `/api/bid-pack/:tenderId` lists it (no HTML body). */
+export interface BidPackDocument
+{
+    readonly key: string
+    readonly code: string | null
+    readonly title: string
+    readonly purpose: string
+    readonly missing: string[]
+    readonly needsSignature: boolean
+    readonly needsCommissioner: boolean
+}
+
+export interface BidPackSummary
+{
+    readonly tender: PackTender
+    readonly municipal: boolean
+    readonly documents: BidPackDocument[]
+    readonly attachments: PackAttachment[]
+    readonly manualSteps: string[]
+    readonly warnings: string[]
+    readonly totals: PricingTotals
+    readonly inputs: PackInputs
 }

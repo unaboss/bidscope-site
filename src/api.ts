@@ -1,4 +1,4 @@
-import type { Account, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse, TenderMapResponse } from '@/types'
+import type { Account, BidPackInputs, BidPackSummary, BidProfile, BidProfileResponse, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse, TenderMapResponse } from '@/types'
 
 /** URL of the subscribable iCalendar feed for the current org. */
 export const CALENDAR_FEED_URL = '/api/calendar/feed.ics'
@@ -548,4 +548,54 @@ export async function confirmCheckout(reference: string): Promise<{ ok: boolean,
     }
 
     return await response.json() as { ok: boolean, status?: string, plan?: string }
+}
+
+/** The org's bid profile: the company facts every bid form is filled from. */
+export function getBidProfile(signal?: AbortSignal): Promise<BidProfileResponse>
+{
+    return getJson<BidProfileResponse>('/api/bid-pack/profile', signal)
+}
+
+export async function saveBidProfile(profile: BidProfile): Promise<BidProfileResponse>
+{
+    const response = await fetch('/api/bid-pack/profile', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(profile),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Could not save the bid profile (${response.status})`)
+    }
+
+    return await response.json() as BidProfileResponse
+}
+
+/** One tender's bid pack: documents, their gaps, attachments and manual steps. */
+export function getBidPack(tenderId: string, signal?: AbortSignal): Promise<BidPackSummary>
+{
+    return getJson<BidPackSummary>(`/api/bid-pack/${encodeURIComponent(tenderId)}`, signal)
+}
+
+export async function saveBidPack(tenderId: string, inputs: BidPackInputs): Promise<BidPackSummary>
+{
+    const response = await fetch(`/api/bid-pack/${encodeURIComponent(tenderId)}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(inputs),
+    })
+
+    if (!response.ok) {
+        throw new Error(`Could not save the pack (${response.status})`)
+    }
+
+    return await response.json() as BidPackSummary
+}
+
+/** The printable pack, or one document of it. Opens as a page to print or save as PDF. */
+export function bidPackPrintUrl(tenderId: string, doc?: string): string
+{
+    const base = `/api/bid-pack/${encodeURIComponent(tenderId)}/print`
+
+    return doc === undefined ? base : `${base}?doc=${encodeURIComponent(doc)}`
 }

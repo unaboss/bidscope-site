@@ -11,7 +11,7 @@ import { IconArrowRight, IconQuote } from '@/components/ui/icons'
 import { useBookmarks } from '@/hooks/use-bookmarks'
 import { estimateNote, tenderEstimate } from '@/lib/estimate'
 import { daysUntil, formatDate, relativeDays } from '@/lib/format'
-import { UpgradeLink } from '@/lib/preview'
+import { UpgradeLink, usePreview } from '@/lib/preview'
 import { buildDeepLink, isVerifiedRef, sourceSite } from '@/lib/sources'
 import { serviceLabel } from '@/lib/service-lines'
 import type { Tender, TenderScope } from '@/types'
@@ -115,6 +115,7 @@ export function TenderDetailPage()
     const [loading, setLoading] = useState(true)
     const [copied, setCopied] = useState(false)
     const bookmarks = useBookmarks()
+    const inPreview = usePreview() !== null
 
     useEffect(() =>
     {
@@ -270,6 +271,14 @@ export function TenderDetailPage()
                         <UpgradeLink className="inline-flex h-10 items-center rounded-md border border-wax/40 px-5 font-mono text-[11px] uppercase tracking-[0.14em] text-wax hover:bg-wax/10">
                             Bookmark · Growth plan
                         </UpgradeLink>
+                    )}
+                    {!inPreview && (
+                        <Button asChild variant="primary">
+                            <Link to={`/tenders/${encodeURIComponent(tender.id)}/bid-pack`}>
+                                <IconQuote className="size-4" />
+                                Generate bid pack
+                            </Link>
+                        </Button>
                     )}
                     {deepLink !== null && (
                         <a

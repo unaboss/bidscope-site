@@ -5,6 +5,7 @@ import {
     IconCalendar,
     IconDashboard,
     IconFunnel,
+    IconQuote,
 } from '@/components/ui/icons'
 
 export interface NavItem
@@ -23,6 +24,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     { to: '/bookmarks', label: 'Bookmarks', icon: IconBookmark, feature: 'bookmarks_calendar' },
     { to: '/calendar', label: 'Calendar', icon: IconCalendar, feature: 'bookmarks_calendar' },
     { to: '/profile', label: 'Profile', icon: IconBuilding },
+    { to: '/bid-profile', label: 'Bid profile', icon: IconQuote },
 ]
 
 /** Returns the nav item whose route best matches `pathname`. */
