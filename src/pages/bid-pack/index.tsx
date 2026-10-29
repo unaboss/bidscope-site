@@ -311,9 +311,10 @@ export function BidPackPage()
                 </div>
 
                 <div className="flex flex-col gap-6">
-                    <Panel title="The buyer's documents" description="Read the scoring goals from the tender's own PDF and put them on the preference points claim form.">
+                    <Panel title="The buyer's documents" description="Read the scoring goals into the preference points form, or write your company details onto the buyer's own forms.">
                         <BuyerDocuments
                             tenderId={id}
+                            tenderNo={pack.tender.tenderNo}
                             sources={pack.sources}
                             accepted={pack.inputs.goals}
                             acceptedSystem={pack.inputs.preferenceSystem}
