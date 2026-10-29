@@ -275,6 +275,7 @@ export function BidProfilePage()
                         <div className="grid gap-4 sm:grid-cols-2">
                             <TextField id="bp-legal" label="Registered name" value={profile.company} name="legalName" onChange={company} />
                             <TextField id="bp-trading" label="Trading name" value={profile.company} name="tradingName" onChange={company} />
+                            <TextField id="bp-previous" label="Previous registered name" value={profile.company} name="previousName" onChange={company} hint="Only if the company changed its name. The pack notes it and asks for the CIPC name change certificate." />
                             <TextField id="bp-reg" label="CIPC registration number" value={profile.company} name="registrationNumber" onChange={company} hint="e.g. 2021/123456/07" />
                             <Field label="Company type" htmlFor="bp-type">
                                 <Select id="bp-type" value={profile.company.entityType ?? ''} onChange={(event) => company({ ...profile.company, entityType: event.target.value === '' ? null : event.target.value as Company['entityType'] })}>
