@@ -241,6 +241,14 @@ function tenderMap(params: URLSearchParams): { points: TenderMapPoint[], unplace
 
 const SECTOR_ORDER = ['government', 'state-owned', 'external']
 
+/** A sum that is null when nothing was added to it, as the server reports it. */
+function totalOf(values: ReadonlyArray<number | null | undefined>): number | null
+{
+    const present = values.filter((value): value is number => value !== null && value !== undefined)
+
+    return present.length > 0 ? present.reduce((sum, value) => sum + value, 0) : null
+}
+
 /** The dashboard's province → sector → client → work type tree, built the way the server builds it. */
 function portfolio(): Portfolio
 {
@@ -258,6 +266,7 @@ function portfolio(): Portfolio
                 estimatedValue: valued.length === 0
                     ? null
                     : Math.round(valued.reduce((sum, entry) => sum + (entry.row.estimated_value ?? 0), 0) / valued.length),
+                estimateTotal: totalOf(work.map((entry) => entry.row.estimated_value)),
                 tenders: work.map((entry) => ({
                     id: entry.row.id,
                     title: entry.row.title,
@@ -276,6 +285,7 @@ function portfolio(): Portfolio
 
             return {
                 province,
+                estimateTotal: totalOf(here.map((entry) => entry.row.estimated_value)),
                 sectors: SECTOR_ORDER
                     .filter((sector) => here.some((entry) => entry.sector === sector))
                     .map((sector) =>
@@ -286,7 +296,7 @@ function portfolio(): Portfolio
                             {
                                 const own = inSector.filter((entry) => (entry.row.organ_of_state ?? 'Unknown buyer') === name)
 
-                                return { name, tenderCount: own.length, services: services(own) }
+                                return { name, tenderCount: own.length, estimateTotal: totalOf(own.map((entry) => entry.row.estimated_value)), services: services(own) }
                             })
 
                         return { sector, clients: clients.sort((a, b) => b.tenderCount - a.tenderCount) }
@@ -304,6 +314,8 @@ function portfolio(): Portfolio
             stateOwned: count('state-owned'),
             external: sectorOf.size - count('government') - count('state-owned'),
             provinces: provinceList.length,
+            estimateTotal: totalOf(tenders.map((entry) => entry.row.estimated_value)),
+            estimateCount: tenders.filter((entry) => entry.row.estimated_value != null).length,
         },
         provinces: provinceList,
     }

@@ -10,6 +10,7 @@ export const BASIS_STATED = 'stated in documents'
 export const BASIS_CIDB_BAND = 'CIDB grade band'
 export const BASIS_CLIENT_CATEGORY = 'client similar awards'
 export const BASIS_CLIENT = 'client history'
+export const BASIS_AI_SIMILAR = 'AI estimate from similar awards'
 export const BASIS_SCOPE = 'AI scope estimate'
 
 export interface ValueEstimate
@@ -112,6 +113,8 @@ export function estimateSource(estimate: ValueEstimate): string
             return count !== null ? `${count} similar awards by this buyer` : 'Similar awards by this buyer'
         case BASIS_CLIENT:
             return count !== null ? `${count} past awards by this buyer` : 'Past awards by this buyer'
+        case BASIS_AI_SIMILAR:
+            return count !== null ? `AI estimate from ${count} similar awards` : 'AI estimate'
         case BASIS_SCOPE:
             return 'Rough AI estimate'
         default:
@@ -143,6 +146,8 @@ export function estimateNote(estimate: ValueEstimate, quote: string | null = nul
         case BASIS_CLIENT_CATEGORY:
         case BASIS_CLIENT:
             return `The middle half of those awards; their median is ${formatZAR(estimate.value)}.`
+        case BASIS_AI_SIMILAR:
+            return `DeepSeek’s range from the scope, checked against ${awardCount(estimate.detail) ?? 'similar'} past awards for similar work and what they went for. An estimate, not a quote.`
         case BASIS_SCOPE:
             return 'DeepSeek’s rough range from the scope alone. The tender gives no price, CIDB grade or award history to go on, so treat it as a guess.'
         default:

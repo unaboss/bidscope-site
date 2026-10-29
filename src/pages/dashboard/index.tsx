@@ -19,14 +19,22 @@ const SECTOR_LABEL: Record<string, string> = {
     external: 'External / private',
 }
 
-function Stat({ value, label }: { readonly value: number, readonly label: string })
+function Stat({ value, label, className }: { readonly value: number | string, readonly label: string, readonly className?: string })
 {
     return (
-        <div className="flex min-w-0 flex-col rounded-lg border border-line bg-panel px-3 py-2 shadow-panel sm:px-4 sm:py-3">
+        <div className={cn('flex min-w-0 flex-col rounded-lg border border-line bg-panel px-3 py-2 shadow-panel sm:px-4 sm:py-3', className)}>
             <span className="font-serif text-xl font-semibold text-ink">{value}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/50">{label}</span>
         </div>
     )
+}
+
+/** " · est. R12m" for a row's total estimate, or nothing when no tender in it has one (or the plan hides it). */
+function totalNote(total: number | null | undefined): string
+{
+    const amount = compactRand(total)
+
+    return amount !== null ? ` · est. ${amount}` : ''
 }
 
 /** Deliverables shown on a dashboard row before the rest fold into "+N more". */
@@ -84,7 +92,7 @@ function ClientCard({ client, openRows, onToggleRow }: ClientCardProps)
             <div className="flex items-start justify-between gap-3">
                 <span className="font-serif text-sm font-semibold text-ink">{client.name}</span>
                 <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
-                    {client.tenderCount} tender{client.tenderCount === 1 ? '' : 's'}
+                    {client.tenderCount} tender{client.tenderCount === 1 ? '' : 's'}{totalNote(client.estimateTotal)}
                 </span>
             </div>
             <ul className="flex flex-col gap-1">
@@ -107,7 +115,7 @@ function ClientCard({ client, openRows, onToggleRow }: ClientCardProps)
                                 </span>
                                 <span className="ms-auto font-mono text-[10px] uppercase tracking-[0.12em] text-ink/50">
                                     {service.count}
-                                    {service.estimatedValue !== null && service.estimatedValue > 0 && ` · avg ${compactRand(service.estimatedValue)}`}
+                                    {totalNote(service.estimateTotal)}
                                 </span>
                             </button>
 
@@ -272,14 +280,21 @@ export function DashboardPage()
 
             {!loading && error === '' && portfolio !== null && (
                 <>
-                    {/* Three across even on a phone, so the stats take two short rows and leave room for the map. */}
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:grid-cols-6">
+                    {/* Three across even on a phone, so the counts take two short rows and the estimated value a third, leaving room for the map. */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 xl:grid-cols-7">
                         <Stat value={portfolio.summary.clients} label="clients" />
                         <Stat value={portfolio.summary.tenders} label="tenders" />
                         <Stat value={portfolio.summary.government} label="government" />
                         <Stat value={portfolio.summary.stateOwned} label="state-owned" />
                         <Stat value={portfolio.summary.external} label="external" />
                         <Stat value={portfolio.summary.provinces} label="provinces" />
+                        {portfolio.summary.estimateTotal !== null && portfolio.summary.estimateCount !== null && (
+                            <Stat
+                                className="col-span-3 xl:col-span-1"
+                                value={compactRand(portfolio.summary.estimateTotal) ?? '—'}
+                                label={`est. value · ${portfolio.summary.estimateCount} of ${portfolio.summary.tenders}`}
+                            />
+                        )}
                     </div>
 
                     <FeatureGate feature="tender_map" title="See every matched tender on a map" detail="The tender map pins live tenders across South Africa so you can see where the work is. It comes with Growth and Pro.">
@@ -311,7 +326,7 @@ export function DashboardPage()
                                         <span className={cn('font-mono text-xs transition-transform', isOpen && 'rotate-90')} aria-hidden="true">▸</span>
                                         <span className="font-serif text-base font-semibold">{province.province}</span>
                                         <span className="ms-auto font-mono text-[10px] uppercase tracking-[0.14em] text-navy/80">
-                                            {province.sectors.reduce((sum, sector) => sum + sector.clients.length, 0)} clients
+                                            {province.sectors.reduce((sum, sector) => sum + sector.clients.length, 0)} clients{totalNote(province.estimateTotal)}
                                         </span>
                                     </button>
 

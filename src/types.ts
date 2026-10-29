@@ -334,6 +334,8 @@ export interface PortfolioService
     readonly code: string
     readonly count: number
     readonly estimatedValue: number | null
+    /** Sum of its tenders' estimates; null when none has one or the plan hides estimates. */
+    readonly estimateTotal: number | null
     readonly tenders: PortfolioTender[]
 }
 
@@ -341,6 +343,7 @@ export interface PortfolioClient
 {
     readonly name: string
     readonly tenderCount: number
+    readonly estimateTotal: number | null
     readonly services: PortfolioService[]
 }
 
@@ -353,6 +356,7 @@ export interface PortfolioSector
 export interface PortfolioProvince
 {
     readonly province: string
+    readonly estimateTotal: number | null
     readonly sectors: PortfolioSector[]
 }
 
@@ -364,6 +368,9 @@ export interface PortfolioSummary
     readonly stateOwned: number
     readonly external: number
     readonly provinces: number
+    readonly estimateTotal: number | null
+    /** Null when the plan hides estimates. */
+    readonly estimateCount: number | null
 }
 
 export interface Portfolio
