@@ -15,9 +15,13 @@ Legacy context and the full build plan:
 
 ## Development
 
+See [docs/LOCAL-DEV.md](docs/LOCAL-DEV.md) to run it on your laptop, and
+[CONTRIBUTING.md](CONTRIBUTING.md) for how changes get in.
+
 ```
 npm install
-npm run cf:dev      # Worker on :8787 (uses .dev.vars)
+npm run dev:setup   # once: local database with sample tenders
+npm run dev:worker  # Worker on :8787 (uses .dev.vars)
 npm run dev         # Vite on :4200, proxies /api and /login to :8787
 npm run typecheck
 npm test
@@ -26,5 +30,5 @@ npm run build
 
 ## Status
 
-Phase 0 — application shell only. No ingestion, no data, no billing yet. Pages are
-placeholders; navigation and the design system are real.
+Live at [bidscope.co.za](https://bidscope.co.za). Planned work is specified in
+`docs/specs/`.

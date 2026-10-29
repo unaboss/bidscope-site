@@ -11,7 +11,10 @@
     "test": "vitest run --no-file-parallelism",
     "test:watch": "vitest",
     "cf:dev": "wrangler dev",
-    "cf:deploy": "wrangler deploy"
+    "cf:deploy": "wrangler deploy",
+    "dev:setup": "npm run build && wrangler d1 migrations apply procurement-db --local -c wrangler.dev.jsonc && wrangler d1 execute procurement-db --local -c wrangler.dev.jsonc --file worker/db/seed/tenders.sql && npm run dev:dates",
+    "dev:dates": "wrangler d1 execute procurement-db --local -c wrangler.dev.jsonc --file scripts/dev-fresh-dates.sql",
+    "dev:worker": "wrangler dev -c wrangler.dev.jsonc"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
