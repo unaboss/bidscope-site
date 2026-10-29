@@ -5,14 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vitest run --no-file-parallelism && vite build",
+    "build:fast": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --no-file-parallelism",
     "test:watch": "vitest",
     "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy",
-    "dev:setup": "npm run build && wrangler d1 migrations apply procurement-db --local -c wrangler.dev.jsonc && wrangler d1 execute procurement-db --local -c wrangler.dev.jsonc --file worker/db/seed/tenders.sql && npm run dev:dates",
+    "dev:setup": "npm run build:fast && wrangler d1 migrations apply procurement-db --local -c wrangler.dev.jsonc && wrangler d1 execute procurement-db --local -c wrangler.dev.jsonc --file worker/db/seed/tenders.sql && npm run dev:dates",
     "dev:dates": "wrangler d1 execute procurement-db --local -c wrangler.dev.jsonc --file scripts/dev-fresh-dates.sql",
     "dev:worker": "wrangler dev -c wrangler.dev.jsonc"
   },

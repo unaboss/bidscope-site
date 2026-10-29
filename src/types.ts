@@ -51,6 +51,18 @@ export interface Tender
     readonly brief?: TenderScope | null
 }
 
+/** Whether a tender document can be downloaded through Bidscope; see `worker/domain/tender-documents.ts`. */
+export type DocumentStatus = 'ready' | 'page' | 'login' | 'blocked' | 'missing' | 'unreachable' | 'no_link'
+
+/** One document from `/api/tenders/:id/documents`, checked against its source. */
+export interface TenderDocumentCheck
+{
+    readonly index: number
+    readonly name: string
+    readonly url: string | null
+    readonly status: DocumentStatus
+}
+
 /** The understanding job's plain-language read of a tender. */
 export interface TenderScope
 {

@@ -11,8 +11,10 @@ Legacy context and the full build plan:
 
 - **Worker:** Hono, D1, cron triggers, Resend for email — mirroring `business-suite/`.
 - **Front end:** React + Vite + Tailwind, reusing the North Tech design system.
-- **Deploy:** Cloudflare Workers Builds on push to `main`: `npm run build`, then D1
-  migrations and `wrangler deploy`. GitHub Actions only runs the checks (`.github/workflows/ci.yml`).
+- **Deploy:** Cloudflare Workers Builds on push to `main`: `npm run build` (typecheck,
+  tests, then the Vite build, so a failing test stops the deploy), then D1 migrations and
+  `wrangler deploy`. GitHub Actions CI is manual only, to stay inside the free minutes;
+  run `npm run typecheck`, `npm test` and `npm run build` before opening a pull request.
 
 ## Development
 

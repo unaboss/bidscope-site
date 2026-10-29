@@ -1,4 +1,4 @@
-import type { Account, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderListResponse, TenderMapResponse } from '@/types'
+import type { Account, BuyerProfile, Claim, ClaimInput, BuyerSummary, ComplianceCheck, ComplianceCheckResult, ComplianceInput, ComplianceResponse, DocumentStatus, FeedResponse, Portfolio, Settings, SettingsInput, Taxonomy, Tender, TenderDocumentCheck, TenderListResponse, TenderMapResponse } from '@/types'
 
 /** URL of the subscribable iCalendar feed for the current org. */
 export const CALENDAR_FEED_URL = '/api/calendar/feed.ics'
@@ -93,6 +93,68 @@ export function getTenderMap(query: TenderQuery, signal?: AbortSignal): Promise<
 export function getTender(id: string, signal?: AbortSignal): Promise<Tender>
 {
     return getJson<Tender>(`/api/tenders/${encodeURIComponent(id)}`, signal)
+}
+
+/** A tender's documents, each checked against its source for whether it downloads. */
+export async function checkTenderDocuments(id: string, signal?: AbortSignal): Promise<TenderDocumentCheck[]>
+{
+    const body = await getJson<{ documents: TenderDocumentCheck[] }>(`/api/tenders/${encodeURIComponent(id)}/documents`, signal)
+
+    return body.documents
+}
+
+/** The filename in a `Content-Disposition` header, preferring the UTF-8 form. */
+function dispositionFilename(header: string | null): string | null
+{
+    if (header === null) {
+        return null
+    }
+
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header)
+
+    if (encoded?.[1] !== undefined) {
+        try {
+            return decodeURIComponent(encoded[1])
+        } catch {
+            // fall through to the plain form
+        }
+    }
+
+    return /filename="([^"]+)"/i.exec(header)?.[1] ?? null
+}
+
+/**
+ * Downloads one tender document through Bidscope and saves it in the browser.
+ * Returns the source's status when it would not hand the file over.
+ */
+export async function downloadTenderDocument(id: string, doc: TenderDocumentCheck): Promise<'saved' | DocumentStatus>
+{
+    let response: Response
+
+    try {
+        response = await fetch(`/api/tenders/${encodeURIComponent(id)}/documents/${doc.index}`)
+    } catch {
+        return 'unreachable'
+    }
+
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({})) as { status?: DocumentStatus }
+
+        return body.status ?? 'unreachable'
+    }
+
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+
+    anchor.href = url
+    anchor.download = dispositionFilename(response.headers.get('content-disposition')) ?? doc.name
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+
+    return 'saved'
 }
 
 /** Lists the current org's bookmarked tenders. */

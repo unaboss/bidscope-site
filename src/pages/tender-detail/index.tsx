@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getTender } from '@/api'
+import { DownloadTender } from '@/components/tender/download-tender'
 import { EstimateValue } from '@/components/tender/estimate-value'
 import { RequirementsList } from '@/components/tender/requirements-section'
 import { Badge } from '@/components/ui/badge'
@@ -271,6 +272,13 @@ export function TenderDetailPage()
                             Bookmark · Growth plan
                         </UpgradeLink>
                     )}
+                    <DownloadTender
+                        tender={tender}
+                        deepLink={deepLink}
+                        siteName={site?.name ?? tender.source ?? 'the source'}
+                        onCopyRef={() => void copyRef(tender.tender_no ?? '')}
+                        copied={copied}
+                    />
                     {deepLink !== null && (
                         <a
                             href={deepLink.url}
