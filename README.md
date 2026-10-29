@@ -2,7 +2,7 @@
 
 The unified workspace over South Africa's fragmented tender landscape — eTenders
 plus SOE/municipal sources in one interface. Cloudflare Worker (Hono) + D1 + React
-front end, deployed by GitHub Actions on push to `main`.
+front end, deployed by Cloudflare Workers Builds on push to `main`.
 
 Legacy context and the full build plan:
 `../analytics/procurement-screener/projects/11-oed-procurement-tool/docs/superpowers/plans/2026-09-24-procurement-workspace.md`
@@ -11,7 +11,8 @@ Legacy context and the full build plan:
 
 - **Worker:** Hono, D1, cron triggers, Resend for email — mirroring `business-suite/`.
 - **Front end:** React + Vite + Tailwind, reusing the North Tech design system.
-- **Deploy:** GitHub Actions (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`).
+- **Deploy:** Cloudflare Workers Builds on push to `main`: `npm run build`, then D1
+  migrations and `wrangler deploy`. GitHub Actions only runs the checks (`.github/workflows/ci.yml`).
 
 ## Development
 
