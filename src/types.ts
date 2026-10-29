@@ -463,4 +463,18 @@ export interface BidPackSummary
     readonly warnings: string[]
     readonly totals: PricingTotals
     readonly inputs: PackInputs
+    readonly email: BidPackEmailState
+}
+
+export interface BidPackEmailState
+{
+    /** False when the server has no email key: buttons explain instead of sending. */
+    readonly configured: boolean
+    /** The org's own addresses the documents can go to. */
+    readonly recipients: string[]
+    /** Tender files the source lists for download. */
+    readonly documentCount: number
+    /** The request that would go to the buyer, or null without a contact email. */
+    readonly request: { readonly to: string, readonly subject: string, readonly text: string, readonly replyTo: string } | null
+    readonly sent: Array<{ readonly kind: 'documents' | 'request', readonly recipient: string, readonly status: string, readonly detail: string | null, readonly createdAt: string }>
 }

@@ -599,3 +599,39 @@ export function bidPackPrintUrl(tenderId: string, doc?: string): string
 
     return doc === undefined ? base : `${base}?doc=${encodeURIComponent(doc)}`
 }
+
+export interface BidPackEmailResult
+{
+    readonly status: 'sent' | 'failed' | 'disabled'
+    readonly detail: string
+    readonly attached?: number
+    readonly linked?: number
+}
+
+async function postPackEmail(path: string, body: unknown): Promise<BidPackEmailResult>
+{
+    const response = await fetch(path, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify(body),
+    })
+    const json = await response.json().catch(() => ({})) as Partial<BidPackEmailResult> & { error?: string }
+
+    if (json.status === undefined) {
+        throw new Error(json.error ?? `Could not send (${response.status})`)
+    }
+
+    return { status: json.status, detail: json.detail ?? '', attached: json.attached, linked: json.linked }
+}
+
+/** Downloads the tender's documents on the server and emails them, with the pack, to one of the org's addresses. */
+export function emailTenderDocuments(tenderId: string, to: string): Promise<BidPackEmailResult>
+{
+    return postPackEmail(`/api/bid-pack/${encodeURIComponent(tenderId)}/email-documents`, { to })
+}
+
+/** Emails the tender's contact person asking for the bid documents; replies go to the bid email. */
+export function requestTenderDocuments(tenderId: string): Promise<BidPackEmailResult>
+{
+    return postPackEmail(`/api/bid-pack/${encodeURIComponent(tenderId)}/request-documents`, {})
+}

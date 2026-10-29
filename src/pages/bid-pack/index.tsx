@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { bidPackPrintUrl, getBidPack, getBidProfile, saveBidPack } from '@/api'
+import { TenderDocumentsEmail } from '@/components/tender/tender-documents-email'
 import { Badge, type BadgeTone } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input, Textarea } from '@/components/ui/controls'
@@ -302,6 +303,14 @@ export function BidPackPage()
                 </div>
 
                 <div className="flex flex-col gap-6">
+                    <Panel title="Get the documents by email">
+                        <TenderDocumentsEmail
+                            tenderId={id}
+                            state={pack.email}
+                            onSent={() => void getBidPack(id).then(setPack).catch(() => undefined)}
+                        />
+                    </Panel>
+
                     <Panel title="Attachments" description="Supporting documents to add behind the forms. Keep your certificates in the compliance vault to track expiry.">
                         <ul className="flex flex-col gap-2.5">
                             {pack.attachments.map((item) => (
