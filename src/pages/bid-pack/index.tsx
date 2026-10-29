@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { bidPackPrintUrl, getBidPack, getBidProfile, saveBidPack } from '@/api'
+import { BuyerDocuments } from '@/components/tender/buyer-documents'
 import { TenderDocumentsEmail } from '@/components/tender/tender-documents-email'
 import { Badge, type BadgeTone } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -124,9 +125,10 @@ export function BidPackPage()
 
     const setLinesDirty = edit(setLines)
 
-    async function save(): Promise<void>
+    /** Saves the typed inputs; `goals` replaces the accepted specific goals when given. */
+    async function save(goals?: Pick<BidPackInputs, 'preferenceSystem' | 'goals'>): Promise<void>
     {
-        if (id === undefined) {
+        if (id === undefined || pack === null) {
             return
         }
 
@@ -135,6 +137,8 @@ export function BidPackPage()
 
         try {
             const inputs: BidPackInputs = {
+                preferenceSystem: goals?.preferenceSystem ?? pack.inputs.preferenceSystem,
+                goals: goals?.goals ?? pack.inputs.goals,
                 lines: lines
                     .filter((line) => line.description.trim() !== '')
                     .map((line) => ({ description: line.description.trim(), quantity: amount(line.quantity), unit: line.unit.trim(), unitPrice: amount(line.unitPrice) })),
@@ -143,9 +147,13 @@ export function BidPackPage()
                 personnel: chosen,
             }
             load(await saveBidPack(id, inputs))
-            setMessage('Saved. The printed pack now uses these figures.')
+            setMessage(goals !== undefined ? 'Saved. The preference points claim form now uses these goals.' : 'Saved. The printed pack now uses these figures.')
         } catch (cause) {
             setError(cause instanceof Error ? cause.message : 'Could not save the pack')
+
+            if (goals !== undefined) {
+                throw cause
+            }
         } finally {
             setSaving(false)
         }
@@ -303,6 +311,16 @@ export function BidPackPage()
                 </div>
 
                 <div className="flex flex-col gap-6">
+                    <Panel title="The buyer's documents" description="Read the scoring goals from the tender's own PDF and put them on the preference points claim form.">
+                        <BuyerDocuments
+                            tenderId={id}
+                            sources={pack.sources}
+                            accepted={pack.inputs.goals}
+                            acceptedSystem={pack.inputs.preferenceSystem}
+                            onAccept={(preferenceSystem, goals) => save({ preferenceSystem, goals })}
+                        />
+                    </Panel>
+
                     <Panel title="Get the documents by email">
                         <TenderDocumentsEmail
                             tenderId={id}

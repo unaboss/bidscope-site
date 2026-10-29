@@ -593,6 +593,12 @@ export async function saveBidPack(tenderId: string, inputs: BidPackInputs): Prom
 }
 
 /** The printable pack, or one document of it. Opens as a page to print or save as PDF. */
+/** One of the tender's own documents, passed through the server (the source sends no CORS headers). */
+export function bidPackSourceUrl(tenderId: string, index: number): string
+{
+    return `/api/bid-pack/${encodeURIComponent(tenderId)}/source/${index}`
+}
+
 export function bidPackPrintUrl(tenderId: string, doc?: string): string
 {
     const base = `/api/bid-pack/${encodeURIComponent(tenderId)}/print`

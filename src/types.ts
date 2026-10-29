@@ -463,6 +463,8 @@ export interface BidPackSummary
     readonly warnings: string[]
     readonly totals: PricingTotals
     readonly inputs: PackInputs
+    /** The buyer's own files, readable through `/api/bid-pack/:tenderId/source/:index`. */
+    readonly sources: Array<{ readonly index: number, readonly filename: string }>
     readonly email: BidPackEmailState
 }
 
