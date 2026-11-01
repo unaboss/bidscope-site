@@ -1545,7 +1545,17 @@ html:root .ref-auth .auth-footer {
     font-size: 16px;
     margin-top: 35px;
 }
-html:root .ref-auth .auth-progress,
+html:root .ref-auth .auth-progress {
+    display: block;
+    margin-bottom: 18px;
+    color: #165a3c;
+    font-size: 14px;
+    letter-spacing: normal;
+    text-transform: none;
+}
+html:root .ref-auth .auth-progress::before {
+    content: none;
+}
 html:root .ref-auth .auth-security {
     display: none;
 }

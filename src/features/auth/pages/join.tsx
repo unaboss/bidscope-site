@@ -1,6 +1,14 @@
 import { AuthLayout } from '@/features/auth/components/auth-layout'
 import { AuthField } from '@/features/auth/components/auth-field'
-import { UserIcon, EnvelopeSimpleIcon, LockKeyIcon, PhoneIcon, ArrowRightIcon } from '@phosphor-icons/react'
+import {
+    UserIcon,
+    EnvelopeSimpleIcon,
+    LockKeyIcon,
+    PhoneIcon,
+    ArrowRightIcon,
+    BuildingsIcon,
+    CertificateIcon,
+} from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/shared/api'
@@ -8,8 +16,6 @@ import { CategoryPicker } from '@/features/profile/components/category-picker'
 import { CsdUpload } from '@/features/profile/components/csd-upload'
 import { Button } from '@/shared/ui/button'
 import { ChipGroup } from '@/shared/ui/chip-group'
-import { Input } from '@/shared/ui/controls'
-import { Field } from '@/shared/ui/field'
 import { CIDB_CLASSES, CONSTRUCTION_BUCKETS, parseCidbGrades, PROVINCES } from '@/features/profile/profile'
 import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/features/billing/pricing'
 import type { Taxonomy } from '@/shared/types'
@@ -179,8 +185,13 @@ export function JoinPage() {
         <AuthLayout>
             <main className="join-content" ref={contentRef} aria-busy={submitting}>
                 {step !== 'result' && (
-                    <p className="auth-progress" aria-label={`Registration step ${step === 'contact' ? '1' : step === 'company' ? '2' : '3'} of 3`}>
-                        {step === 'contact' ? '01 / Your account' : step === 'company' ? '02 / Your business' : '03 / Your opportunity'}
+                    <p className="auth-progress">
+                        Step {step === 'contact' ? '1' : step === 'company' ? '2' : '3'} of 3 ·{' '}
+                        {step === 'contact'
+                            ? 'Your account'
+                            : step === 'company'
+                              ? 'Your business'
+                              : 'Review your plan'}
                     </p>
                 )}
 
@@ -193,7 +204,10 @@ export function JoinPage() {
                         }}
                     >
                         <h1>Create your account</h1>
-                        <p className="auth-description">Get started and find relevant tenders in South Africa.</p>
+                        <p className="auth-description">
+                            Register in three steps: create your account, add your business details, then review your
+                            plan.
+                        </p>
                         <div className="auth-fields">
                             <div className="auth-name-row">
                                 <AuthField
@@ -291,14 +305,15 @@ export function JoinPage() {
                                 />
                             </div>
 
-                            <Field label="Company name" htmlFor="companyName" required>
-                                <Input
-                                    id="companyName"
-                                    value={company.companyName}
-                                    onChange={(event) => setCompany({ ...company, companyName: event.target.value })}
-                                    autoComplete="organization"
-                                />
-                            </Field>
+                            <AuthField
+                                label="Company name"
+                                icon={BuildingsIcon}
+                                required
+                                id="companyName"
+                                value={company.companyName}
+                                onChange={(event) => setCompany({ ...company, companyName: event.target.value })}
+                                autoComplete="organization"
+                            />
 
                             <CategoryPicker
                                 taxonomy={taxonomy}
@@ -317,24 +332,25 @@ export function JoinPage() {
                                     </p>
                                     <div className="grid gap-3 sm:grid-cols-2">
                                         {CIDB_CLASSES.map((entry) => (
-                                            <Field key={entry.code} label={entry.label} htmlFor={`cidb-${entry.code}`}>
-                                                <Input
-                                                    id={`cidb-${entry.code}`}
-                                                    type="number"
-                                                    min={0}
-                                                    max={9}
-                                                    value={company.cidbGrades[entry.code] ?? ''}
-                                                    onChange={(event) =>
-                                                        setCompany({
-                                                            ...company,
-                                                            cidbGrades: {
-                                                                ...company.cidbGrades,
-                                                                [entry.code]: event.target.value,
-                                                            },
-                                                        })
-                                                    }
-                                                />
-                                            </Field>
+                                            <AuthField
+                                                key={entry.code}
+                                                label={entry.label}
+                                                icon={CertificateIcon}
+                                                id={`cidb-${entry.code}`}
+                                                type="number"
+                                                min={0}
+                                                max={9}
+                                                value={company.cidbGrades[entry.code] ?? ''}
+                                                onChange={(event) =>
+                                                    setCompany({
+                                                        ...company,
+                                                        cidbGrades: {
+                                                            ...company.cidbGrades,
+                                                            [entry.code]: event.target.value,
+                                                        },
+                                                    })
+                                                }
+                                            />
                                         ))}
                                     </div>
                                 </fieldset>
@@ -412,13 +428,20 @@ export function JoinPage() {
 
                 <div className="join-actions flex items-center gap-3">
                     {step === 'contact' && (
-                        <button className="auth-primary" type="submit" form="signup-contact">
+                        <Button className="auth-primary" type="submit" form="signup-contact">
                             Continue <ArrowRightIcon size={19} />
-                        </button>
+                        </Button>
                     )}
                     {step === 'company' && (
                         <>
-                            <Button variant="secondary" disabled={submitting} onClick={() => { setError(''); setStep('contact') }}>
+                            <Button
+                                variant="secondary"
+                                disabled={submitting}
+                                onClick={() => {
+                                    setError('')
+                                    setStep('contact')
+                                }}
+                            >
                                 Back
                             </Button>
                             <Button onClick={() => void submitCompany()} disabled={submitting} aria-busy={submitting}>
@@ -428,25 +451,34 @@ export function JoinPage() {
                     )}
                     {step === 'offer' && preview !== null && (
                         <div className="flex w-full flex-col gap-3">
-                            <Button className="w-full" onClick={() => void submitOffer(true)} disabled={submitting} aria-busy={submitting}>
+                            <Button
+                                className="w-full"
+                                onClick={() => void submitOffer(true)}
+                                disabled={submitting}
+                                aria-busy={submitting}
+                            >
                                 {submitting ? 'Setting up…' : `Subscribe now — R${price}`}
                             </Button>
                             <Button
                                 variant="secondary"
                                 className="w-full"
                                 onClick={() => void submitOffer(false)}
-                                disabled={submitting} aria-busy={submitting}
+                                disabled={submitting}
+                                aria-busy={submitting}
                             >
                                 Start my free week instead
                             </Button>
-                            <button
+                            <Button
+                                variant="secondary"
                                 type="button"
                                 disabled={submitting}
-                                onClick={() => { setError(''); setStep('company') }}
-                                className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink/50 hover:text-ink"
+                                onClick={() => {
+                                    setError('')
+                                    setStep('company')
+                                }}
                             >
                                 Back
-                            </button>
+                            </Button>
                         </div>
                     )}
                     {step === 'result' && summary !== null && (
