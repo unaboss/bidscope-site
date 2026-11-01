@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
 import type { PricingTier } from '@/api'
 import { FixedPlanProvider } from '@/lib/plan'
 import { PreviewContext } from '@/lib/preview'
@@ -37,6 +37,20 @@ interface PreviewBarProps
  */
 function PreviewBar({ tier, onTierChange }: PreviewBarProps)
 {
+    const location = useLocation()
+    const navigate = useNavigate()
+
+    // Keep the chosen plan when navigating, refreshing or sharing a preview page.
+    useEffect(() =>
+    {
+        const query = new URLSearchParams(location.search)
+
+        if (query.get('plan') !== tier) {
+            query.set('plan', tier)
+            void navigate({ ...location, search: `?${query}` }, { replace: true })
+        }
+    }, [tier, location, navigate])
+
     return (
         <div
             role="region"
@@ -88,13 +102,12 @@ export function PreviewApp()
     {
         setDemoTier(next)
         setTierState(next)
-        window.history.replaceState(null, '', `/preview?plan=${next}`)
     }, [])
 
     const preview = useMemo(() => ({ tier, setTier }), [tier, setTier])
 
     return (
-        <MemoryRouter>
+        <BrowserRouter basename="/preview">
             <PreviewContext.Provider value={preview}>
                 {/* A new plan remounts the pages, so each one loads again on that plan's data. */}
                 <FixedPlanProvider key={tier} account={demoAccount(tier)}>
@@ -105,6 +118,6 @@ export function PreviewApp()
                 </FixedPlanProvider>
                 <PreviewBar tier={tier} onTierChange={setTier} />
             </PreviewContext.Provider>
-        </MemoryRouter>
+        </BrowserRouter>
     )
 }

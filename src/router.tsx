@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from '@/components/layout/app-shell'
 import { FeatureGate } from '@/components/ui/locked-feature'
 import { PlanProvider } from '@/lib/plan'
@@ -64,7 +65,7 @@ function PrivateRoutes()
 }
 
 /** The public trial funnel: intro, pricing/landing, onboarding, payment. */
-function PublicRoutes()
+export function AppRoutes()
 {
     return (
         <Routes>
@@ -73,9 +74,38 @@ function PublicRoutes()
             <Route path="join" element={<JoinPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="subscribe" element={<SubscribePage />} />
+            {['discover', 'bookmarks', 'calendar', 'profile', 'settings', 'billing', 'tenders/:id'].map((path) => (
+                <Route key={path} path={path} element={<WorkspaceRedirect />} />
+            ))}
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     )
+}
+
+/** Preserve old bookmarks and emailed tender links after moving the workspace. */
+function WorkspaceRedirect()
+{
+    const { pathname, search, hash } = useLocation()
+
+    useEffect(() =>
+    {
+        window.location.replace(`/app${pathname}${search}${hash}`)
+    }, [pathname, search, hash])
+
+    return <Splash />
+}
+
+/** The login form is served by the Worker, so leave the SPA to open it. */
+function SignInRedirect()
+{
+    const { pathname, search, hash } = useLocation()
+
+    useEffect(() =>
+    {
+        window.location.replace(`/login?next=${encodeURIComponent('/app' + pathname + search + hash)}`)
+    }, [pathname, search, hash])
+
+    return <Splash />
 }
 
 /** Brief placeholder while the session probe resolves. */
@@ -89,11 +119,10 @@ function Splash()
 }
 
 /**
- * Chooses the public funnel or the private app from one session probe. The
- * Worker still gates private paths server-side, so a signed-out deep link never
- * reaches this branch.
+ * Only the workspace probes the session; public pages never render the dashboard.
+ * The Worker also enforces authentication on workspace pages and private APIs.
  */
-export function AppRoutes()
+export function WorkspaceRoutes()
 {
     const session = useSession()
 
@@ -102,5 +131,5 @@ export function AppRoutes()
         return <Splash />
     }
 
-    return session === 'authed' ? <PrivateRoutes /> : <PublicRoutes />
+    return session === 'authed' ? <PrivateRoutes /> : <SignInRedirect />
 }

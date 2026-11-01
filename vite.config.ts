@@ -19,6 +19,7 @@ export default defineConfig({
             '/api': 'http://localhost:8787',
             '/login': 'http://localhost:8787',
             '/logout': 'http://localhost:8787',
+            '/activate': 'http://localhost:8787',
         },
     },
 })
