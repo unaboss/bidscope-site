@@ -31,6 +31,12 @@ npm test
 npm run build
 ```
 
+## Frontend structure
+
+The frontend separates application composition (`src/app`), product features
+(`src/features`), reusable building blocks (`src/shared`), and global styling
+(`src/styles`). See [src/README.md](src/README.md) for ownership and import rules.
+
 ## Status
 
 Live at [bidscope.co.za](https://bidscope.co.za). Planned work is specified in

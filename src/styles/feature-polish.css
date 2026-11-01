@@ -1,0 +1,183 @@
+/* Feature interactions complement the shared controls without changing layout. */
+.bs-button {
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
+}
+.bs-button svg,
+.tender-list-row > svg,
+.directory-link svg,
+.quiet-link svg {
+    transition: transform 180ms ease;
+}
+.bs-button:active:not(:disabled):not([aria-disabled='true']) {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+.bs-button:disabled,
+.bs-button[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.site-nav a,
+.site-footer a,
+.login-link,
+.workspace-links a {
+    transition: color 160ms ease, background-color 160ms ease;
+}
+.site-nav a {
+    position: relative;
+}
+.site-nav a::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -7px;
+    height: 2px;
+    border-radius: 2px;
+    background: #b58121;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms ease;
+}
+.site-nav a[aria-current='page']::after,
+.site-nav a:focus-visible::after {
+    transform: scaleX(1);
+}
+.price-card,
+.feature-detail-grid article,
+.features-grid article {
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.feature-icon {
+    transition: transform 220ms ease, background-color 220ms ease;
+}
+.price-card:focus-within {
+    border-color: #b58121;
+    box-shadow: 0 8px 24px #143e3010;
+}
+.tender-list-row {
+    transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.tender-list-row:focus-visible {
+    border-color: #0c614d;
+    background: #f5f8f3;
+}
+.search-control input,
+.tender-filters select {
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+.search-control:focus-within svg {
+    color: #0c614d;
+}
+.search-control input:focus,
+.tender-filters select:focus-visible {
+    border-color: #0c614d;
+    box-shadow: 0 0 0 3px #0c614d12;
+}
+.matching-filter input {
+    accent-color: #064c3b;
+}
+.list-pagination button {
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.list-pagination button:active:not(:disabled) {
+    transform: scale(0.94);
+}
+.tender-list-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tender-loading-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px 130px 17px;
+    align-items: center;
+    gap: 24px;
+    min-height: 85px;
+    padding: 24px;
+    border: 1px solid #e8e6e1;
+    border-radius: 12px;
+    background: #fff;
+}
+.tender-loading-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tender-loading-line {
+    display: block;
+    height: 10px;
+    border-radius: 5px;
+}
+.tender-loading-line.title { width: 86%; height: 13px; }
+.tender-loading-line.buyer { width: 40%; }
+.tender-loading-line.category { width: 88%; height: 24px; }
+.tender-loading-line.date { width: 90%; }
+.tender-loading-line.arrow { width: 10px; height: 16px; }
+@media (hover: hover) and (pointer: fine) {
+    .bs-button:hover:not(:disabled):not([aria-disabled='true']) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px #003e3024;
+    }
+    .bs-button:hover:not(:disabled):not([aria-disabled='true']) svg,
+    .directory-link:hover svg,
+    .quiet-link:hover svg {
+        transform: translateX(3px);
+    }
+    .site-nav a:hover::after { transform: scaleX(1); }
+    .login-link:hover { color: #064c3b; }
+    .price-card:hover {
+        transform: translateY(-4px);
+        border-color: #b5812160;
+        box-shadow: 0 12px 30px #143e3010;
+    }
+    .features-grid article:hover .feature-icon,
+    .feature-detail-grid article:hover .feature-icon {
+        transform: translateY(-3px) rotate(-3deg);
+        background: #f5ecd8;
+    }
+    .tender-list-row:hover {
+        transform: translateY(-2px);
+        border-color: #0c614d55;
+        box-shadow: 0 5px 18px #143e300a;
+    }
+    .tender-list-row:hover > svg { transform: translateX(3px); }
+    .list-pagination button:hover:not(:disabled) {
+        background: #edf3ec;
+        border-color: #0c614d;
+    }
+}
+@media (max-width: 800px) {
+    .tender-loading-row {
+        grid-template-columns: minmax(0, 1fr) 100px;
+        gap: 16px;
+        padding: 20px;
+    }
+    .tender-loading-line.category,
+    .tender-loading-line.arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .bs-button,
+    .bs-button svg,
+    .tender-list-row,
+    .tender-list-row > svg,
+    .directory-link svg,
+    .quiet-link svg,
+    .site-nav a::after,
+    .price-card,
+    .feature-detail-grid article,
+    .features-grid article,
+    .feature-icon,
+    .list-pagination button { transition: none; }
+    .bs-button:hover:not(:disabled):not([aria-disabled='true']),
+    .bs-button:active:not(:disabled):not([aria-disabled='true']),
+    .bs-button:hover:not(:disabled):not([aria-disabled='true']) svg,
+    .directory-link:hover svg,
+    .quiet-link:hover svg,
+    .price-card:hover,
+    .features-grid article:hover .feature-icon,
+    .feature-detail-grid article:hover .feature-icon,
+    .tender-list-row:hover,
+    .tender-list-row:hover > svg,
+    .list-pagination button:active:not(:disabled) { transform: none; }
+}

@@ -29,7 +29,7 @@ export default {
                     800: 'rgb(var(--color-neutral-800) / <alpha-value>)',
                     900: 'rgb(var(--color-neutral-900) / <alpha-value>)',
                 },
-                // shadcn/ui semantic names; the vars in `src/index.css` mirror
+                // shadcn/ui semantic names; the vars in `src/styles/index.css` mirror
                 // the tokens above.
                 background: 'hsl(var(--background) / <alpha-value>)',
                 foreground: 'hsl(var(--foreground) / <alpha-value>)',

@@ -1,0 +1,111 @@
+/* Shared controls: feedback without moving surrounding content. */
+.nt-button,
+.nt-chip,
+.nt-tab,
+.nt-control {
+    transition-property: color, background-color, border-color, box-shadow, transform;
+    transition-duration: 160ms;
+    transition-timing-function: ease-out;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.nt-button:not(:disabled):not([aria-disabled='true']):active,
+.nt-chip:not(:disabled):active {
+    transform: translateY(1px);
+}
+
+.nt-button[aria-busy='true'] {
+    cursor: wait;
+}
+
+.nt-button[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.nt-control[aria-invalid='true'] {
+    border-color: rgb(var(--color-danger));
+}
+
+.nt-select-trigger > svg {
+    transition: transform 160ms ease-out;
+}
+
+.nt-select-trigger[data-state='open'] > svg {
+    transform: rotate(180deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .nt-button:not(:disabled):not([aria-disabled='true']):not([aria-busy='true']):hover {
+        box-shadow: 0 3px 10px rgb(var(--color-navy) / 0.09);
+    }
+
+    .nt-control:not(:disabled):not([readonly]):not([aria-invalid='true']):hover {
+        border-color: rgb(var(--color-neutral-400));
+    }
+
+    .nt-chip:not(:disabled):hover {
+        box-shadow: 0 2px 6px rgb(var(--color-navy) / 0.08);
+    }
+
+    .nt-tab:not(:disabled)[data-state='inactive']:hover {
+        background-color: rgb(var(--color-navy) / 0.05);
+        color: rgb(var(--color-navy));
+    }
+}
+
+.nt-dialog[open] {
+    animation: nt-reveal 200ms ease-out both;
+}
+
+.nt-dialog[open]::backdrop {
+    animation: nt-backdrop-in 180ms ease-out both;
+}
+
+@keyframes nt-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Only genuine pending UI loops; skeletons settle after a few quiet sweeps. */
+.nt-skeleton {
+    animation: nt-sweep 2s linear 3;
+}
+
+.nt-spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    vertical-align: -0.125em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: nt-spin 850ms linear infinite;
+}
+
+@keyframes nt-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nt-button,
+    .nt-chip,
+    .nt-tab,
+    .nt-control,
+    .nt-select-trigger > svg {
+        transition: none;
+    }
+
+    .nt-button:active,
+    .nt-chip:active {
+        transform: none !important;
+    }
+
+    .nt-dialog[open],
+    .nt-dialog[open]::backdrop,
+    .nt-skeleton,
+    .nt-spinner {
+        animation: none;
+    }
+}

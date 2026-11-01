@@ -1,0 +1,15 @@
+.workspace-frame .workspace-topbar { display: flex; align-items: center; gap: 36px; min-height: 72px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid #dce2dc; background: #fff; }
+.workspace-topbar nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.workspace-topbar nav a { padding: 10px 12px; border-radius: 4px; color: #526359; font-size: 12px; white-space: nowrap; }
+.workspace-topbar nav a.active { color: #174e39; background: #e8efe9; font-weight: 600; }
+.workspace-topbar nav a:hover { background: #f0f4f0; }
+.workspace-topbar a:focus-visible { outline: 2px solid #18553f; outline-offset: 3px; }
+@media (max-width: 1100px) { .workspace-frame .workspace-topbar { gap: 16px; padding: 0 24px; } .workspace-topbar nav a { padding: 10px 8px; } }
+@media (max-width: 767px) { .workspace-frame .workspace-topbar { min-height: 64px; } .workspace-topbar nav { display: none; } }
+.sidebar-inner .workspace-nav-label { margin: 0 12px 12px; color: #69776e; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.sidebar-inner .workspace-links { gap: 4px; }
+.sidebar-inner .workspace-links a { min-height: 40px; border-radius: 4px; font-size: 13px; font-weight: 500; transition: none; }
+.sidebar-inner .workspace-links a.active { background: #e8efe9; color: #174e39; box-shadow: inset 3px 0 #174e39; }
+.sidebar-inner .workspace-links a:hover { transform: none; background: #f0f4f0; }
+.sidebar-inner :is(a, button):focus-visible { outline: 2px solid #18553f; outline-offset: 3px; }
+.sidebar-inner .plan-tag { border-radius: 3px; font-size: 9px; font-weight: 500; }

@@ -1,0 +1,204 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Bidscope: white, forest green and gold, matching the supplied references. */
+:root {
+    color-scheme: light;
+    --color-ink: 13 23 35;
+    --color-navy: 0 67 48;
+    --color-wax: 208 148 37;
+    --color-cream: 253 252 250;
+    --color-panel: 255 255 255;
+    --color-night: 255 255 255;
+    --color-neutral-50: 250 250 248;
+    --color-neutral-100: 245 245 241;
+    --color-neutral-200: 232 231 226;
+    --color-neutral-300: 210 211 206;
+    --color-neutral-400: 151 157 156;
+    --color-neutral-500: 113 121 127;
+    --color-neutral-600: 85 96 103;
+    --color-neutral-700: 56 67 76;
+    --color-neutral-800: 30 42 51;
+    --color-neutral-900: 13 23 35;
+    --color-success: 0 93 58;
+    --color-warn: 177 113 6;
+    --color-danger: 187 55 48;
+    --background: 40 43% 99%;
+    --foreground: 213 46% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 213 46% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 46% 9%;
+    --primary: 163 100% 13%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 60 17% 96%;
+    --secondary-foreground: 213 46% 9%;
+    --muted: 60 17% 96%;
+    --muted-foreground: 205 10% 44%;
+    --accent: 45 65% 95%;
+    --accent-foreground: 163 100% 13%;
+    --destructive: 3 58% 47%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 50 12% 91%;
+    --input: 70 5% 82%;
+    --ring: 163 100% 13%;
+    --radius: 0.75rem;
+}
+
+@layer base {
+    /*
+     * Hide browser scrollbar chrome everywhere, on every scrolling container
+     * (the document, the For You deck, any future overflow panel). Scrolling
+     * itself — wheel, trackpad, keyboard, programmatic — is untouched; only
+     * the visible track/thumb is removed.
+     */
+    * {
+        scrollbar-width: none;
+    }
+
+    *::-webkit-scrollbar {
+        display: none;
+    }
+
+    html,
+    body,
+    #root {
+        height: 100%;
+    }
+
+    /* Keep layout measurements consistent across desktop and mobile. */
+    html {
+        font-size: 16px;
+    }
+
+    body {
+        margin: 0;
+        background-color: rgb(var(--color-cream));
+        color: rgb(var(--color-ink));
+        font-family: 'Inter', Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    /* Default focus ring for cream surfaces; navy surfaces override it. */
+    :focus-visible {
+        outline: 2px solid rgb(var(--color-navy));
+        outline-offset: 2px;
+    }
+
+    ::selection {
+        background-color: rgb(var(--color-navy) / 0.3);
+    }
+}
+
+/**
+ * Motion vocabulary.
+ *
+ * Three gestures only, so the product reads as one system: content *rises* in,
+ * a triaged row *retires* sideways, and a disclosure *reveals* downward.
+ * Everything is opt-in through a utility class; nothing animates by default.
+ */
+@keyframes nt-rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 10px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes nt-retire {
+    to {
+        opacity: 0;
+        transform: translate3d(2.5rem, 0, 0) scale(0.97);
+    }
+}
+
+@keyframes nt-reveal {
+    from {
+        opacity: 0;
+        transform: translate3d(0, -6px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes nt-sweep {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@layer components {
+    /*
+     * Shared focus treatment. Components opt into one of these rather than
+     * restating the same six utilities. The
+     * suffix names the surface the ring is offset against.
+     */
+    .focus-ring {
+        @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream;
+    }
+
+    .focus-ring-panel {
+        @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-panel;
+    }
+
+    /* Loading placeholder that reads as paper, not as a grey web skeleton. */
+    .nt-skeleton {
+        background-image: linear-gradient(
+            90deg,
+            rgb(var(--color-neutral-200) / 0.6) 25%,
+            rgb(var(--color-neutral-100) / 0.95) 42%,
+            rgb(var(--color-neutral-200) / 0.6) 60%
+        );
+        background-size: 200% 100%;
+    }
+}
+
+@layer utilities {
+    .animate-rise {
+        animation: nt-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    }
+
+    .animate-retire {
+        animation: nt-retire 260ms cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+
+    .animate-reveal {
+        animation: nt-reveal 240ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    }
+
+    /* Barely-there laid-paper texture for the brief masthead. */
+    .nt-grain {
+        background-image: repeating-linear-gradient(
+            135deg,
+            rgb(var(--color-ink) / 0.022) 0,
+            rgb(var(--color-ink) / 0.022) 1px,
+            transparent 1px,
+            transparent 5px
+        );
+    }
+}
+
+/*
+ * Reduced motion: keep every state change, drop the travel. Durations are left
+ * non-zero so `animationend`-style handoffs still fire.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

@@ -1,0 +1,42 @@
+.discovery-page { color: #253c32; }
+.discovery-page .workspace-title { align-items: center; gap: 16px; }
+.discovery-page .workspace-title h1 { font-size: 26px; letter-spacing: -.6px; line-height: 1.25; }
+.discovery-page .workspace-title p { font-size: 13px; margin-top: 6px; color: #64716a; }
+.discovery-page .matching-filter { font-size: 13px; gap: 8px; white-space: nowrap; }
+.discovery-page .tender-filters { display: grid; grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(130px, 1fr)); gap: 10px; margin: 22px 0 0; padding: 16px; border: 1px solid #dce2dc; border-radius: 4px; background: #f7f9f7; }
+.discovery-page .search-control { min-width: 0; }
+.discovery-page .search-control input, .discovery-page .tender-filters select { width: 100%; max-width: none; height: 40px; border: 1px solid #cdd6ce; border-radius: 4px; background: #fff; color: #253c32; font: inherit; font-size: 13px; }
+.discovery-page .tender-filters select { padding: 0 25px 0 10px; }
+.discovery-results-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-height: 50px; font-size: 12px; color: #64716a; }
+.discovery-results-bar p { margin-right: auto; font-weight: 600; color: #344b3f; }
+.discovery-results-bar button { color: #18553f; text-decoration: underline; text-underline-offset: 3px; }
+.discovery-page .tender-list { gap: 0; border: 1px solid #dce2dc; border-radius: 4px; overflow: visible; background: white; }
+.discovery-page .discovery-row { grid-template-columns: minmax(0, 1fr) minmax(150px, .45fr) 140px 60px; gap: 24px; padding: 18px 20px; border: 0; border-bottom: 1px solid #e2e7e2; border-radius: 0; box-shadow: none; transform: none; transition: none; }
+.discovery-page .discovery-row:last-child { border-bottom: 0; }
+.discovery-page .discovery-row:hover { background: #f5f8f5; transform: none; box-shadow: none; }
+.discovery-page .discovery-row h2 { font-size: 14px; line-height: 1.45; font-weight: 600; letter-spacing: 0; overflow-wrap: anywhere; }
+.discovery-page .discovery-row p { font-size: 12px; line-height: 1.5; margin-top: 5px; color: #53645a; }
+.discovery-reference { display: block; margin-top: 5px; font-size: 11px; color: #69776e; overflow-wrap: anywhere; }
+.discovery-classification, .discovery-deadline { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.discovery-cell-label { font-size: 10px; letter-spacing: .03em; color: #69776e; }
+.discovery-location { color: #69776e; }
+.discovery-deadline time { font-variant-numeric: tabular-nums; }
+.discovery-open { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 12px; font-weight: 600; color: #18553f; }
+.discovery-page :is(a, button, input, select):focus-visible { outline: 2px solid #18553f; outline-offset: 3px; box-shadow: none; }
+.discovery-page .list-pagination { font-size: 12px; }
+@media (max-width: 1000px) {
+    .discovery-page .tender-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .discovery-page .search-control { grid-column: 1 / -1; }
+    .discovery-page .discovery-row { grid-template-columns: minmax(0, 1fr) 170px 120px; gap: 16px; }
+    .discovery-page .discovery-open { display: none; }
+}
+@media (max-width: 640px) {
+    .discovery-page .workspace-title { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .discovery-page .tender-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
+    .discovery-page .tender-filters select:last-child { grid-column: 1 / -1; }
+    .discovery-page .discovery-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 16px; }
+    .discovery-page .discovery-opportunity { grid-column: 1 / -1; }
+    .discovery-page .discovery-row > div { min-width: 0; }
+    .discovery-page .discovery-classification { grid-column: 1; }
+    .discovery-page .discovery-deadline { grid-column: 2; align-items: flex-end; text-align: right; }
+}
