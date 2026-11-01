@@ -1,284 +1,193 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import type { ReactElement } from 'react'
-import { SlidersHorizontal, Sparkles } from 'lucide-react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { getTenderMap, listTenders } from '@/api'
-import { activeFilterCount, BrowseFilters, EMPTY_FILTERS } from '@/components/feed/browse-filters'
-import type { BrowseFilterState } from '@/components/feed/browse-filters'
-import { FeedEmpty } from '@/components/feed/feed-empty'
-import { ForYouDeck } from '@/components/feed/for-you-deck'
-import { fromTender } from '@/components/feed/queue-item'
-import { BriefSkeleton, QueueSkeleton } from '@/components/feed/skeleton'
-import { TenderBrief } from '@/components/feed/tender-brief'
-import { TenderQueue } from '@/components/feed/tender-queue'
-import { InlineError, LiveStatus, Workspace } from '@/components/feed/workspace'
-import { Button } from '@/components/ui/button'
-import { IconFunnel } from '@/components/ui/icons'
-import { PageHeader } from '@/components/ui/page-header'
-import { SegmentedTabsList } from '@/components/ui/segmented-tabs'
-import type { SegmentedTab } from '@/components/ui/segmented-tabs'
-import { Tabs, TabsContent } from '@/components/ui/tabs'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { LockedFeature } from '@/components/ui/locked-feature'
-import { useBookmarks } from '@/hooks/use-bookmarks'
-import { useFeature } from '@/lib/plan'
-import { closingWindow } from '@/lib/format'
-import type { Tender, TenderMapResponse } from '@/types'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, ArrowRight, ChevronRight, Search } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { getCategories, listTenders } from '@/api'
+import { PROVINCES } from '@/components/feed/browse-filters'
+import { formatDate } from '@/lib/format'
+import type { Tender } from '@/types'
 
-type Mode = 'foryou' | 'browse'
+const PAGE_SIZE = 20
 
-const TABS: ReadonlyArray<SegmentedTab<Mode> & { hint: string }> = [
-    { value: 'foryou', label: 'For You', hint: 'Ranked and explained for your profile', icon: <Sparkles className="size-3.5" /> },
-    { value: 'browse', label: 'Advanced filter', hint: 'Every open tender on the map; search to list them', icon: <SlidersHorizontal className="size-3.5" /> },
-]
-
-/** Milliseconds of quiet before a filter change reaches the API. */
-const DEBOUNCE_MS = 200
-
-/** The map is the heaviest thing on the page, so it loads only when Advanced filter opens. */
-const TenderMap = lazy(() => import('@/components/map/tender-map'))
-
-function BrowseList({ initialSearch }: { readonly initialSearch: string }): ReactElement
-{
-    const navigate = useNavigate()
-    const [filters, setFilters] = useState<BrowseFilterState>({ ...EMPTY_FILTERS, search: initialSearch })
+export function DiscoverPage() {
+    const [params, setParams] = useSearchParams()
     const [tenders, setTenders] = useState<Tender[]>([])
     const [total, setTotal] = useState(0)
-    const [loading, setLoading] = useState(false)
-    const [points, setPoints] = useState<TenderMapResponse | null>(null)
-    const [mapLoading, setMapLoading] = useState(true)
+    const [categories, setCategories] = useState<string[]>([])
+    const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
-    const [status, setStatus] = useState('')
-    const [busyId, setBusyId] = useState<string | null>(null)
-    const [selectedId, setSelectedId] = useState<string | null>(null)
-    const bookmarks = useBookmarks()
-    const mapEnabled = useFeature('tender_map')
-
-    // Nothing is listed until the user narrows the catalogue; until then the map is the overview.
-    const searched = activeFilterCount(filters) > 0
-
-    useEffect(() =>
-    {
+    const search = params.get('search') ?? ''
+    const province = params.get('province') ?? ''
+    const category = params.get('category') ?? ''
+    const status = params.get('status') ?? 'open'
+    const relevantOnly = params.get('relevant') === 'true'
+    const page = Math.max(0, Number(params.get('page')) || 0)
+    function filter(key: string, value: string) {
+        const next = new URLSearchParams(params)
+        if (value) next.set(key, value)
+        else next.delete(key)
+        if (key !== 'page') next.delete('page')
+        setParams(next, { replace: key === 'search' })
+    }
+    useEffect(() => {
         const controller = new AbortController()
-        const windowBounds = closingWindow(Number(filters.windowDays))
-        const query = {
-            search: filters.search.length > 0 ? filters.search : undefined,
-            province: filters.province.length > 0 ? filters.province : undefined,
-            closingFrom: windowBounds.from,
-            closingTo: windowBounds.to,
-        }
-
-        setError('')
-        setMapLoading(true)
-        setLoading(searched)
-
-        const timer = setTimeout(() =>
-        {
-            const fail = (cause: unknown, fallback: string): void =>
-            {
-                if (!(cause instanceof DOMException && cause.name === 'AbortError')) {
-                    setError(cause instanceof Error ? cause.message : fallback)
-                }
-            }
-
-            if (mapEnabled) {
-                getTenderMap(query, controller.signal)
-                    .then(setPoints)
-                    .catch((cause: unknown) => fail(cause, 'Failed to load the map'))
-                    .finally(() => setMapLoading(false))
-            }
-
-            if (!searched) {
-                setTenders([])
-                setTotal(0)
-
-                return
-            }
-
-            listTenders({ ...query, sort: filters.sort, limit: 100 }, controller.signal)
-                .then((result) =>
+        const timer = window.setTimeout(() => {
+            setLoading(true)
+            setError('')
+            const today = new Date().toISOString().slice(0, 10)
+            const soon = new Date()
+            soon.setDate(soon.getDate() + 7)
+            listTenders(
                 {
+                    search,
+                    province,
+                    category,
+                    relevantOnly,
+                    closingFrom: status === 'all' ? undefined : today,
+                    closingTo: status === 'soon' ? soon.toISOString().slice(0, 10) : undefined,
+                    sort: 'closing',
+                    limit: PAGE_SIZE,
+                    offset: page * PAGE_SIZE,
+                },
+                controller.signal,
+            )
+                .then((result) => {
                     setTenders(result.tenders)
                     setTotal(result.total)
                 })
-                .catch((cause: unknown) => fail(cause, 'Failed to load tenders'))
-                .finally(() => setLoading(false))
-        }, DEBOUNCE_MS)
-
-        return () =>
-        {
+                .catch((e) => {
+                    if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Could not load tenders.')
+                })
+                .finally(() => {
+                    if (!controller.signal.aborted) setLoading(false)
+                })
+        }, 200)
+        return () => {
             clearTimeout(timer)
             controller.abort()
         }
-    }, [filters, searched, mapEnabled])
-
-    const queue = useMemo(() => tenders.map(fromTender), [tenders])
-    const active = queue.find((item) => item.id === selectedId) ?? queue[0] ?? null
-
-    async function save(id: string): Promise<void>
-    {
-        const item = queue.find((entry) => entry.id === id)
-
-        if (item === undefined || busyId !== null) {
-            return
-        }
-
-        const wasSaved = bookmarks.ids.has(id)
-        setBusyId(id)
-
-        try {
-            await bookmarks.toggle(id)
-            setStatus(wasSaved ? `Removed ${item.title} from bookmarks.` : `Saved ${item.title} to bookmarks.`)
-        } finally {
-            setBusyId(null)
-        }
-    }
-
-    const brief = active === null
-        ? <BriefSkeleton />
-        : (
-            <TenderBrief
-                item={active}
-                saved={bookmarks.ids.has(active.id)}
-                busy={busyId === active.id}
-                onSave={() => void save(active.id)}
-            />
-        )
-
-    let resultCount: number | null = null
-
-    if (searched) {
-        resultCount = loading ? null : total
-    } else if (!mapLoading && points !== null) {
-        resultCount = points.total
-    }
-
+    }, [search, province, category, status, page, relevantOnly])
+    useEffect(() => {
+        const controller = new AbortController()
+        getCategories(controller.signal)
+            .then((result) => setCategories(result.categories.map((category) => category.label).sort()))
+            .catch(() => undefined)
+        return () => controller.abort()
+    }, [])
     return (
-        <div className="flex flex-col gap-4">
-            <LiveStatus message={status} />
-
-            <BrowseFilters value={filters} onChange={setFilters} resultCount={resultCount} />
-
-            {/* `useBookmarks` absorbs its own failures, so surface them here too. */}
-            {error !== '' && <InlineError message={error} />}
-            {error === '' && bookmarks.error !== '' && <InlineError message={bookmarks.error} />}
-
-            {mapEnabled ? (
-                <Suspense fallback={<div aria-hidden="true" className="nt-skeleton h-[min(68vh,620px)] min-h-[380px] rounded-2xl" />}>
-                    <TenderMap
-                        points={points?.points ?? []}
-                        unplaced={points?.unplaced ?? 0}
-                        loading={mapLoading}
-                        province={filters.province}
-                        onOpen={(id) => navigate(`/tenders/${id}`)}
+        <div className="tender-list-page">
+            <div className="workspace-title">
+                <div>
+                    <h1>Tenders</h1>
+                    <p>Browse and filter South African tenders.</p>
+                </div>
+                <label className="matching-filter">
+                    <input
+                        type="checkbox"
+                        checked={relevantOnly}
+                        onChange={(event) => filter('relevant', event.target.checked ? 'true' : '')}
+                    />{' '}
+                    Only my matches
+                </label>
+            </div>
+            <div className="tender-filters">
+                <label className="search-control">
+                    <span className="sr-only">Search tenders</span>
+                    <input
+                        value={search}
+                        onChange={(e) => filter('search', e.target.value)}
+                        placeholder="Search tenders, organisations, or keywords..."
                     />
-                </Suspense>
+                    <Search size={19} />
+                </label>
+                <select aria-label="Province" value={province} onChange={(e) => filter('province', e.target.value)}>
+                    <option value="">Province</option>
+                    {PROVINCES.map((p) => (
+                        <option key={p}>{p}</option>
+                    ))}
+                </select>
+                <select aria-label="Category" value={category} onChange={(e) => filter('category', e.target.value)}>
+                    <option value="">Category</option>
+                    {categories.map((c) => (
+                        <option key={c}>{c}</option>
+                    ))}
+                </select>
+                <select aria-label="Status" value={status} onChange={(e) => filter('status', e.target.value)}>
+                    <option value="open">Open</option>
+                    <option value="soon">Closing soon</option>
+                    <option value="all">All statuses</option>
+                </select>
+            </div>
+            {error ? (
+                <div className="inline-error" role="alert">
+                    {error}
+                    <button onClick={() => window.location.reload()}>Try again</button>
+                </div>
             ) : (
-                <LockedFeature title="See every matched tender on a map" detail="The tender map pins live tenders across South Africa so you can see where the work is. It comes with Growth and Pro." />
-            )}
-
-            {!searched && (
-                <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45">
-                    <span aria-hidden="true" className="size-1.5 rounded-full bg-navy/70" />
-                    Search, or pick a province or closing window, to list the matching tenders here.
-                </p>
-            )}
-
-            {searched && loading && <Workspace queue={<QueueSkeleton />} brief={<BriefSkeleton />} />}
-
-            {searched && !loading && error === '' && queue.length === 0 && (
-                <FeedEmpty
-                    eyebrow="Advanced filter"
-                    icon={<IconFunnel className="size-6" />}
-                    title="Nothing matches those filters"
-                    description="Widen the closing window, drop the province, or search a shorter phrase. The catalogue refreshes with every sync of the advertised tenders."
-                >
-                    <Button variant="secondary" onClick={() => setFilters({ ...EMPTY_FILTERS, sort: filters.sort })}>
-                        Clear filters
-                    </Button>
-                </FeedEmpty>
-            )}
-
-            {searched && !loading && queue.length > 0 && (
-                <Workspace
-                    brief={brief}
-                    queue={(
-                        <TenderQueue
-                            label="Catalogue search results"
-                            items={queue}
-                            activeId={active?.id ?? null}
-                            savedIds={bookmarks.ids}
-                            busyId={busyId}
-                            retiringId={null}
-                            onSelect={setSelectedId}
-                            onSave={(id) => void save(id)}
-                            renderInlineBrief={(item) => (
-                                <TenderBrief
-                                    variant="inline"
-                                    item={item}
-                                    saved={bookmarks.ids.has(item.id)}
-                                    busy={busyId === item.id}
-                                    onSave={() => void save(item.id)}
-                                />
-                            )}
-                        />
+                <div className="tender-list" aria-busy={loading}>
+                    {loading ? (
+                        <div className="list-message" role="status">
+                            Finding opportunities…
+                        </div>
+                    ) : tenders.length === 0 ? (
+                        <div className="list-message">
+                            <Search size={30} />
+                            <h2>No tenders found</h2>
+                            <p>Try a different search or clear your filters.</p>
+                            <button className="bs-button outline" onClick={() => setParams({ status: 'all' })}>
+                                Clear filters
+                            </button>
+                        </div>
+                    ) : (
+                        tenders.map((tender) => (
+                            <Link className="tender-list-row" key={tender.id} to={'/tenders/' + tender.id}>
+                                <div>
+                                    <h2>{tender.title ?? 'Untitled tender'}</h2>
+                                    <p>{tender.organ_of_state ?? 'Buyer not listed'}</p>
+                                </div>
+                                <span
+                                    className={
+                                        'category-tag ' +
+                                        (/construction|building|security|facilit/i.test(tender.category ?? '')
+                                            ? 'amber'
+                                            : '')
+                                    }
+                                >
+                                    {tender.category ?? 'General'}
+                                </span>
+                                <span className="tender-closes">
+                                    {tender.closing_date
+                                        ? 'Closes ' + formatDate(tender.closing_date)
+                                        : 'Date to be confirmed'}
+                                </span>
+                                <ChevronRight size={17} />
+                            </Link>
+                        ))
                     )}
-                />
+                </div>
+            )}
+            {!loading && total > 0 && (
+                <div className="list-pagination">
+                    <span>
+                        Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total} tenders
+                    </span>
+                    <div>
+                        <button
+                            aria-label="Previous page"
+                            disabled={page === 0}
+                            onClick={() => filter('page', String(page - 1))}
+                        >
+                            <ArrowLeft size={16} />
+                        </button>
+                        <button
+                            aria-label="Next page"
+                            disabled={(page + 1) * PAGE_SIZE >= total}
+                            onClick={() => filter('page', String(page + 1))}
+                        >
+                            <ArrowRight size={16} />
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
-    )
-}
-
-function isMode(value: string): value is Mode
-{
-    return TABS.some((tab) => tab.value === value)
-}
-
-/** Radix makes each panel focusable; the primitive already carries the shared ring. */
-const PANEL = 'mt-0 rounded-2xl'
-
-/**
- * For You and Advanced filter are not separate screens — they are two ways to fill the
- * same queue, so the source switch is one segmented track with a sliding block
- * (Radix tabs underneath: roles, roving focus and arrow keys come for free).
- */
-export function DiscoverPage(): ReactElement
-{
-    const [params] = useSearchParams()
-    const [mode, setMode] = useState<Mode>('foryou')
-    const current = TABS.find((tab) => tab.value === mode)
-
-    return (
-        <TooltipProvider delayDuration={300}>
-            <Tabs
-                value={mode}
-                onValueChange={(next) =>
-                {
-                    if (isMode(next)) {
-                        setMode(next)
-                    }
-                }}
-                className="flex flex-col gap-6"
-            >
-                <PageHeader
-                    eyebrow="Workspace"
-                    title="Discover"
-                    description="One queue, two sources. Work the ranked feed until it is empty, or search the whole catalogue — either way the brief tells you why a tender is worth your afternoon."
-                    actions={<SegmentedTabsList tabs={TABS} value={mode} label="Discover source" />}
-                />
-
-                <p className="-mt-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-ink/45">
-                    <span aria-hidden="true" className="size-1.5 rounded-full bg-wax/70" />
-                    {current?.hint}
-                </p>
-
-                <TabsContent value="foryou" className={PANEL}>
-                    <ForYouDeck />
-                </TabsContent>
-                <TabsContent value="browse" className={PANEL}>
-                    <BrowseList initialSearch={params.get('search') ?? ''} />
-                </TabsContent>
-            </Tabs>
-        </TooltipProvider>
     )
 }

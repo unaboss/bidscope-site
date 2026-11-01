@@ -9,13 +9,13 @@ import { cn } from '@/lib/utils'
  * the original variant names, so every existing call site renders unchanged.
  */
 export const buttonVariants = cva(
-    'inline-flex items-center justify-center gap-2 rounded-md font-mono text-[11px] font-medium uppercase tracking-[0.14em] transition-colors ' +
+    'inline-flex items-center justify-center gap-2 rounded-md font-sans text-[13px] font-semibold transition-colors ' +
     'disabled:pointer-events-none disabled:opacity-40 ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 focus-visible:ring-offset-cream',
     {
         variants: {
             variant: {
-                primary: 'bg-gradient-to-b from-[#D9B97E] to-navy text-cream shadow-[0_0_30px_-12px_rgb(var(--color-navy)/0.7)] hover:from-[#F0D9A4] hover:to-[#D9B97E]',
+                primary: 'bg-navy text-white hover:bg-navy/90',
                 secondary: 'border border-line bg-panel text-ink hover:bg-ink/5',
                 ghost: 'text-ink/70 hover:bg-ink/5 hover:text-ink',
                 /** Quiet until hovered, then unmistakably destructive. */

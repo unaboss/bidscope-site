@@ -1,102 +1,114 @@
 import { useEffect, useRef, useState } from 'react'
+import { Menu, X } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { AppHeader } from '@/components/layout/app-header'
 import { AppSidebar } from '@/components/layout/app-sidebar'
-import { cn } from '@/lib/utils'
+import { Brand, SiteHeader } from '@/components/layout/site-header'
 
-/**
- * Application frame: a persistent navy rail on desktop, a dismissible drawer on
- * mobile, and a sticky header above routed content.
- */
-export function AppShell()
-{
+export function AppShell() {
     const [navOpen, setNavOpen] = useState(false)
-    const toggleRef = useRef<HTMLButtonElement>(null)
-    const drawerRef = useRef<HTMLElement>(null)
+    const toggle = useRef<HTMLButtonElement>(null)
+    const drawer = useRef<HTMLElement>(null)
     const { pathname } = useLocation()
-
-    // Close the drawer whenever the route changes.
-    useEffect(() =>
-    {
+    const fullWidth = pathname === '/discover' || pathname.startsWith('/tenders/')
+    useEffect(() => {
         setNavOpen(false)
     }, [pathname])
-
-    // While open: trap Escape, move focus into the drawer, lock body scroll.
-    useEffect(() =>
-    {
-        if (!navOpen) {
-            return
-        }
-
-        function handleKeyDown(event: KeyboardEvent): void
-        {
+    useEffect(() => {
+        if (!navOpen) return
+        drawer.current?.querySelector<HTMLAnchorElement>('a')?.focus()
+        const previous = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        function keyDown(event: KeyboardEvent) {
             if (event.key === 'Escape') {
                 setNavOpen(false)
-                toggleRef.current?.focus()
+                toggle.current?.focus()
+            }
+            if (event.key === 'Tab') {
+                const controls = drawer.current?.querySelectorAll<HTMLElement>('a, button')
+                const first = controls?.[0],
+                    last = controls?.[controls.length - 1]
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault()
+                    last?.focus()
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault()
+                    first?.focus()
+                }
             }
         }
-
-        document.addEventListener('keydown', handleKeyDown)
-        drawerRef.current?.querySelector<HTMLAnchorElement>('a[href]')?.focus()
-
-        const previousOverflow = document.body.style.overflow
-        document.body.style.overflow = 'hidden'
-
-        return () =>
-        {
-            document.removeEventListener('keydown', handleKeyDown)
-            document.body.style.overflow = previousOverflow
+        document.addEventListener('keydown', keyDown)
+        return () => {
+            document.body.style.overflow = previous
+            document.removeEventListener('keydown', keyDown)
         }
     }, [navOpen])
-
-    function dismissNav(): void
-    {
-        setNavOpen(false)
-        toggleRef.current?.focus()
-    }
-
     return (
-        <div className="min-h-dvh bg-cream text-ink">
+        <div className="workspace-frame">
             <a
                 href="#main-content"
-                className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-ink focus:px-4 focus:py-2 focus:font-mono focus:text-[10px] focus:uppercase focus:tracking-[0.14em] focus:text-cream"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3"
             >
                 Skip to content
             </a>
-
-            <div className="lg:grid lg:min-h-dvh lg:grid-cols-[16rem_1fr]">
-                <aside className="sticky top-0 hidden h-dvh lg:block">
-                    <AppSidebar />
-                </aside>
-
-                <div className="flex min-h-dvh min-w-0 flex-col">
-                    <AppHeader navOpen={navOpen} onOpenNav={() => setNavOpen(true)} toggleRef={toggleRef} />
-                    <main id="main-content" className="flex-1 px-4 py-8 lg:px-10 lg:py-12">
+            <SiteHeader workspace />
+            <div className="workspace-mobile-bar">
+                <button
+                    ref={toggle}
+                    onClick={() => setNavOpen(true)}
+                    aria-label="Open navigation"
+                    aria-expanded={navOpen}
+                    aria-controls="workspace-drawer"
+                >
+                    <Menu size={17} /> Workspace
+                </button>
+                <span>Bidscope</span>
+            </div>
+            {fullWidth ? (
+                <main id="main-content" className="workspace-full">
+                    <Outlet />
+                </main>
+            ) : (
+                <div className="workspace-grid">
+                    <aside className="workspace-sidebar">
+                        <AppSidebar />
+                    </aside>
+                    <main id="main-content" className="workspace-main">
                         <Outlet />
                     </main>
                 </div>
-            </div>
-
-            {navOpen && (
-                <button
-                    type="button"
-                    aria-label="Close navigation"
-                    onClick={dismissNav}
-                    className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
-                />
             )}
-
-            <aside
-                id="app-sidebar"
-                ref={drawerRef}
-                aria-label="Primary navigation"
-                className={cn(
-                    'fixed inset-y-0 start-0 z-50 w-64 max-w-[85vw] shadow-panel lg:hidden',
-                    navOpen ? 'block' : 'hidden',
-                )}
-            >
-                <AppSidebar onNavigate={() => setNavOpen(false)} />
-            </aside>
+            {navOpen && (
+                <>
+                    <button
+                        className="workspace-overlay"
+                        aria-label="Close navigation"
+                        onClick={() => {
+                            setNavOpen(false)
+                            toggle.current?.focus()
+                        }}
+                    />
+                    <aside
+                        ref={drawer}
+                        id="workspace-drawer"
+                        className="workspace-drawer"
+                        aria-label="Workspace navigation"
+                    >
+                        <div className="flex items-center justify-between">
+                            <Brand />
+                            <button
+                                aria-label="Close navigation"
+                                onClick={() => {
+                                    setNavOpen(false)
+                                    toggle.current?.focus()
+                                }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <AppSidebar onNavigate={() => setNavOpen(false)} />
+                    </aside>
+                </>
+            )}
         </div>
     )
 }

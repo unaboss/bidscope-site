@@ -57,8 +57,8 @@ function PreviewBar({ tier, onTierChange }: PreviewBarProps)
             aria-label="App preview"
             className="fixed inset-x-0 bottom-3 z-[35] flex justify-center px-3 sm:bottom-5 lg:inset-x-auto lg:bottom-0 lg:start-0 lg:block lg:w-64 lg:p-4"
         >
-            <div className="flex items-center gap-1 rounded-full border border-[#B08D57]/35 bg-[#06140F] p-1.5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)] sm:gap-2 lg:grid lg:grid-cols-[1fr_auto] lg:gap-2.5 lg:rounded-xl lg:p-3">
-                <span className="hidden ps-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#D9B97E]/75 sm:inline lg:order-1 lg:ps-1">Preview</span>
+            <div className="flex items-center gap-1 rounded-full border border-[#B08D57]/35 bg-[#fdfcfb] p-1.5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)] sm:gap-2 lg:grid lg:grid-cols-[1fr_auto] lg:gap-2.5 lg:rounded-xl lg:p-3">
+                <span className="hidden ps-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#075037]/75 sm:inline lg:order-1 lg:ps-1">Preview</span>
                 <div className="w-[10.5rem] sm:w-56 lg:order-3 lg:col-span-2 lg:w-auto">
                     <TierToggle tier={tier} onChange={onTierChange} pill />
                 </div>
@@ -71,7 +71,7 @@ function PreviewBar({ tier, onTierChange }: PreviewBarProps)
                 <a
                     href="/pricing"
                     aria-label="Close the preview"
-                    className={cn('grid size-8 shrink-0 place-items-center rounded-full text-[#E9DFC6]/60 transition-colors hover:text-[#D9B97E] lg:order-2', FOCUS)}
+                    className={cn('grid size-8 shrink-0 place-items-center rounded-full text-[#14251d]/60 transition-colors hover:text-[#075037] lg:order-2', FOCUS)}
                 >
                     <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">
                         <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

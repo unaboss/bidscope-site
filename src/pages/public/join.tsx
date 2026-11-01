@@ -1,3 +1,4 @@
+import { Brand } from '@/components/layout/site-header'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/api'
@@ -182,7 +183,7 @@ export function JoinPage()
         <div className="min-h-dvh bg-cream text-ink">
             <header className="mx-auto flex max-w-3xl items-center justify-between px-6 py-6">
                 <Link to="/" className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink/70">
-                    North Tech
+                    <Brand />
                 </Link>
                 <a href="/login" className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink/60 hover:text-ink">
                     Sign in

@@ -8,11 +8,13 @@ import { BillingPage } from '@/pages/billing'
 import { BookmarksPage } from '@/pages/bookmarks'
 import { CalendarPage } from '@/pages/calendar'
 import { DashboardPage } from '@/pages/dashboard'
+import { DashboardOverview } from '@/pages/dashboard/overview'
+import { BuyersPage } from '@/pages/buyers'
 import { DiscoverPage } from '@/pages/discover'
 import { CheckoutPage } from '@/pages/public/checkout'
 import { IntroPage } from '@/pages/public/intro'
 import { JoinPage } from '@/pages/public/join'
-import { LandingPage } from '@/pages/public/landing'
+import { PricingPage } from '@/pages/public/pricing'
 import { SubscribePage } from '@/pages/public/subscribe'
 import { ProfilePage } from '@/pages/profile'
 import { TenderDetailPage } from '@/pages/tender-detail'
@@ -26,7 +28,9 @@ export function AppPages()
     return (
         <Routes>
             <Route element={<AppShell />}>
-                <Route index element={<DashboardPage />} />
+                <Route index element={<DashboardOverview />} />
+                <Route path="clients" element={<DashboardPage />} />
+                <Route path="buyers" element={<BuyersPage />} />
                 <Route path="discover" element={<DiscoverPage />} />
                 <Route
                     path="bookmarks"
@@ -70,7 +74,7 @@ export function AppRoutes()
     return (
         <Routes>
             <Route index element={<IntroPage />} />
-            <Route path="pricing" element={<LandingPage />} />
+            <Route path="pricing" element={<PricingPage />} />
             <Route path="join" element={<JoinPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="subscribe" element={<SubscribePage />} />

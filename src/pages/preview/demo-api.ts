@@ -208,7 +208,7 @@ function listTenders(params: URLSearchParams): { tenders: Tender[], total: numbe
     const sort = params.get('sort') ?? 'relevant'
     const limit = Number(params.get('limit') ?? '50')
     const offset = Number(params.get('offset') ?? '0')
-    const found = entries.filter((entry) => matches(entry.row, filters))
+    const found = entries.filter((entry) => matches(entry.row, filters) && (!params.get('category') || entry.row.category === params.get('category')))
 
     if (sort === 'newest') {
         found.sort((a, b) => (b.row.published_date ?? '').localeCompare(a.row.published_date ?? ''))

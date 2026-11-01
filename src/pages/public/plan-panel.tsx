@@ -26,7 +26,7 @@ export function todayCentsFor(tier: PricingTier, count: number, promo: boolean):
 
 export function FieldLabel({ htmlFor, children }: { readonly htmlFor: string, readonly children: ReactNode })
 {
-    return <label htmlFor={htmlFor} className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#E9DFC6]/55">{children}</label>
+    return <label htmlFor={htmlFor} className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#14251d]/55">{children}</label>
 }
 
 /** What each plan includes, listed on the pricing card and at payment. */
@@ -45,7 +45,7 @@ export const PLAN_INCLUDES: Readonly<Record<PricingTier, readonly string[]>> = {
 function CheckIcon()
 {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="mt-[3px] h-3.5 w-3.5 shrink-0 text-[#D9B97E]">
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="mt-[3px] h-3.5 w-3.5 shrink-0 text-[#075037]">
             <path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     )
@@ -67,7 +67,7 @@ export function PlanIncludes({ tier, className, listClassName }: { readonly tier
                     className={cn('col-start-1 row-start-1 flex flex-col gap-1.5', listClassName, option !== tier && 'invisible')}
                 >
                     {PLAN_INCLUDES[option].map((item) => (
-                        <li key={item} className="flex gap-2 text-[13px] leading-snug text-[#E9DFC6]/75">
+                        <li key={item} className="flex gap-2 text-[13px] leading-snug text-[#14251d]/75">
                             <CheckIcon />
                             {item}
                         </li>
@@ -90,7 +90,7 @@ interface TierToggleProps
 export function TierToggle({ tier, onChange, pill = false }: TierToggleProps)
 {
     return (
-        <div role="radiogroup" aria-label="Plan" className={cn('grid grid-cols-3 gap-1 border border-[#B08D57]/20 bg-[#06140F]/60 p-1', pill ? 'rounded-full' : 'rounded-lg')}>
+        <div role="radiogroup" aria-label="Plan" className={cn('grid grid-cols-3 gap-1 border border-[#B08D57]/20 bg-[#fdfcfb]/60 p-1', pill ? 'rounded-full' : 'rounded-lg')}>
             {(['single', 'mid', 'all'] as const).map((option) => (
                 <button
                     key={option}
@@ -101,7 +101,7 @@ export function TierToggle({ tier, onChange, pill = false }: TierToggleProps)
                     className={cn(
                         'px-1 text-center font-mono text-[10px] uppercase tracking-[0.1em] transition-colors',
                         pill ? 'rounded-full py-1.5' : 'rounded-md py-2',
-                        tier === option ? 'bg-[#D9B97E] font-bold text-[#06140F]' : 'text-[#E9DFC6]/60 hover:text-[#D9B97E]',
+                        tier === option ? 'bg-[#075037] font-bold text-[#fdfcfb]' : 'text-[#14251d]/60 hover:text-[#075037]',
                         FOCUS,
                     )}
                 >
@@ -130,11 +130,11 @@ export function PriceBlock({ tier, count, promo, compact = false }: PriceBlockPr
     return (
         <div>
             <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                {promo && <s className={cn('font-serif font-semibold text-[#E9DFC6]/40 decoration-[#D9B97E]/80 decoration-2', compact ? 'text-lg' : 'text-xl')}>{full}</s>}
+                {promo && <s className={cn('font-serif font-semibold text-[#14251d]/40 decoration-[#075037]/80 decoration-2', compact ? 'text-lg' : 'text-xl')}>{full}</s>}
                 <span className={cn('font-serif font-semibold tracking-tight', compact ? 'text-3xl' : 'text-4xl', GOLD_TEXT)}>{formatRands(today)}</span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#E9DFC6]/45">/ month</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#14251d]/45">/ month</span>
             </p>
-            <p className={cn('leading-relaxed text-[#E9DFC6]/55', compact ? 'mt-1 text-[12px]' : 'mt-2 text-[13px]')}>
+            <p className={cn('leading-relaxed text-[#14251d]/55', compact ? 'mt-1 text-[12px]' : 'mt-2 text-[13px]')}>
                 {promo
                     ? <>{PROMO_PERCENT}% off for {PROMO_MONTHS} months, then {full}/month. Cancel anytime.</>
                     : <>Billed monthly. Cancel anytime.</>}

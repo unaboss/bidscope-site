@@ -2,68 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/**
- * Design tokens.
- *
- * Values are RGB channel triplets so Tailwind can compose them with opacity
- * modifiers (`bg-navy/10`) through the `<alpha-value>` slots in
- * `tailwind.config.js`. Keep the channels here and the semantic names there.
- *
- * Bidscope dark green and gold, carried over from the intro screen. Text is a
- * warm parchment on near-black green; the primary (still named `navy`) is brass
- * gold, and `cream` is the page.
- */
+/* Bidscope: white, forest green and gold, matching the supplied references. */
 :root {
-    color-scheme: dark;
-
-    --color-ink: 233 223 198; /* #E9DFC6 parchment text */
-    --color-navy: 201 164 100; /* #C9A464 brass gold, the primary */
-    --color-wax: 222 150 108; /* #DE966C warm copper accent */
-    --color-cream: 6 20 15; /* #06140F near-black green page */
-    --color-panel: 11 31 24; /* #0B1F18 raised green surface */
-    --color-night: 3 11 8; /* #030B08 deepest green, the nav rail */
-
-    /* Green-to-parchment scale: low steps are surfaces and lines, high steps are text. */
-    --color-neutral-50: 9 26 20; /* #091A14 */
-    --color-neutral-100: 16 36 28; /* #10241C */
-    --color-neutral-200: 40 52 38; /* #283426 line */
-    --color-neutral-300: 62 72 54; /* #3E4836 strong line */
-    --color-neutral-400: 112 116 96; /* #707460 */
-    --color-neutral-500: 146 145 124; /* #92917C */
-    --color-neutral-600: 172 168 146; /* #ACA892 */
-    --color-neutral-700: 196 189 166; /* #C4BDA6 */
-    --color-neutral-800: 216 207 184; /* #D8CFB8 */
-    --color-neutral-900: 233 223 198; /* #E9DFC6 */
-
-    /* Status, lifted to read on dark green */
-    --color-success: 110 178 130; /* #6EB282 */
-    --color-warn: 226 170 84; /* #E2AA54 */
-    --color-danger: 224 116 96; /* #E07460 */
-
-    /*
-     * shadcn/ui semantic layer. `H S% L%` triples consumed as `hsl(var(--…))`
-     * in `tailwind.config.js`. Each one restates a token above — change the
-     * token first, then its mirror here.
-     */
-    --background: 159 54% 5%; /* cream */
-    --foreground: 43 44% 85%; /* ink */
-    --card: 159 48% 8%; /* panel */
-    --card-foreground: 43 44% 85%; /* ink */
-    --popover: 159 48% 8%; /* panel */
-    --popover-foreground: 43 44% 85%; /* ink */
-    --primary: 38 48% 59%; /* navy */
-    --primary-foreground: 159 54% 5%; /* cream */
-    --secondary: 156 38% 10%; /* neutral-100 */
-    --secondary-foreground: 43 44% 85%; /* ink */
-    --muted: 156 38% 10%; /* neutral-100 */
-    --muted-foreground: 51 14% 62%; /* neutral-600 */
-    --accent: 156 38% 10%; /* neutral-100 */
-    --accent-foreground: 43 44% 85%; /* ink */
-    --destructive: 9 67% 63%; /* danger */
-    --destructive-foreground: 159 54% 5%; /* cream */
-    --border: 111 16% 18%; /* neutral-200 */
-    --input: 93 14% 25%; /* neutral-300 */
-    --ring: 38 48% 59%; /* navy */
+    color-scheme: light;
+    --color-ink: 13 23 35;
+    --color-navy: 0 67 48;
+    --color-wax: 208 148 37;
+    --color-cream: 253 252 250;
+    --color-panel: 255 255 255;
+    --color-night: 255 255 255;
+    --color-neutral-50: 250 250 248;
+    --color-neutral-100: 245 245 241;
+    --color-neutral-200: 232 231 226;
+    --color-neutral-300: 210 211 206;
+    --color-neutral-400: 151 157 156;
+    --color-neutral-500: 113 121 127;
+    --color-neutral-600: 85 96 103;
+    --color-neutral-700: 56 67 76;
+    --color-neutral-800: 30 42 51;
+    --color-neutral-900: 13 23 35;
+    --color-success: 0 93 58;
+    --color-warn: 177 113 6;
+    --color-danger: 187 55 48;
+    --background: 40 43% 99%;
+    --foreground: 213 46% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 213 46% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 46% 9%;
+    --primary: 163 100% 13%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 60 17% 96%;
+    --secondary-foreground: 213 46% 9%;
+    --muted: 60 17% 96%;
+    --muted-foreground: 205 10% 44%;
+    --accent: 45 65% 95%;
+    --accent-foreground: 163 100% 13%;
+    --destructive: 3 58% 47%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 50 12% 91%;
+    --input: 70 5% 82%;
+    --ring: 163 100% 13%;
     --radius: 0.75rem;
 }
 
@@ -88,21 +67,16 @@
         height: 100%;
     }
 
-    /*
-     * Base scale: 1.5x on wide screens, easing down to ~1x on phones. Every
-     * rem-based utility scales with it, while breakpoints stay in px, so a flat
-     * 1.5x left phones and laptops with two-thirds of the room the layouts
-     * assume. Expressed in rem so the reader's browser font setting still counts.
-     */
+    /* Keep layout measurements consistent across desktop and mobile. */
     html {
-        font-size: clamp(1rem, 0.89rem + 0.64vw, 1.5rem);
+        font-size: 16px;
     }
 
     body {
         margin: 0;
         background-color: rgb(var(--color-cream));
         color: rgb(var(--color-ink));
-        font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+        font-family: 'Inter', Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;

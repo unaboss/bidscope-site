@@ -1,3 +1,4 @@
+import { SiteHeader } from '@/components/layout/site-header'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError, confirmPublicCheckout, requestDiscountCode, startSubscribe, type PricingTier, type SubscribeCheckout } from '@/api'
@@ -100,23 +101,6 @@ function provinceLimit(tier: PricingTier): { readonly min: number, readonly max:
     return tier === 'all' ? { min: 0, max: 0 } : { min: 1, max: MAX_PROVINCES[tier] }
 }
 
-function SiteHeader()
-{
-    return (
-        <header className="relative border-b border-[#B08D57]/15">
-            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5 sm:px-6">
-                <Link to="/pricing" className={cn('flex items-center gap-2.5 rounded-sm', FOCUS)}>
-                    <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full border border-[#B08D57]/45 font-serif text-sm font-semibold text-[#D9B97E]">B</span>
-                    <span className={cn('font-serif text-base font-semibold tracking-tight', GOLD_TEXT)}>Bidscope</span>
-                </Link>
-                <a href="/login" className={cn('rounded-sm font-mono text-[10px] uppercase tracking-[0.16em] text-[#E9DFC6]/55 hover:text-[#D9B97E]', FOCUS)}>
-                    Sign in
-                </a>
-            </div>
-        </header>
-    )
-}
-
 const STEPS = ['How it works', 'Login', 'Payment'] as const
 
 function Progress({ current }: { readonly current: number })
@@ -129,14 +113,14 @@ function Progress({ current }: { readonly current: number })
                         aria-current={index === current ? 'step' : undefined}
                         className={cn(
                             'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border font-mono text-[9px]',
-                            index < current && 'border-[#D9B97E] bg-[#D9B97E] text-[#06140F]',
-                            index === current && 'border-[#D9B97E] text-[#D9B97E]',
-                            index > current && 'border-[#E9DFC6]/20 text-[#E9DFC6]/35',
+                            index < current && 'border-[#075037] bg-[#075037] text-[#fdfcfb]',
+                            index === current && 'border-[#075037] text-[#075037]',
+                            index > current && 'border-[#14251d]/20 text-[#14251d]/35',
                         )}
                     >
                         {index < current ? '✓' : index + 1}
                     </span>
-                    <span className={cn('truncate font-mono text-[10px] uppercase tracking-[0.14em]', index === current ? 'text-[#E9DFC6]' : 'text-[#E9DFC6]/40')}>
+                    <span className={cn('truncate font-mono text-[10px] uppercase tracking-[0.14em]', index === current ? 'text-[#14251d]' : 'text-[#14251d]/40')}>
                         {label}
                     </span>
                     {index < STEPS.length - 1 && <span aria-hidden="true" className="h-px w-4 bg-[#B08D57]/30 sm:w-8" />}
@@ -167,25 +151,25 @@ function SetupPreview({ tier, promo, email, onContinue }: PreviewProps)
         <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:items-center">
             <div className="mx-auto w-full max-w-md lg:max-w-none">
                 <p className={EYEBROW}>{TIER_NAMES[tier]}{promo ? ` · ${PROMO_PERCENT}% off` : ''}</p>
-                <h1 className="mt-2 font-serif text-[1.65rem] font-semibold leading-tight text-[#E9DFC6] sm:text-3xl">
+                <h1 className="mt-2 font-serif text-[1.65rem] font-semibold leading-tight text-[#14251d] sm:text-3xl">
                     Three steps and you&rsquo;re <span className={GOLD_TEXT}>in</span>.
                 </h1>
 
                 <ol className="mt-4 space-y-3">
                     {items.map((item, index) => (
                         <li key={item.title} className="flex gap-3.5">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#B08D57]/45 font-serif text-sm font-semibold text-[#D9B97E]">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#B08D57]/45 font-serif text-sm font-semibold text-[#075037]">
                                 {index + 1}
                             </span>
                             <div>
-                                <p className="font-serif text-base font-semibold text-[#E9DFC6]">{item.title}</p>
-                                <p className="text-[13px] leading-snug text-[#E9DFC6]/55">{item.detail}</p>
+                                <p className="font-serif text-base font-semibold text-[#14251d]">{item.title}</p>
+                                <p className="text-[13px] leading-snug text-[#14251d]/55">{item.detail}</p>
                             </div>
                         </li>
                     ))}
                 </ol>
 
-                <div className="mt-4 rounded-xl border border-[#B08D57]/20 bg-[#0B1F18]/60 px-4 py-2.5">
+                <div className="mt-4 rounded-xl border border-[#B08D57]/20 bg-[#ffffff]/60 px-4 py-2.5">
                     <PriceBlock tier={tier} count={tier === 'all' ? 0 : 1} promo={promo} compact />
                 </div>
 
@@ -200,20 +184,20 @@ function SetupPreview({ tier, promo, email, onContinue }: PreviewProps)
             {/* The "login preview": what the sign-in looks like, then the app it opens. Wide screens only. */}
             <div aria-hidden="true" className="relative hidden lg:block">
                 <div className="overflow-hidden rounded-xl border border-[#B08D57]/25 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.8)]">
-                    <div className="flex items-center gap-1.5 border-b border-[#B08D57]/15 bg-[#0B1F18] px-3 py-2">
-                        <span className="h-2 w-2 rounded-full bg-[#E9DFC6]/20" />
-                        <span className="h-2 w-2 rounded-full bg-[#E9DFC6]/20" />
-                        <span className="h-2 w-2 rounded-full bg-[#E9DFC6]/20" />
-                        <span className="ml-3 truncate font-mono text-[10px] text-[#E9DFC6]/35">bidscope.co.za/profile</span>
+                    <div className="flex items-center gap-1.5 border-b border-[#B08D57]/15 bg-[#ffffff] px-3 py-2">
+                        <span className="h-2 w-2 rounded-full bg-[#14251d]/20" />
+                        <span className="h-2 w-2 rounded-full bg-[#14251d]/20" />
+                        <span className="h-2 w-2 rounded-full bg-[#14251d]/20" />
+                        <span className="ml-3 truncate font-mono text-[10px] text-[#14251d]/35">bidscope.co.za/profile</span>
                     </div>
                     <img src="/shots/setup-profile.webp" alt="" className="block w-full" />
                 </div>
-                <div className={cn('absolute -bottom-6 -left-6 w-[58%] p-4', PANEL, 'bg-[#0B1F18]')}>
+                <div className={cn('absolute -bottom-6 -left-6 w-[58%] p-4', PANEL, 'bg-[#ffffff]')}>
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#B08D57]">Your login</p>
                     <div className="mt-3 space-y-2">
-                        <div className="truncate rounded-md border border-[#B08D57]/25 bg-[#06140F] px-2.5 py-2 text-[12px] text-[#E9DFC6]/80">{email !== '' ? email : 'you@company.co.za'}</div>
-                        <div className="rounded-md border border-[#B08D57]/25 bg-[#06140F] px-2.5 py-2 text-[12px] tracking-[0.3em] text-[#E9DFC6]/60">••••••••••</div>
-                        <div className="rounded-md bg-gradient-to-b from-[#D9B97E] to-[#B08D57] py-2 text-center font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#06140F]">Proceed to payment</div>
+                        <div className="truncate rounded-md border border-[#B08D57]/25 bg-[#fdfcfb] px-2.5 py-2 text-[12px] text-[#14251d]/80">{email !== '' ? email : 'you@company.co.za'}</div>
+                        <div className="rounded-md border border-[#B08D57]/25 bg-[#fdfcfb] px-2.5 py-2 text-[12px] tracking-[0.3em] text-[#14251d]/60">••••••••••</div>
+                        <div className="rounded-md bg-gradient-to-b from-[#075037] to-[#B08D57] py-2 text-center font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#fdfcfb]">Proceed to payment</div>
                     </div>
                 </div>
             </div>
@@ -223,7 +207,7 @@ function SetupPreview({ tier, promo, email, onContinue }: PreviewProps)
 
 function CardBadge({ label }: { readonly label: string })
 {
-    return <span className="rounded border border-[#E9DFC6]/20 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[#E9DFC6]/60">{label}</span>
+    return <span className="rounded border border-[#14251d]/20 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.1em] text-[#14251d]/60">{label}</span>
 }
 
 function LockIcon()
@@ -504,7 +488,7 @@ export function SubscribePage()
     }
 
     return (
-        <div className="relative min-h-dvh overflow-x-clip bg-[#06140F] text-[#E9DFC6]">
+        <div className="relative min-h-dvh overflow-x-clip bg-[#fdfcfb] text-[#14251d]">
             <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-0 top-0 h-[min(700px,100%)] bg-[radial-gradient(ellipse_55%_45%_at_50%_10%,rgba(22,66,50,0.55),rgba(6,20,15,0)_70%)]"
@@ -524,7 +508,7 @@ export function SubscribePage()
 
                 {step === 'login' && (
                     <form onSubmit={toPayment} noValidate className="mx-auto mt-5 w-full max-w-sm sm:mt-6">
-                        <h1 className="font-serif text-xl font-semibold leading-tight text-[#E9DFC6]">Create your login</h1>
+                        <h1 className="font-serif text-xl font-semibold leading-tight text-[#14251d]">Create your login</h1>
                         <div className={cn('mt-3 flex flex-col gap-3 p-4 sm:p-5', PANEL)}>
                             <div>
                                 <FieldLabel htmlFor="sub-email">Email</FieldLabel>
@@ -544,7 +528,7 @@ export function SubscribePage()
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword((value) => !value)}
-                                        className={cn('absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#D9B97E]/80 hover:text-[#D9B97E]', FOCUS)}
+                                        className={cn('absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#075037]/80 hover:text-[#075037]', FOCUS)}
                                     >
                                         {showPassword ? 'Hide' : 'Show'}
                                     </button>
@@ -558,7 +542,7 @@ export function SubscribePage()
 
                         <div className="mx-auto mt-3 max-w-[17rem]">
                             <TierToggle tier={tier} onChange={changeTier} pill />
-                            <p className="mt-1.5 text-center text-[12px] text-[#E9DFC6]/50">{TIER_NAMES[tier]} · {formatRands(todayCents)}/month</p>
+                            <p className="mt-1.5 text-center text-[12px] text-[#14251d]/50">{TIER_NAMES[tier]} · {formatRands(todayCents)}/month</p>
                         </div>
 
                         {error !== '' && <p role="alert" className="mt-3 text-center text-sm text-[#F2A38A]">{error}</p>}
@@ -571,18 +555,18 @@ export function SubscribePage()
                     <form onSubmit={(event) => void pay(event)} noValidate className="mx-auto mt-5 grid w-full max-w-md gap-3 sm:mt-6 lg:max-w-none lg:grid-cols-2 lg:items-start lg:gap-x-8">
                         <div className="flex flex-col gap-3">
                             <div className="flex items-baseline justify-between gap-3">
-                                <h1 className="font-serif text-xl font-semibold leading-tight text-[#E9DFC6]">Payment</h1>
-                                <button type="button" onClick={() => goTo('login')} className={cn('rounded-sm font-mono text-[10px] uppercase tracking-[0.16em] text-[#D9B97E]/80 hover:text-[#F0D9A4]', FOCUS)}>
+                                <h1 className="font-serif text-xl font-semibold leading-tight text-[#14251d]">Payment</h1>
+                                <button type="button" onClick={() => goTo('login')} className={cn('rounded-sm font-mono text-[10px] uppercase tracking-[0.16em] text-[#075037]/80 hover:text-[#0d1723]', FOCUS)}>
                                     ← Login
                                 </button>
                             </div>
 
                             <section aria-label="Payment method" className={cn('px-4 py-3', PANEL)}>
                                 <div className="flex items-center justify-between gap-3">
-                                    <span className="flex items-center gap-2 text-sm text-[#E9DFC6]/85"><LockIcon /> Card</span>
+                                    <span className="flex items-center gap-2 text-sm text-[#14251d]/85"><LockIcon /> Card</span>
                                     <span className="flex gap-1.5"><CardBadge label="Visa" /><CardBadge label="Mastercard" /></span>
                                 </div>
-                                <p className="mt-1 text-[12px] leading-snug text-[#E9DFC6]/50">
+                                <p className="mt-1 text-[12px] leading-snug text-[#14251d]/50">
                                     Paystack&rsquo;s secure window opens when you tap Pay. We never see your card number.
                                 </p>
                             </section>
@@ -604,7 +588,7 @@ export function SubscribePage()
 
                                 {tier !== 'all' && (
                                     <fieldset>
-                                        <legend className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#E9DFC6]/55">{provinceHint}</legend>
+                                        <legend className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#14251d]/55">{provinceHint}</legend>
                                         <div className="flex flex-wrap gap-1.5">
                                             {PROVINCES.map((province) =>
                                             {
@@ -621,8 +605,8 @@ export function SubscribePage()
                                                         className={cn(
                                                             'rounded-full border px-2.5 py-0.5 text-[12px] transition-colors disabled:opacity-35',
                                                             selected
-                                                                ? 'border-[#D9B97E] bg-[#D9B97E] font-semibold text-[#06140F]'
-                                                                : 'border-[#B08D57]/30 text-[#E9DFC6]/75 hover:border-[#D9B97E]/70',
+                                                                ? 'border-[#075037] bg-[#075037] font-semibold text-[#fdfcfb]'
+                                                                : 'border-[#B08D57]/30 text-[#14251d]/75 hover:border-[#075037]/70',
                                                             FOCUS,
                                                         )}
                                                     >
@@ -632,7 +616,7 @@ export function SubscribePage()
                                             })}
                                         </div>
                                         {extras > 0 && (
-                                            <p className="mt-1.5 text-[12px] text-[#E9DFC6]/55">Includes {extras} extra province{extras === 1 ? '' : 's'} at R{PROVINCE_ADDON_CENTS / 100}/month each.</p>
+                                            <p className="mt-1.5 text-[12px] text-[#14251d]/55">Includes {extras} extra province{extras === 1 ? '' : 's'} at R{PROVINCE_ADDON_CENTS / 100}/month each.</p>
                                         )}
                                     </fieldset>
                                 )}
@@ -652,9 +636,9 @@ export function SubscribePage()
                                         {promo ? (
                                             <p className="mt-1.5 text-[12px] text-[#9FD3B0]">✓ {PROMO_PERCENT}% off for {PROMO_MONTHS} months. Checked against your email when you pay.</p>
                                         ) : codeSent ? (
-                                            <p className="mt-1.5 text-[12px] text-[#E9DFC6]/60">Sent to {email}. Paste it above.</p>
+                                            <p className="mt-1.5 text-[12px] text-[#14251d]/60">Sent to {email}. Paste it above.</p>
                                         ) : (
-                                            <button type="button" onClick={() => void sendCode()} className={cn('mt-1.5 text-left text-[12px] text-[#D9B97E] underline-offset-2 hover:underline', FOCUS)}>
+                                            <button type="button" onClick={() => void sendCode()} className={cn('mt-1.5 text-left text-[12px] text-[#075037] underline-offset-2 hover:underline', FOCUS)}>
                                                 No code yet? Email it to me
                                             </button>
                                         )}
@@ -674,8 +658,8 @@ export function SubscribePage()
 
                 {step === 'confirming' && (
                     <section className="mx-auto mt-16 max-w-lg text-center">
-                        <h1 className="font-serif text-3xl font-semibold text-[#E9DFC6]">Confirming your payment…</h1>
-                        <p className="mt-3 text-sm text-[#E9DFC6]/55">Hold on a moment while we check with Paystack and sign you in.</p>
+                        <h1 className="font-serif text-3xl font-semibold text-[#14251d]">Confirming your payment…</h1>
+                        <p className="mt-3 text-sm text-[#14251d]/55">Hold on a moment while we check with Paystack and sign you in.</p>
                     </section>
                 )}
 
@@ -684,7 +668,7 @@ export function SubscribePage()
                         {error === '' ? (
                             <>
                                 <h1 className={cn('font-serif text-3xl font-semibold', GOLD_TEXT)}>Payment received.</h1>
-                                <p className="mt-3 text-[15px] leading-relaxed text-[#E9DFC6]/65">{doneMessage}</p>
+                                <p className="mt-3 text-[15px] leading-relaxed text-[#14251d]/65">{doneMessage}</p>
                             </>
                         ) : (
                             <p role="alert" className="text-[15px] text-[#F2A38A]">{error}</p>

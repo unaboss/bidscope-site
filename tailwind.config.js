@@ -73,12 +73,12 @@ export default {
             // Tender Dossier type: Fraunces headlines, Source Serif 4 body,
             // Space Mono for references and dates.
             fontFamily: {
-                sans: ['"Source Serif 4"', 'Georgia', '"Times New Roman"', 'serif'],
-                serif: ['Fraunces', '"Source Serif 4"', 'Georgia', 'serif'],
-                mono: ['"Space Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+                sans: ['Inter', 'Arial', 'sans-serif'],
+                serif: ['Inter', 'Arial', 'sans-serif'],
+                mono: ['Inter', 'Arial', 'sans-serif'],
             },
             boxShadow: {
-                panel: '0 1px 2px rgb(0 0 0 / 0.25), 0 18px 40px -12px rgb(0 0 0 / 0.55)',
+                panel: '0 2px 12px rgb(31 40 35 / 0.025)',
             },
         },
     },

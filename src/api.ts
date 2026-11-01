@@ -22,6 +22,7 @@ export function getCategories(signal?: AbortSignal): Promise<Taxonomy>
 
 export interface TenderQuery
 {
+    readonly category?: string
     readonly search?: string
     readonly province?: string
     readonly source?: string
@@ -37,6 +38,7 @@ export interface TenderQuery
 function tenderParams(query: TenderQuery): URLSearchParams
 {
     const params = new URLSearchParams()
+    if (query.category) params.set('category', query.category)
 
     if (query.search !== undefined && query.search.length > 0) {
         params.set('search', query.search)
