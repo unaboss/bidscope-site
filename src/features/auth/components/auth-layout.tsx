@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { ArrowLeftIcon, BellIcon, FolderSimpleIcon, ChartBarIcon } from '@phosphor-icons/react'
 import { Brand } from '../../marketing/components/site-header'
 import './auth-layout.css'
+import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
 export function AuthLayout({
     children,
@@ -17,10 +18,13 @@ export function AuthLayout({
                     <a className="auth-brand" href="/" aria-label="Bidscope home">
                         <Brand />
                     </a>
-                    <a className="ref-auth-back" href="/">
-                        <ArrowLeftIcon size={19} />
-                        Back to home
-                    </a>
+                    <div className="auth-header-actions">
+                        <ThemeToggle />
+                        <a className="ref-auth-back" href="/">
+                            <ArrowLeftIcon size={19} />
+                            Back to home
+                        </a>
+                    </div>
                 </header>
                 <div className="auth-content">{children}</div>
                 <aside className="auth-art" aria-label="Built for South African opportunity">

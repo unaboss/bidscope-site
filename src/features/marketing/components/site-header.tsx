@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { ArrowRightIcon as ArrowRight, ListIcon as Menu, XIcon as X } from '@phosphor-icons/react'
 import { usePreview } from '@/shared/runtime/preview'
 import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
+import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
 export function Brand() {
     return (
@@ -68,6 +69,7 @@ export function SiteHeader({ workspace = false }: { readonly workspace?: boolean
                     </a>
                 </nav>
                 <div className="site-header-actions">
+                    <ThemeToggle />
                     <a className="login-link" href={workspace ? appHome : '/login'}>
                         {workspace ? 'Dashboard' : 'Log in'}
                     </a>
