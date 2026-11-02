@@ -5,7 +5,12 @@ import { SiteFooter } from './site-footer'
 import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 export function PublicShell({ children }: { readonly children: ReactNode }) {
-    const entrance = useSubtleReveal<HTMLElement>('mount', ':scope > :first-child')
+    const entrance = useSubtleReveal<HTMLElement>('mount', {
+        duration: 0.48,
+        y: 12,
+        stagger: 0.06,
+        selector: '.ref-hero-copy > *, .ref-visual, .ref-faq-hero h1, .ref-faq-hero .ref-faq-search',
+    })
     return (
         <div className="marketing-page reference-site">
             <a className="market-skip" href="#main-content">

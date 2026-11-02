@@ -21,7 +21,13 @@ export function Brand() {
 /** Full-document links keep the public, workspace and preview routers separate. */
 export function SiteHeader({ workspace = false }: { readonly workspace?: boolean }) {
     const [open, setOpen] = useState(false)
-    const menu = useSubtleReveal<HTMLElement>(open, undefined, open)
+    const menu = useSubtleReveal<HTMLElement>(open, {
+        duration: 0.24,
+        y: -10,
+        stagger: 0.035,
+        selector: 'a',
+        enabled: open,
+    })
     const { pathname } = useLocation()
     const menuToggle = useRef<HTMLButtonElement>(null)
     const preview = usePreview()

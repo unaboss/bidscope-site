@@ -8,7 +8,7 @@ import {
     TIER_NAMES,
 } from '@/features/billing/pricing'
 import type { PricingTier } from '@/shared/api'
-import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
+import { RollingPrice } from './rolling-price'
 
 const TIERS: PricingTier[] = ['single', 'mid', 'all']
 const PLANS = {
@@ -53,7 +53,6 @@ const COMPARISON = [
 
 export function PricingCards({ standalone = false }: { readonly standalone?: boolean }) {
     const [yearly, setYearly] = useState(false)
-    const prices = useSubtleReveal<HTMLDivElement>(yearly, '.ref-price')
     return (
         <section className="ref-pricing" id="pricing">
             {!standalone && <h2>Simple and transparent</h2>}
@@ -65,7 +64,7 @@ export function PricingCards({ standalone = false }: { readonly standalone?: boo
                     Annual <span>2 months free</span>
                 </button>
             </div>
-            <div className="ref-plans" ref={prices}>
+            <div className="ref-plans">
                 {TIERS.map((tier) => {
                     const Icon = PLANS[tier].icon
                     return (
@@ -78,13 +77,10 @@ export function PricingCards({ standalone = false }: { readonly standalone?: boo
                             </div>
                             <h2>{TIER_NAMES[tier]}</h2>
                             <p>{PLANS[tier].description}</p>
-                            <div className="ref-price">
-                                R
-                                {((TIER_CENTS[tier] / 100) * (yearly ? ANNUAL_MONTHS_CHARGED : 1)).toLocaleString(
-                                    'en-ZA',
-                                )}{' '}
-                                <span>/{yearly ? 'year' : 'month'}</span>
-                            </div>
+                            <RollingPrice
+                                amount={(TIER_CENTS[tier] / 100) * (yearly ? ANNUAL_MONTHS_CHARGED : 1)}
+                                yearly={yearly}
+                            />
                             <ul>
                                 {PLANS[tier].features.map((feature) => (
                                     <li key={feature}>

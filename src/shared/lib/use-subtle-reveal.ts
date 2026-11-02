@@ -2,7 +2,17 @@ import { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
 /** Short feedback for new content; GSAP reverts styles on interruption and preference changes. */
-export function useSubtleReveal<T extends HTMLElement>(change: unknown, selector?: string, enabled = true) {
+export function useSubtleReveal<T extends HTMLElement>(
+    change: unknown,
+    {
+        duration,
+        x = 0,
+        y = 0,
+        stagger = 0,
+        selector,
+        enabled = true,
+    }: { duration: number; x?: number; y?: number; stagger?: number; selector?: string; enabled?: boolean },
+) {
     const ref = useRef<T>(null)
     useLayoutEffect(() => {
         const root = ref.current
@@ -14,12 +24,14 @@ export function useSubtleReveal<T extends HTMLElement>(change: unknown, selector
                 const targets = selector ? root.querySelectorAll(selector) : root
                 gsap.fromTo(
                     targets,
-                    { opacity: 0.85, y: 4 },
+                    { opacity: 0, x, y },
                     {
                         opacity: 1,
                         y: 0,
-                        duration: 0.2,
-                        ease: 'power1.out',
+                        x: 0,
+                        duration,
+                        stagger,
+                        ease: 'power2.out',
                         clearProps: 'opacity,transform',
                     },
                 )
@@ -27,6 +39,6 @@ export function useSubtleReveal<T extends HTMLElement>(change: unknown, selector
             root,
         )
         return () => media.revert()
-    }, [change, selector, enabled])
+    }, [change, selector, enabled, duration, x, y, stagger])
     return ref
 }

@@ -1,0 +1,15 @@
+.price-roller {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    vertical-align: bottom;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+}
+.price-outgoing {
+    position: absolute;
+    inset: 0 auto auto 0;
+    visibility: hidden;
+    white-space: nowrap;
+}
+.price-incoming { white-space: nowrap; }

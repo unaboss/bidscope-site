@@ -110,7 +110,12 @@ const topicIcons = [RocketLaunchIcon, StackIcon, HeadsetIcon]
 export function FaqPage() {
     const [query, setQuery] = useState('')
     const [topic, setTopic] = useState(0)
-    const answers = useSubtleReveal<HTMLDivElement>(topic)
+    const answers = useSubtleReveal<HTMLDivElement>(topic, {
+        duration: 0.26,
+        x: 10,
+        stagger: 0.025,
+        selector: '.ds-accordion-item',
+    })
     const normalized = query.trim().toLowerCase()
     const visible = groups
         .map((group, index) => ({

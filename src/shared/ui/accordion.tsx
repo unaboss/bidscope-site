@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CaretDownIcon } from '@phosphor-icons/react'
-import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
+import { useDisclosureMotion } from '@/shared/lib/use-disclosure-motion'
 
 export interface AccordionItem {
     readonly id: string
@@ -20,17 +20,18 @@ function AccordionPanel({
     readonly labelledBy: string
     readonly children: ReactNode
 }) {
-    const reveal = useSubtleReveal<HTMLDivElement>(expanded, undefined, expanded)
+    const reveal = useDisclosureMotion(expanded, 0.28, 'power2.inOut')
     return (
         <div
             ref={reveal}
-            className="ds-accordion-panel"
+            className="ds-accordion-motion"
             id={id}
             role="region"
             aria-labelledby={labelledBy}
-            hidden={!expanded}
+            aria-hidden={!expanded}
+            inert={!expanded}
         >
-            {children}
+            <div className="ds-accordion-panel">{children}</div>
         </div>
     )
 }

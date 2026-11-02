@@ -52,8 +52,10 @@ export function JoinPage() {
     const [submitting, setSubmitting] = useState(false)
     const [summary, setSummary] = useState<SignupSummary | null>(null)
     const navigate = useNavigate()
-    const contentRef = useSubtleReveal<HTMLElement>(step)
     const previousStep = useRef(step)
+    const stepOrder = ['contact', 'company', 'offer', 'result']
+    const direction = useMemo(() => stepOrder.indexOf(step) >= stepOrder.indexOf(previousStep.current) ? 1 : -1, [step])
+    const contentRef = useSubtleReveal<HTMLElement>(step, { duration: 0.3, x: 16 * direction })
 
     useEffect(() => {
         if (previousStep.current === step) return
