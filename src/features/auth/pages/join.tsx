@@ -8,14 +8,14 @@ import {
     ArrowRightIcon,
     BuildingsIcon,
     CertificateIcon,
+    FileTextIcon,
 } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/shared/api'
-import { CategoryPicker } from '@/features/profile/components/category-picker'
+import { AuthMultiSelect } from '@/features/auth/components/auth-multi-select'
 import { CsdUpload } from '@/features/profile/components/csd-upload'
 import { Button } from '@/shared/ui/button'
-import { ChipGroup } from '@/shared/ui/chip-group'
 import { CIDB_CLASSES, CONSTRUCTION_BUCKETS, parseCidbGrades, PROVINCES } from '@/features/profile/profile'
 import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/features/billing/pricing'
 import type { Taxonomy } from '@/shared/types'
@@ -38,10 +38,6 @@ interface CompanyState {
 
 const CONTACT = { firstName: '', lastName: '', email: '', phone: '', password: '' }
 const COMPANY: CompanyState = { companyName: '', categories: [], cidbGrades: {}, provinces: [] }
-
-function toggle(list: readonly string[], value: string): string[] {
-    return list.includes(value) ? list.filter((item) => item !== value) : [...list, value]
-}
 
 /** Rands per month for a province count (0 = nationwide → all provinces). */
 export function JoinPage() {
@@ -182,16 +178,11 @@ export function JoinPage() {
             : `${company.provinces.length} province${company.provinces.length === 1 ? '' : 's'}`
 
     return (
-        <AuthLayout>
+        <AuthLayout businessStep={step === 'company'}>
             <main className="join-content" ref={contentRef} aria-busy={submitting}>
                 {step !== 'result' && (
                     <p className="auth-progress">
-                        Step {step === 'contact' ? '1' : step === 'company' ? '2' : '3'} of 3 ·{' '}
-                        {step === 'contact'
-                            ? 'Your account'
-                            : step === 'company'
-                              ? 'Your business'
-                              : 'Review your plan'}
+                        Step {step === 'contact' ? '1' : step === 'company' ? '2' : '3'} of 3
                     </p>
                 )}
 
@@ -280,46 +271,82 @@ export function JoinPage() {
                 )}
 
                 {step === 'company' && (
-                    <section className="mt-6">
-                        <h1 className="text-3xl font-semibold">Your company</h1>
-                        <p className="mt-2 text-sm text-ink/60">
-                            Pick the kinds of work you do — this drives which tenders we surface.
-                        </p>
+                    <section className="auth-business-form">
+                        <h1>Tell us about your business</h1>
+                        <p className="auth-description">A few details help us find the right tenders for you.</p>
 
-                        <div className="mt-8 flex flex-col gap-6">
-                            <div className="flex flex-col gap-3 rounded-xl border border-line bg-panel p-4">
-                                <p className="text-sm text-ink/70">
-                                    <strong className="font-medium text-ink">Have your CSD report?</strong> Upload it
-                                    and we&rsquo;ll fill in your company and categories.
-                                </p>
+                        <div className="auth-business-fields">
+                            <div className="auth-csd-card">
+                                <span className="auth-csd-icon">
+                                    <FileTextIcon size={30} />
+                                </span>
+                                <div className="auth-csd-copy">
+                                    <h2>Have a CSD report?</h2>
+                                    <p>Upload it to fill in your company details automatically.</p>
+                                </div>
                                 <CsdUpload
+                                    compact
                                     taxonomy={taxonomy}
                                     note="Your CSD and tax status are saved when you upload this report on your Profile page after signing in."
-                                    onApply={(applied) =>
+                                    onApply={(applied) => {
+                                        setError('')
                                         setCompany({
                                             ...company,
                                             companyName: applied.report.legalName,
                                             categories: [...new Set([...company.categories, ...applied.categories])],
                                         })
-                                    }
+                                    }}
                                 />
                             </div>
 
+                            <div className="auth-manual-divider">
+                                <span>or enter manually</span>
+                            </div>
                             <AuthField
                                 label="Company name"
+                                placeholder="e.g. Mthetho Construction (Pty) Ltd"
                                 icon={BuildingsIcon}
                                 required
                                 id="companyName"
+                                error={error === 'Please enter your company name.' ? error : undefined}
                                 value={company.companyName}
-                                onChange={(event) => setCompany({ ...company, companyName: event.target.value })}
+                                onChange={(event) => {
+                                    setError('')
+                                    setCompany({ ...company, companyName: event.target.value })
+                                }}
                                 autoComplete="organization"
                             />
 
-                            <CategoryPicker
-                                taxonomy={taxonomy}
-                                value={company.categories}
-                                onChange={(categories) => setCompany({ ...company, categories })}
-                            />
+                            <div className="auth-business-selects">
+                                <AuthMultiSelect
+                                    label="Business categories"
+                                    required
+                                    options={taxonomy?.categories.map((category) => category.label) ?? []}
+                                    value={company.categories}
+                                    disabled={taxonomy === null}
+                                    placeholder={taxonomy === null ? 'Loading categories…' : 'Select categories'}
+                                    onChange={(categories) => {
+                                        setError('')
+                                        setCompany({ ...company, categories })
+                                    }}
+                                />
+                                <AuthMultiSelect
+                                    label="Operating provinces"
+                                    options={PROVINCES}
+                                    value={company.provinces}
+                                    placeholder="All provinces"
+                                    hint="Leave empty for nationwide coverage."
+                                    onChange={(provinces) => {
+                                        setError('')
+                                        setCompany({ ...company, provinces })
+                                    }}
+                                />
+                            </div>
+                            {taxonomy === null && (
+                                <p className="auth-field-hint" role="status">
+                                    Categories are loading. If they don’t appear, refresh to try again.
+                                </p>
+                            )}
 
                             {showCidb && (
                                 <fieldset className="flex flex-col gap-3">
@@ -355,15 +382,6 @@ export function JoinPage() {
                                     </div>
                                 </fieldset>
                             )}
-
-                            <ChipGroup
-                                label="Provinces (leave empty for nationwide)"
-                                options={PROVINCES.map((province) => ({ value: province, text: province }))}
-                                selected={company.provinces}
-                                onToggle={(value) =>
-                                    setCompany({ ...company, provinces: toggle(company.provinces, value) })
-                                }
-                            />
                         </div>
                     </section>
                 )}
@@ -445,7 +463,7 @@ export function JoinPage() {
                                 Back
                             </Button>
                             <Button onClick={() => void submitCompany()} disabled={submitting} aria-busy={submitting}>
-                                {submitting ? 'Checking…' : 'See my tenders'}
+                                {submitting ? 'Checking…' : 'Continue to matches'} <ArrowRightIcon size={20} />
                             </Button>
                         </>
                     )}

@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/button'
 import { bbeeCertCurrent, categoriesForCommodities, type CsdReport } from '@/features/profile/csd'
 import { formatDate } from '@/shared/lib/format'
 import type { Taxonomy } from '@/shared/types'
+import { UploadSimpleIcon } from '@phosphor-icons/react'
 
 /** What the customer confirmed from their report, ready to merge into a form. */
 export interface CsdApplied
@@ -19,6 +20,7 @@ interface CsdUploadProps
     readonly onApply: (applied: CsdApplied) => void
     /** Extra line under the review, e.g. what will and won't be saved at this step. */
     readonly note?: string
+    readonly compact?: boolean
 }
 
 type State =
@@ -46,7 +48,7 @@ function Row(props: { readonly label: string, readonly children: ReactNode })
  * "Set up from your CSD report": reads the CSD summary PDF in the browser,
  * shows what it found, and hands the confirmed result to `onApply`.
  */
-export function CsdUpload({ taxonomy, onApply, note }: CsdUploadProps)
+export function CsdUpload({ taxonomy, onApply, note, compact = false }: CsdUploadProps)
 {
     const [state, setState] = useState<State>({ kind: 'idle' })
     const input = useRef<HTMLInputElement>(null)
@@ -86,11 +88,12 @@ export function CsdUpload({ taxonomy, onApply, note }: CsdUploadProps)
     const bbeeCurrent = report !== null && bbeeCertCurrent(report.bbee, today())
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className={`flex flex-col gap-4${compact ? ' auth-csd-upload' : ''}`}>
             <input
                 ref={input}
                 id={inputId}
                 type="file"
+                aria-label="CSD report PDF"
                 accept="application/pdf,.pdf"
                 className="sr-only"
                 onChange={(event) => void read(event.target.files?.[0])}
@@ -99,9 +102,10 @@ export function CsdUpload({ taxonomy, onApply, note }: CsdUploadProps)
             {report === null && (
                 <div className="flex flex-wrap items-center gap-3">
                     <Button variant="secondary" onClick={() => input.current?.click()} disabled={state.kind === 'reading'}>
+                        {compact && <UploadSimpleIcon size={20} />}
                         {state.kind === 'reading' ? 'Reading your report…' : 'Upload CSD report (PDF)'}
                     </Button>
-                    <span className="text-xs text-ink/55">Read on this device. Bank, ID and tax numbers are never sent to Bidscope.</span>
+                    {!compact && <span className="text-xs text-ink/55">Read on this device. Bank, ID and tax numbers are never sent to Bidscope.</span>}
                 </div>
             )}
 

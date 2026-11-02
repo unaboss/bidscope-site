@@ -2,9 +2,15 @@ import type { ReactNode } from 'react'
 import { ArrowLeftIcon, BellIcon, FolderSimpleIcon, ChartBarIcon } from '@phosphor-icons/react'
 import { Brand } from '../../marketing/components/site-header'
 
-export function AuthLayout({ children }: { readonly children: ReactNode }) {
+export function AuthLayout({
+    children,
+    businessStep = false,
+}: {
+    readonly children: ReactNode
+    readonly businessStep?: boolean
+}) {
     return (
-        <div className="auth-page ref-auth">
+        <div className={`auth-page ref-auth${businessStep ? ' auth-business' : ''}`}>
             <div className="auth-card">
                 <a className="auth-brand" href="/" aria-label="Bidscope home">
                     <Brand />

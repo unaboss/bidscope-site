@@ -17,7 +17,7 @@ export function AuthField({
     const description = [props['aria-describedby'], hint ? `${id}-hint` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined
     return (
         <div className="auth-field-group">
-            <label className="auth-label" htmlFor={id}>{label}</label>
+            <label className="auth-label" htmlFor={id}>{label}{props.required && <span className="auth-required" aria-hidden="true"> *</span>}</label>
             <div className="auth-field">
                 <Icon size={20} aria-hidden="true" />
                 <input {...props} id={id} aria-describedby={description} aria-invalid={error ? true : props['aria-invalid']} type={password && visible ? 'text' : type} placeholder={props.placeholder ?? label} />
