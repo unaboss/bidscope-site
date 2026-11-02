@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 import { useState, useRef } from 'react'
 import { ArrowRightIcon as ArrowRight, ListIcon as Menu, XIcon as X } from '@phosphor-icons/react'
 import { usePreview } from '@/shared/runtime/preview'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 export function Brand() {
     return (
@@ -20,6 +21,7 @@ export function Brand() {
 /** Full-document links keep the public, workspace and preview routers separate. */
 export function SiteHeader({ workspace = false }: { readonly workspace?: boolean }) {
     const [open, setOpen] = useState(false)
+    const menu = useSubtleReveal<HTMLElement>(open, undefined, open)
     const { pathname } = useLocation()
     const menuToggle = useRef<HTMLButtonElement>(null)
     const preview = usePreview()
@@ -39,7 +41,12 @@ export function SiteHeader({ workspace = false }: { readonly workspace?: boolean
                 <a href="/" aria-label="Bidscope home">
                     <Brand />
                 </a>
-                <nav className={open ? 'site-nav is-open' : 'site-nav'} aria-label="Website" id="site-navigation">
+                <nav
+                    ref={menu}
+                    className={open ? 'site-nav is-open' : 'site-nav'}
+                    aria-label="Website"
+                    id="site-navigation"
+                >
                     {[
                         ['/pricing', 'Pricing'],
                         ['/about', 'About'],

@@ -1,11 +1,38 @@
 import { useId, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CaretDownIcon } from '@phosphor-icons/react'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 export interface AccordionItem {
     readonly id: string
     readonly title: string
     readonly content: ReactNode
+}
+
+function AccordionPanel({
+    expanded,
+    id,
+    labelledBy,
+    children,
+}: {
+    readonly expanded: boolean
+    readonly id: string
+    readonly labelledBy: string
+    readonly children: ReactNode
+}) {
+    const reveal = useSubtleReveal<HTMLDivElement>(expanded, undefined, expanded)
+    return (
+        <div
+            ref={reveal}
+            className="ds-accordion-panel"
+            id={id}
+            role="region"
+            aria-labelledby={labelledBy}
+            hidden={!expanded}
+        >
+            {children}
+        </div>
+    )
 }
 
 /** Native buttons provide Enter/Space activation; each panel has an explicit label. */
@@ -32,15 +59,9 @@ export function Accordion({ items }: { readonly items: readonly AccordionItem[] 
                                 <CaretDownIcon size={20} aria-hidden="true" />
                             </button>
                         </h3>
-                        <div
-                            className="ds-accordion-panel"
-                            id={panelId}
-                            role="region"
-                            aria-labelledby={triggerId}
-                            hidden={!expanded}
-                        >
+                        <AccordionPanel id={panelId} labelledBy={triggerId} expanded={expanded}>
                             {item.content}
-                        </div>
+                        </AccordionPanel>
                     </div>
                 )
             })}

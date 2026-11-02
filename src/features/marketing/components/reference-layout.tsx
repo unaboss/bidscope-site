@@ -2,15 +2,19 @@ import type { ReactNode } from 'react'
 import { ArrowRightIcon, FileTextIcon, UserCircleIcon, HeadsetIcon, EnvelopeSimpleIcon } from '@phosphor-icons/react'
 import { SiteHeader } from './site-header'
 import { SiteFooter } from './site-footer'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 export function PublicShell({ children }: { readonly children: ReactNode }) {
+    const entrance = useSubtleReveal<HTMLElement>('mount', ':scope > :first-child')
     return (
         <div className="marketing-page reference-site">
             <a className="market-skip" href="#main-content">
                 Skip to content
             </a>
             <SiteHeader />
-            <main id="main-content">{children}</main>
+            <main id="main-content" ref={entrance}>
+                {children}
+            </main>
             <SiteFooter />
         </div>
     )

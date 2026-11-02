@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { Accordion } from '@/shared/ui/accordion'
 import { PublicShell, ReferenceCta, WaveDivider } from '../components/reference-layout'
 import { INCLUDED_PROVINCES, TIER_CENTS, TIER_NAMES } from '@/features/billing/pricing'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 const groups = [
     {
@@ -109,6 +110,7 @@ const topicIcons = [RocketLaunchIcon, StackIcon, HeadsetIcon]
 export function FaqPage() {
     const [query, setQuery] = useState('')
     const [topic, setTopic] = useState(0)
+    const answers = useSubtleReveal<HTMLDivElement>(topic)
     const normalized = query.trim().toLowerCase()
     const visible = groups
         .map((group, index) => ({
@@ -171,7 +173,7 @@ export function FaqPage() {
                         <ArrowRightIcon size={16} />
                     </a>
                 </aside>
-                <div className="ref-faq-answers">
+                <div className="ref-faq-answers" ref={answers}>
                     {visible.map((group) => (
                         <section key={group.title}>
                             <h2 className="sr-only">{group.title}</h2>

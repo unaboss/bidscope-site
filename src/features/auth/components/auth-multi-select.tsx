@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { CaretDownIcon, MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 import { Button } from '@/shared/ui/button'
 import { AuthField } from './auth-field'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 /** Registration's searchable, multi-value field, composed from the existing auth controls. */
 export function AuthMultiSelect({
@@ -27,6 +28,7 @@ export function AuthMultiSelect({
     const root = useRef<HTMLDivElement>(null)
     const trigger = useRef<HTMLButtonElement>(null)
     const [open, setOpen] = useState(false)
+    const panel = useSubtleReveal<HTMLDivElement>(open, undefined, open)
     const [query, setQuery] = useState('')
     const filtered = options.filter((option) => option.toLowerCase().includes(query.trim().toLowerCase()))
 
@@ -108,7 +110,13 @@ export function AuthMultiSelect({
                 </p>
             )}
             {open && (
-                <div className="auth-multi-panel" id={`${id}-panel`} role="region" aria-label={`${label} options`}>
+                <div
+                    ref={panel}
+                    className="auth-multi-panel"
+                    id={`${id}-panel`}
+                    role="region"
+                    aria-label={`${label} options`}
+                >
                     <AuthField
                         label={`Search ${label.toLowerCase()}`}
                         icon={MagnifyingGlassIcon}

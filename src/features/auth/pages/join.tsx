@@ -19,6 +19,7 @@ import { Button } from '@/shared/ui/button'
 import { CIDB_CLASSES, CONSTRUCTION_BUCKETS, parseCidbGrades, PROVINCES } from '@/features/profile/profile'
 import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/features/billing/pricing'
 import type { Taxonomy } from '@/shared/types'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 type Step = 'contact' | 'company' | 'offer' | 'result'
 
@@ -51,7 +52,7 @@ export function JoinPage() {
     const [submitting, setSubmitting] = useState(false)
     const [summary, setSummary] = useState<SignupSummary | null>(null)
     const navigate = useNavigate()
-    const contentRef = useRef<HTMLElement>(null)
+    const contentRef = useSubtleReveal<HTMLElement>(step)
     const previousStep = useRef(step)
 
     useEffect(() => {

@@ -8,6 +8,7 @@ import {
     TIER_NAMES,
 } from '@/features/billing/pricing'
 import type { PricingTier } from '@/shared/api'
+import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
 const TIERS: PricingTier[] = ['single', 'mid', 'all']
 const PLANS = {
@@ -52,6 +53,7 @@ const COMPARISON = [
 
 export function PricingCards({ standalone = false }: { readonly standalone?: boolean }) {
     const [yearly, setYearly] = useState(false)
+    const prices = useSubtleReveal<HTMLDivElement>(yearly, '.ref-price')
     return (
         <section className="ref-pricing" id="pricing">
             {!standalone && <h2>Simple and transparent</h2>}
@@ -63,7 +65,7 @@ export function PricingCards({ standalone = false }: { readonly standalone?: boo
                     Annual <span>2 months free</span>
                 </button>
             </div>
-            <div className="ref-plans">
+            <div className="ref-plans" ref={prices}>
                 {TIERS.map((tier) => {
                     const Icon = PLANS[tier].icon
                     return (
