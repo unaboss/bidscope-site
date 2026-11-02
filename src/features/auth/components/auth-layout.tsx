@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ArrowLeftIcon, BellIcon, FolderSimpleIcon, ChartBarIcon } from '@phosphor-icons/react'
 import { Brand } from '../../marketing/components/site-header'
+import './auth-layout.css'
 
 export function AuthLayout({
     children,
@@ -10,15 +11,17 @@ export function AuthLayout({
     readonly businessStep?: boolean
 }) {
     return (
-        <div className={`auth-page ref-auth${businessStep ? ' auth-business' : ''}`}>
+        <div className={`auth-page ref-auth ref-registration${businessStep ? ' auth-business' : ''}`}>
             <div className="auth-card">
-                <a className="auth-brand" href="/" aria-label="Bidscope home">
-                    <Brand />
-                </a>
-                <a className="ref-auth-back" href="/">
-                    <ArrowLeftIcon size={19} />
-                    Back to home
-                </a>
+                <header className="auth-header">
+                    <a className="auth-brand" href="/" aria-label="Bidscope home">
+                        <Brand />
+                    </a>
+                    <a className="ref-auth-back" href="/">
+                        <ArrowLeftIcon size={19} />
+                        Back to home
+                    </a>
+                </header>
                 <div className="auth-content">{children}</div>
                 <aside className="auth-art" aria-label="Built for South African opportunity">
                     <div className="ref-auth-copy">

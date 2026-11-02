@@ -1,0 +1,235 @@
+/* Registration layout owns flow and spacing; shared styles continue to own its appearance. */
+html:root .ref-auth.ref-registration {
+    --registration-gutter: clamp(1.375rem, 5.1vw, 5rem);
+    --registration-gap: clamp(1.25rem, 1.8vw, 1.75rem);
+    --registration-section-gap: clamp(2rem, 3.8vw, 3.75rem);
+    --registration-panel-inset: clamp(1.75rem, 2.8vw, 2.75rem);
+}
+
+html:root .ref-auth.ref-registration .auth-card {
+    display: grid;
+    grid-template-columns: minmax(0, 54.6fr) minmax(0, 45.4fr);
+    grid-template-rows: auto 1fr;
+    width: min(100%, 120rem);
+    min-height: 100dvh;
+    margin-inline: auto;
+    overflow: visible;
+}
+
+.ref-registration .auth-header {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    padding: clamp(1.5rem, 2.55vw, 2.5rem) var(--registration-gutter) 0.875rem;
+}
+
+html:root .ref-auth.ref-registration :is(.auth-brand, .ref-auth-back) {
+    position: static;
+    margin: 0;
+    flex-shrink: 0;
+    max-width: 100%;
+}
+
+.ref-registration .auth-brand .brand {
+    max-width: 100%;
+    flex-wrap: wrap;
+}
+
+.ref-registration .auth-brand .brand > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+html:root .ref-auth.ref-registration .auth-content {
+    grid-column: 1;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: clamp(2.5rem, 4.8vw, 4.75rem) clamp(1.5rem, 4vw, 4rem) var(--registration-section-gap)
+        var(--registration-gutter);
+}
+
+html:root .ref-auth.ref-registration.auth-business .auth-content {
+    padding-top: clamp(1.5rem, 2.55vw, 2.5rem);
+}
+
+.ref-registration .join-content {
+    container: registration-form / inline-size;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.ref-registration :is(.auth-fields, .auth-business-fields) {
+    gap: var(--registration-gap);
+}
+
+.ref-registration .auth-name-row,
+.ref-registration .auth-business-selects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    align-items: start;
+    gap: var(--registration-gap);
+    padding: 0;
+}
+
+.ref-registration .auth-name-row {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+.ref-registration .auth-csd-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: clamp(0.875rem, 1.3vw, 1.25rem);
+    padding: clamp(1rem, 1.4vw, 1.375rem);
+}
+
+.ref-registration .auth-csd-copy {
+    min-width: 0;
+}
+
+.ref-registration .auth-csd-upload {
+    grid-column: 1 / -1;
+    min-width: 0;
+    max-width: 100%;
+}
+
+@container registration-form (min-width: 40rem) {
+    .ref-registration .auth-csd-card {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+    .ref-registration .auth-csd-upload {
+        grid-column: auto;
+    }
+    .ref-registration .auth-csd-upload:has(dl) {
+        grid-column: 1 / -1;
+    }
+}
+
+.ref-registration .auth-multi-label {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    margin-bottom: 0.625rem;
+}
+
+html:root .ref-auth.ref-registration .auth-multi-label .auth-label {
+    margin-bottom: 0;
+}
+
+.ref-registration .auth-multi-panel {
+    position: static;
+    width: 100%;
+}
+
+.ref-registration .auth-multi-options {
+    max-height: min(11.25rem, 40dvh);
+}
+
+.ref-registration .auth-manual-divider {
+    gap: var(--registration-gap);
+}
+
+html:root .ref-auth.ref-registration .join-actions {
+    gap: clamp(0.75rem, 1vw, 1rem);
+    margin-top: var(--registration-section-gap);
+    flex-wrap: wrap;
+}
+
+html:root .ref-auth.ref-registration .join-actions .nt-button {
+    height: auto;
+    min-height: 3.125rem;
+    padding-block: 0.75rem;
+    white-space: normal;
+}
+
+html:root .ref-auth.ref-registration .join-actions > button {
+    width: auto;
+    flex: 1 1 8rem;
+}
+
+html:root .ref-auth.ref-registration.auth-business .join-actions > button:last-child {
+    flex: 2 1 14rem;
+}
+
+html:root .ref-auth.ref-registration .auth-art {
+    grid-column: 2;
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    margin-block: 1.5rem var(--registration-section-gap);
+    padding: clamp(2rem, 3.7vw, 3.625rem) var(--registration-panel-inset) 6.875rem;
+    gap: var(--registration-gap);
+}
+
+html:root .ref-auth.ref-registration.auth-business .auth-art {
+    margin-block: 0 1.125rem;
+}
+
+.ref-registration .ref-auth-copy,
+.ref-registration .ref-auth-benefits {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.ref-registration .ref-auth-copy h2 {
+    margin-block: 0;
+}
+
+.ref-registration .ref-auth-copy p {
+    margin-top: var(--registration-gap);
+}
+
+.ref-registration .ref-auth-map {
+    width: min(100%, 21.25rem);
+    height: clamp(14rem, 18vw, 17.5rem);
+    min-height: 0;
+    flex-shrink: 0;
+    margin: 0 auto;
+}
+
+html:root .ref-auth.ref-registration .ref-auth-map::before {
+    width: min(100%, clamp(14rem, 18vw, 17.5rem));
+    height: auto;
+    aspect-ratio: 1;
+}
+
+.ref-registration .ref-auth-benefits {
+    display: grid;
+    gap: var(--registration-gap);
+    margin-top: 0;
+}
+
+.ref-registration .ref-auth-benefits > div {
+    gap: var(--registration-gap);
+    min-width: 0;
+}
+
+.ref-registration .ref-auth-benefits > div > div {
+    min-width: 0;
+}
+
+.ref-registration .ref-auth-waves {
+    pointer-events: none;
+}
+
+/* Switch when both columns no longer have enough room, including browser zoom. */
+@media (max-width: 64rem) {
+    html:root .ref-auth.ref-registration .auth-card {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    html:root .ref-auth.ref-registration .auth-content {
+        width: min(100%, 47.5rem);
+        margin-inline: auto;
+        padding: clamp(1.5rem, 4vw, 2.5rem) var(--registration-gutter) var(--registration-section-gap);
+    }
+    html:root .ref-auth.ref-registration .auth-art {
+        display: none;
+    }
+}

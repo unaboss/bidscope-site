@@ -2269,13 +2269,6 @@ html:root .reference-site .ds-contact-fields :is(input, textarea) {
     border-color: #839188;
 }
 /* Registration business step: shares AuthLayout, AuthField and Button with account setup. */
-html:root .auth-business .auth-card {
-    min-height: max(100dvh, 1000px);
-}
-html:root .auth-business .auth-content {
-    width: 54.6%;
-    padding: 145px 4% 60px 5.1%;
-}
 html:root .auth-business .auth-content h1 {
     font-size: clamp(32px, 3vw, 48px);
     line-height: 1.12;
@@ -2383,9 +2376,6 @@ html:root .auth-business .auth-field input {
     gap: 26px;
     align-items: start;
 }
-.auth-business-selects:has(.auth-multi-panel) {
-    padding-bottom: 290px;
-}
 .auth-multi-select {
     position: relative;
     min-width: 0;
@@ -2460,9 +2450,8 @@ html:root .auth-business .auth-field input {
     transform: rotate(180deg);
 }
 .auth-multi-panel {
-    position: absolute;
+    position: relative;
     z-index: 5;
-    top: 100%;
     margin-top: 7px;
     width: 100%;
     border: 1px solid #d9dcde;
@@ -2568,11 +2557,6 @@ html:root .auth-business .join-actions > button:last-child {
     background: linear-gradient(100deg, #006541, #005836);
     color: white;
 }
-html:root .auth-business .auth-art {
-    inset: 105px 0 18px auto;
-    width: 45.4%;
-    padding: 58px 44px 110px;
-}
 .auth-business .ref-auth-copy h2 {
     margin: 0;
     font-family: Inter, Arial, sans-serif;
@@ -2622,81 +2606,14 @@ html:root .auth-business .auth-art {
     bottom: -40px;
     left: 15%;
 }
+.auth-business .ref-auth-benefits h3 {
+    font-weight: 650;
+}
 @media (max-width: 1200px) {
-    html:root .auth-business .auth-content {
-        padding-left: 4%;
-        padding-right: 4%;
-    }
-    html:root .auth-business .auth-art {
-        padding: 44px 30px 100px;
-    }
     .auth-business .ref-auth-copy h2 {
         font-size: 32px;
-    }
-    .auth-business-selects {
-        gap: 18px;
-    }
-    .auth-csd-upload {
-        flex-basis: 100%;
     }
     .auth-selection-count {
         font-size: 11px;
     }
-}
-@media (max-width: 900px) {
-    html:root .auth-business .auth-card {
-        min-height: 100dvh;
-    }
-    html:root .auth-business .auth-content {
-        width: 100%;
-        max-width: 760px;
-        margin: auto;
-        padding: 140px 28px 45px;
-    }
-    html:root .auth-business .auth-art {
-        display: none;
-    }
-    .auth-csd-upload {
-        flex-basis: auto;
-    }
-}
-@media (max-width: 560px) {
-    html:root .auth-business .auth-content {
-        padding: 135px 22px 36px;
-    }
-    html:root .auth-business .auth-content h1 {
-        font-size: 32px;
-    }
-    .auth-business-selects {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 24px;
-    }
-    .auth-business-selects:has(.auth-multi-panel) {
-        padding-bottom: 0;
-    }
-    .auth-multi-panel {
-        position: relative;
-        margin-top: 8px;
-    }
-    .auth-csd-card {
-        gap: 14px;
-        padding: 18px;
-    }
-    .auth-csd-upload {
-        flex-basis: 100%;
-    }
-    .auth-csd-copy {
-        min-width: 110px;
-    }
-    html:root .auth-business .join-actions {
-        margin-top: 36px;
-        gap: 12px;
-    }
-    html:root .auth-business .join-actions > button {
-        font-size: 14px;
-        padding-inline: 10px;
-    }
-}
-.auth-business .ref-auth-benefits h3 {
-    font-weight: 650;
 }
