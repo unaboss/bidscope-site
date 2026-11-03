@@ -270,6 +270,12 @@ html:root .marketing-page .coverage-ledger-heading p {
     outline: 2px solid var(--coverage-focus);
     outline-offset: 2px;
 }
+/* The group supplies the focus ring; suppress the stronger global input ring. */
+html:root .marketing-page .coverage-page .coverage-source-search input:focus,
+html:root .marketing-page .coverage-page .coverage-source-search input:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
 .coverage-source-search svg {
     flex-shrink: 0;
 }
