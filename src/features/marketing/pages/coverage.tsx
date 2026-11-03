@@ -1,26 +1,20 @@
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
     ArrowRightIcon,
     ArrowUpRightIcon,
     BankIcon,
     BuildingsIcon,
-    CheckIcon,
     MagnifyingGlassIcon,
     MapPinIcon,
     XIcon,
 } from '@phosphor-icons/react'
 import { PublicShell } from '../components/reference-layout'
 import { Button } from '@/shared/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 import { ProvinceMap } from '../coverage/province-map'
-import {
-    COVERAGE_PROVINCES,
-    LOCAL_SOURCES,
-    OTHER_PUBLISHERS,
-    provinceById,
-    sourcesForProvince,
-} from '../coverage/coverage-directory'
+import { COVERAGE_PROVINCES, OTHER_PUBLISHERS, provinceById, sourcesForProvince } from '../coverage/coverage-directory'
 import type { CoverageSource, ProvinceId } from '../coverage/coverage-directory'
 import '../coverage/coverage.css'
 
@@ -32,13 +26,19 @@ function SourceRow({ source }: { readonly source: CoverageSource }) {
                 href={source.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                title={source.description}
                 aria-label={'Open ' + source.name + ' procurement website (opens in new tab)'}
             >
                 <Icon size={22} aria-hidden="true" />
                 <span>
                     <strong>{source.name}</strong>
-                    <span>{source.description}</span>
-                    <small>{source.kind}</small>
+                    <small>
+                        {source.key === 'etenders'
+                            ? 'Government tender notice portal'
+                            : source.key === 'ocds'
+                              ? 'Government procurement data'
+                              : source.description}
+                    </small>
                 </span>
                 <ArrowUpRightIcon size={19} aria-hidden="true" />
             </a>
@@ -50,8 +50,19 @@ export function CoveragePage() {
     const [params, setParams] = useSearchParams()
     const province = provinceById(params.get('province'))
     const [query, setQuery] = useState('')
+    const [pickerOpen, setPickerOpen] = useState(false)
+    useLayoutEffect(() => {
+        if (!pickerOpen) return
+        const root = document.getElementById('root')
+        if (!root) return
+        // Radix portals the menu outside the app. Keep its aria-hidden background unfocusable too.
+        const previous = root.inert
+        root.inert = true
+        return () => {
+            root.inert = previous
+        }
+    }, [pickerOpen])
     const sources = sourcesForProvince(province.id, query)
-    const hasLocal = LOCAL_SOURCES.some((source) => source.province === province.id)
     const noResults = sources.local.length + sources.national.length === 0
     const ledger = useSubtleReveal<HTMLDivElement>(province.id, { duration: 0.24, x: 8 })
 
@@ -83,36 +94,31 @@ export function CoveragePage() {
 
                 <section className="coverage-explorer" aria-label="Explore procurement sources by province">
                     <div className="coverage-geography">
-                        <div className="coverage-mobile-picker">
+                        <div className="coverage-picker">
                             <label htmlFor="coverage-province">Choose a province</label>
-                            <select
-                                id="coverage-province"
+                            <Select
+                                open={pickerOpen}
+                                onOpenChange={setPickerOpen}
                                 value={province.id}
-                                onChange={(event) => selectProvince(event.target.value as ProvinceId)}
+                                onValueChange={(id) => selectProvince(id as ProvinceId)}
                             >
-                                {COVERAGE_PROVINCES.map(({ id, name }) => (
-                                    <option key={id} value={id}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger
+                                    id="coverage-province"
+                                    aria-label="Choose a province"
+                                    className="coverage-province-trigger"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="coverage-province-menu" sideOffset={6} position="popper">
+                                    {COVERAGE_PROVINCES.map(({ id, name }) => (
+                                        <SelectItem key={id} value={id}>
+                                            {name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <ProvinceMap selected={province.id} onSelect={selectProvince} />
-                        <div className="coverage-province-choices" role="group" aria-label="Choose a province">
-                            {COVERAGE_PROVINCES.map(({ id, name }) => (
-                                <button
-                                    key={id}
-                                    type="button"
-                                    aria-pressed={province.id === id}
-                                    aria-controls="coverage-source-ledger"
-                                    onClick={() => selectProvince(id)}
-                                >
-                                    <span>{id}</span>
-                                    <span>{name}</span>
-                                    {province.id === id && <CheckIcon size={17} aria-hidden="true" />}
-                                </button>
-                            ))}
-                        </div>
                         <details className="coverage-attribution">
                             <summary>About the map</summary>
                             <p>
@@ -143,15 +149,12 @@ export function CoveragePage() {
                         aria-labelledby="coverage-province-name"
                     >
                         <div className="coverage-ledger-heading">
-                            <span>Exploring</span>
+                            <span>Tender sources</span>
                             <h2 id="coverage-province-name">{province.name}</h2>
-                            <p>Recognised sources, with links to the original publisher.</p>
+                            <p>Open a publisher for original notices or procurement data.</p>
                         </div>
                         <p className="sr-only" role="status">
-                            Showing {province.name}.{' '}
-                            {hasLocal
-                                ? 'Direct local publishers and national channels listed.'
-                                : 'National channels listed. No direct local publisher listed in this directory.'}
+                            Showing sources for {province.name}.
                         </p>
                         <div className="coverage-source-search">
                             <MagnifyingGlassIcon size={19} aria-hidden="true" />
@@ -191,7 +194,7 @@ export function CoveragePage() {
                                 <>
                                     {(!query.trim() || sources.local.length > 0) && (
                                         <section className="coverage-source-group" aria-label="Direct local publishers">
-                                            <h3>Direct local publishers</h3>
+                                            <h3>Local to this province</h3>
                                             {sources.local.length > 0 ? (
                                                 <ul>
                                                     {sources.local.map((source) => (
@@ -200,7 +203,7 @@ export function CoveragePage() {
                                                 </ul>
                                             ) : (
                                                 <div className="coverage-local-empty">
-                                                    <span>No direct local publisher listed yet.</span>
+                                                    <span>No local publisher listed for {province.name}.</span>
                                                     <p>
                                                         Notices for {province.name} may still appear through national
                                                         publishing channels below.
@@ -211,26 +214,22 @@ export function CoveragePage() {
                                     )}
                                     {sources.national.length > 0 && (
                                         <section className="coverage-source-group" aria-label="National channels">
-                                            <h3>
-                                                National channels <span>Across provinces</span>
-                                            </h3>
+                                            <h3>National portals</h3>
+                                            <p className="coverage-channel-context">
+                                                May include notices for {province.name}.
+                                            </p>
                                             <ul>
                                                 {sources.national.map((source) => (
                                                     <SourceRow key={source.key} source={source} />
                                                 ))}
                                             </ul>
                                             <p className="coverage-source-footnote">
-                                                A national channel can publish notices for this province. It is not a
-                                                guarantee of complete provincial coverage.
+                                                Coverage varies by publisher. Always check the original notice.
                                             </p>
                                         </section>
                                     )}
                                 </>
                             )}
-                        </div>
-                        <div className="coverage-ledger-note">
-                            <span className="coverage-status-dot" />
-                            <p>This is a source directory, not a live feed or source-health status.</p>
                         </div>
                     </section>
                 </section>

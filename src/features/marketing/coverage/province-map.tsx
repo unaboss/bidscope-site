@@ -92,15 +92,29 @@ export function ProvinceMap({
                                 </path>
                             )
                         })}
+                        <path className="coverage-label-leader" d="M516 193L480 162" aria-hidden="true" />
                         {geometry.provinces.map((province) => (
                             <text
                                 key={province.id}
-                                x={province.label[0]}
-                                y={province.label[1]}
+                                x={province.id === 'GP' ? 480 : province.id === 'MP' ? 625 : province.label[0]}
+                                y={province.id === 'GP' ? 150 : province.label[1]}
+                                data-code={province.id}
                                 aria-hidden="true"
                                 data-active={selected === province.id}
                             >
-                                {province.id}
+                                {province.id === 'GP' || province.id === 'MP'
+                                    ? COVERAGE_PROVINCES.find(({ id }) => id === province.id)!.name
+                                    : COVERAGE_PROVINCES.find(({ id }) => id === province.id)!
+                                          .name.split(' ')
+                                          .map((word, index, words) => (
+                                              <tspan
+                                                  key={word}
+                                                  x={province.label[0]}
+                                                  dy={index === 0 ? -(words.length - 1) * 10 : 20}
+                                              >
+                                                  {word}
+                                              </tspan>
+                                          ))}
                             </text>
                         ))}
                     </svg>
