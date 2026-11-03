@@ -129,7 +129,7 @@ html:root[data-theme='dark']
 }
 html:root[data-theme='dark']
     .marketing-page
-    :is(.ref-section-tint, .ref-impact, .ref-steps, .ref-help, .ref-coverage, .ref-billing, .ref-faq-topics) {
+    :is(.ref-section-tint, .ref-impact, .ref-steps, .ref-help, .ref-billing, .ref-faq-topics) {
     background: var(--theme-surface);
     border-color: var(--theme-border);
 }

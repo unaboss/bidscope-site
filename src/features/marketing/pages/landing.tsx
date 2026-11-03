@@ -123,7 +123,7 @@ export function LandingPage() {
                         Explore national notices and selected direct sources from municipalities, state-owned entities
                         and other public-sector organisations.
                     </p>
-                    <a className="quiet-link" href="/coverage">
+                    <a className="coverage-link" href="/coverage">
                         Explore source coverage <ArrowRightIcon size={17} />
                     </a>
                 </div>

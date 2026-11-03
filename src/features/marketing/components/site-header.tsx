@@ -1,9 +1,10 @@
 import { useLocation } from 'react-router-dom'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ArrowRightIcon as ArrowRight, ListIcon as Menu, XIcon as X } from '@phosphor-icons/react'
 import { usePreview } from '@/shared/runtime/preview'
 import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 import { ThemeToggle } from '@/shared/ui/theme-toggle'
+import './site-header.css'
 
 export function Brand() {
     return (
@@ -22,6 +23,13 @@ export function Brand() {
 /** Full-document links keep the public, workspace and preview routers separate. */
 export function SiteHeader({ workspace = false }: { readonly workspace?: boolean }) {
     const [open, setOpen] = useState(false)
+    const [floating, setFloating] = useState(false)
+    useEffect(() => {
+        const update = () => setFloating((current) => window.scrollY > (current ? 32 : 72))
+        update()
+        window.addEventListener('scroll', update, { passive: true })
+        return () => window.removeEventListener('scroll', update)
+    }, [])
     const menu = useSubtleReveal<HTMLElement>(open, {
         duration: 0.24,
         y: -10,
@@ -37,6 +45,7 @@ export function SiteHeader({ workspace = false }: { readonly workspace?: boolean
     return (
         <header
             className="site-header"
+            data-floating={floating}
             onKeyDown={(event) => {
                 if (event.key === 'Escape' && open) {
                     setOpen(false)

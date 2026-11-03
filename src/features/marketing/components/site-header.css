@@ -1,0 +1,192 @@
+/* Keep the header's document height stable while its inner surface floats. */
+html:root[data-theme] .marketing-page .site-header[data-floating] {
+    position: sticky;
+    top: 0;
+    height: 88px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    pointer-events: none;
+}
+html:root .marketing-page .site-header .site-header-inner {
+    position: relative;
+    height: 88px;
+    width: min(1200px, calc(100% - 64px));
+    padding-inline: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    pointer-events: auto;
+    transition:
+        width 260ms ease,
+        height 260ms ease,
+        padding 260ms ease,
+        transform 260ms ease,
+        border-radius 260ms ease,
+        background-color 260ms ease,
+        box-shadow 260ms ease;
+}
+html:root .marketing-page .site-header[data-floating='true'] .site-header-inner {
+    width: min(1160px, calc(100% - 80px));
+    height: 64px;
+    padding-inline: clamp(12px, 2vw, 24px);
+    border-radius: 18px;
+    transform: translateY(12px);
+    background: rgb(255 255 255 / 0.96);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgb(15 45 30 / 0.14);
+}
+html:root[data-theme='dark'] .marketing-page .site-header[data-floating='true'] .site-header-inner {
+    background: rgb(20 37 29 / 0.96);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.3);
+}
+
+@media (min-width: 961px) {
+    html:root[data-theme] .marketing-page .site-header .site-nav {
+        background: transparent;
+    }
+    html:root .marketing-page .site-header[data-floating='true'] .site-nav a {
+        padding-block: 12px;
+    }
+}
+
+@media (max-width: 1100px) {
+    html:root .marketing-page .site-header .site-header-inner {
+        gap: 24px;
+    }
+    html:root .marketing-page .site-header .site-nav {
+        gap: 20px;
+    }
+}
+@media (max-width: 960px) {
+    html:root[data-theme] .marketing-page .site-header[data-floating] {
+        height: 76px;
+    }
+    html:root .marketing-page .site-header .site-header-inner {
+        width: calc(100% - 32px);
+        height: 76px;
+        gap: 12px;
+    }
+    html:root .marketing-page .site-header[data-floating='true'] .site-header-inner {
+        width: calc(100% - 24px);
+        height: 64px;
+        padding-inline: 12px;
+        transform: translateY(8px);
+    }
+    html:root .marketing-page .site-header .site-nav {
+        display: none;
+        position: absolute;
+        top: calc(100% + 8px);
+        inset-inline: 0;
+        width: 100%;
+        border: 0;
+        border-radius: 16px;
+        max-height: calc(100dvh - 104px);
+        overflow-y: auto;
+        box-shadow: 0 8px 24px rgb(15 45 30 / 0.15);
+    }
+    html:root .marketing-page .site-header .site-nav.is-open {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 12px 20px;
+    }
+    html:root .marketing-page .site-header .site-nav a {
+        padding-block: 14px;
+    }
+    html:root .marketing-page .site-header .site-nav .mobile-login {
+        display: flex;
+    }
+    html:root .marketing-page .site-header .login-link {
+        display: none;
+    }
+    html:root .marketing-page .site-header .mobile-menu {
+        display: inline-flex;
+        width: 36px;
+        padding: 6px;
+    }
+}
+@media (max-width: 380px) {
+    html:root .marketing-page .site-header .mobile-menu {
+        width: 28px;
+        padding-inline: 2px;
+    }
+    html:root .marketing-page .site-header .site-header-inner {
+        width: calc(100% - 24px);
+        gap: 8px;
+    }
+    html:root .marketing-page .site-header[data-floating='true'] .site-header-inner {
+        width: calc(100% - 12px);
+        padding-inline: 6px;
+        gap: 6px;
+    }
+}
+
+/* Preserve each gradient on both states instead of swapping it for a transparent color tween. */
+html:root .marketing-page .bs-button:not(.outline):not(.gold),
+html:root .marketing-page .bs-button:not(.outline):not(.gold):hover {
+    background: linear-gradient(100deg, #13573a, #0b3e2b) #0b3e2b;
+    color: white;
+    transition:
+        filter 160ms ease,
+        transform 180ms ease,
+        box-shadow 180ms ease;
+}
+html:root .marketing-page .site-header .bs-button:not(.outline),
+html:root .marketing-page .site-header .bs-button:not(.outline):hover {
+    background: linear-gradient(115deg, #c3a451, #a68a37) #a68a37;
+    color: #173923;
+    border-color: #bda04e;
+}
+html:root .marketing-page .bs-button.gold,
+html:root .marketing-page .bs-button.gold:hover {
+    background: linear-gradient(110deg, #f2d88a, #dfbb61) #dfbb61;
+    color: #173923;
+}
+@media (hover: hover) and (pointer: fine) {
+    html:root .marketing-page .bs-button:not(.outline):hover {
+        filter: brightness(1.07);
+    }
+}
+
+html:root .marketing-page .ref-coverage {
+    background: transparent;
+}
+html:root .marketing-page .coverage-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 100%;
+    margin-top: 24px;
+    padding: 12px 16px;
+    border: 1px solid #91ae9b;
+    border-radius: 10px;
+    color: #17583a;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+        background-color 180ms ease,
+        border-color 180ms ease;
+}
+.coverage-link svg {
+    flex-shrink: 0;
+    transition: transform 180ms ease;
+}
+html:root .marketing-page .coverage-link:hover {
+    background: #edf5ef;
+    border-color: #17583a;
+}
+.coverage-link:hover svg {
+    transform: translateX(3px);
+}
+html:root[data-theme='dark'] .marketing-page .coverage-link {
+    color: #d7eadd;
+    border-color: #698b74;
+}
+html:root[data-theme='dark'] .marketing-page .coverage-link:hover {
+    background: #1d3326;
+    border-color: #9fc5ab;
+}
