@@ -19,7 +19,7 @@
     background: conic-gradient(from var(--demo-orbit), transparent 72%, #c89c38 89%, #f4d788 94%, transparent);
     mask: linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0);
     pointer-events: none;
-    animation: demo-orbit 1s linear infinite;
+    animation: demo-orbit 5s linear infinite;
 }
 
 @keyframes demo-orbit {
