@@ -1,0 +1,33 @@
+@property --demo-orbit {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.marketing-page .bs-button.demo-link {
+    position: relative;
+    isolation: isolate;
+}
+
+/* A narrow travelling highlight leaves the label and focus ring unobscured. */
+.marketing-page .bs-button.demo-link::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    padding: 2px;
+    border-radius: inherit;
+    background: conic-gradient(from var(--demo-orbit), transparent 72%, #c89c38 89%, #f4d788 94%, transparent);
+    mask: linear-gradient(#fff 0 0) content-box exclude, linear-gradient(#fff 0 0);
+    pointer-events: none;
+    animation: demo-orbit 1s linear infinite;
+}
+
+@keyframes demo-orbit {
+    to { --demo-orbit: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marketing-page .bs-button.demo-link::before {
+        animation: none;
+    }
+}

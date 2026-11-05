@@ -60,15 +60,14 @@ html:root .marketing-page .coverage-heading .coverage-page-label {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 340px;
     position: relative;
-    background: var(--coverage-panel);
-    border: 1px solid var(--coverage-line);
-    border-radius: 16px;
+    background: transparent;
+    border-block: 1px solid var(--coverage-line);
     overflow: clip;
 }
 .coverage-geography {
     width: auto;
     min-width: 0;
-    padding: 18px 24px;
+    padding: 24px 32px 20px 0;
 }
 .coverage-map-topline {
     display: none;
@@ -213,13 +212,11 @@ html:root .marketing-page .coverage-map-fallback p {
 .coverage-ledger {
     position: relative;
     align-self: start;
-    margin: 18px 18px 18px 0;
+    margin: 24px 0;
     width: auto;
-    padding: 18px;
-    background: var(--coverage-input);
-    border: 1px solid var(--coverage-line);
-    border-radius: 12px;
-    box-shadow: 0 6px 20px #0b30100a;
+    padding: 0 0 0 24px;
+    background: transparent;
+    border-left: 1px solid var(--coverage-line);
     min-width: 0;
     scroll-margin-top: 100px;
 }
@@ -534,12 +531,12 @@ html:root .marketing-page .coverage-page :is(a, button, summary, select):focus-v
     }
     .coverage-geography {
         width: auto;
-        padding-inline: 18px;
+        padding-inline: 0 24px;
     }
     .coverage-ledger {
         width: auto;
-        margin: 12px 12px 12px 0;
-        padding: 16px;
+        margin: 24px 0;
+        padding: 0 0 0 20px;
     }
     .coverage-picker {
         flex-wrap: wrap;
@@ -552,7 +549,7 @@ html:root .marketing-page .coverage-page :is(a, button, summary, select):focus-v
     }
     .coverage-geography {
         width: 100%;
-        padding: 16px 20px 12px;
+        padding: 20px 0 16px;
     }
     .coverage-ledger {
         position: relative;
@@ -560,8 +557,10 @@ html:root .marketing-page .coverage-page :is(a, button, summary, select):focus-v
         right: auto;
         width: auto;
         max-height: none;
-        margin: 0 12px 12px;
-        padding: 18px;
+        margin: 0;
+        padding: 24px 0;
+        border-left: 0;
+        border-top: 1px solid var(--coverage-line);
         box-shadow: none;
     }
     .coverage-map-canvas {
@@ -601,7 +600,7 @@ html:root .marketing-page .coverage-page :is(a, button, summary, select):focus-v
 }
 @media (max-width: 420px) {
     .coverage-geography {
-        padding-inline: 14px;
+        padding-inline: 0;
     }
     .coverage-picker label {
         position: absolute;

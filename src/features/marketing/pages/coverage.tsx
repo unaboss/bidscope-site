@@ -6,7 +6,6 @@ import {
     BankIcon,
     BuildingsIcon,
     MagnifyingGlassIcon,
-    MapPinIcon,
     XIcon,
 } from '@phosphor-icons/react'
 import { PublicShell } from '../components/reference-layout'
@@ -81,15 +80,8 @@ export function CoveragePage() {
         <PublicShell>
             <div className="container coverage-page">
                 <header className="coverage-heading ref-hero-copy">
-                    <p className="coverage-page-label">
-                        <MapPinIcon size={17} />
-                        Coverage explorer
-                    </p>
-                    <h1>
-                        Follow the sources.
-                        <br className="coverage-mobile-break" /> Find your province.
-                    </h1>
-                    <p>Explore the publishing channels behind procurement opportunities across South Africa.</p>
+                    <h1>Procurement coverage</h1>
+                    <p>Choose a province to find tender publishers and open their original notices.</p>
                 </header>
 
                 <section className="coverage-explorer" aria-label="Explore procurement sources by province">
@@ -151,7 +143,6 @@ export function CoveragePage() {
                         <div className="coverage-ledger-heading">
                             <span>Tender sources</span>
                             <h2 id="coverage-province-name">{province.name}</h2>
-                            <p>Open a publisher for original notices or procurement data.</p>
                         </div>
                         <p className="sr-only" role="status">
                             Showing sources for {province.name}.
@@ -236,7 +227,7 @@ export function CoveragePage() {
 
                 <section className="coverage-context" aria-label="Coverage details">
                     <div>
-                        <h2>Coverage follows the publisher.</h2>
+                        <h2>What this directory covers</h2>
                         <p>
                             Bidscope brings together notices from national channels and selected direct sources. Not
                             every municipality or buyer is covered directly. Notices can change or be withdrawn; always
@@ -245,7 +236,7 @@ export function CoveragePage() {
                     </div>
                     <details className="coverage-other-sources">
                         <summary>
-                            Other recognised public-entity publishers{' '}
+                            Other public-entity publishers{' '}
                             <span>
                                 <ArrowRightIcon size={18} />
                             </span>

@@ -11,6 +11,8 @@ import {
     MapPinIcon,
 } from '@phosphor-icons/react'
 import { PublicShell, ReferenceHero, ReferenceCta } from '../components/reference-layout'
+import '../components/demo-link.css'
+import { PlanQuickStart } from '../components/plan-quick-start'
 
 export function LandingPage() {
     return (
@@ -28,10 +30,11 @@ export function LandingPage() {
                 <a className="bs-button" href="/join">
                     Get started <ArrowRightIcon size={21} />
                 </a>
-                <a className="bs-button outline" href="/how-it-works">
-                    See how it works
+                <a className="bs-button outline demo-link" href="/preview">
+                    See the demo
                 </a>
             </ReferenceHero>
+            <PlanQuickStart />
             <section className="container ref-section">
                 <div className="ref-section-heading">
                     <h2>Everything you need to find better opportunities</h2>
@@ -68,6 +71,10 @@ export function LandingPage() {
                             <p>{text}</p>
                         </article>
                     ))}
+                </div>
+                <div className="landing-growth-prompt">
+                    <p>Need watchlists, deadline alerts and a wider search? Growth includes up to 4 provinces.</p>
+                    <a href="/join?tier=mid&billing=monthly">Choose Growth</a>
                 </div>
             </section>
             <section className="ref-tint">
