@@ -11,13 +11,13 @@ import {
     FileTextIcon,
 } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError, getCategories, previewRelevance, signup } from '@/shared/api'
 import { AuthMultiSelect } from '@/features/auth/components/auth-multi-select'
 import { CsdUpload } from '@/features/profile/components/csd-upload'
 import { Button } from '@/shared/ui/button'
 import { CIDB_CLASSES, CONSTRUCTION_BUCKETS, parseCidbGrades, PROVINCES } from '@/features/profile/profile'
-import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/features/billing/pricing'
+import { MAX_PROVINCES, monthlyTotalCents, TIER_NAMES, tierForProvinces } from '@/features/billing/pricing'
 import type { Taxonomy } from '@/shared/types'
 import { useSubtleReveal } from '@/shared/lib/use-subtle-reveal'
 
@@ -42,6 +42,9 @@ const COMPANY: CompanyState = { companyName: '', categories: [], cidbGrades: {},
 
 /** Rands per month for a province count (0 = nationwide → all provinces). */
 export function JoinPage() {
+    const [params] = useSearchParams()
+    const requested = params.get('tier')
+    const selectedTier = requested === 'single' || requested === 'mid' || requested === 'all' ? requested : undefined
     const [step, setStep] = useState<Step>('contact')
     const [contact, setContact] = useState({ ...CONTACT })
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -107,6 +110,10 @@ export function JoinPage() {
     }
 
     async function submitCompany(): Promise<void> {
+        if (selectedTier && selectedTier !== 'all' && (company.provinces.length === 0 || company.provinces.length > MAX_PROVINCES[selectedTier])) {
+            setError(`Choose 1 to ${MAX_PROVINCES[selectedTier]} provinces for ${TIER_NAMES[selectedTier]}, or go back to choose another plan.`)
+            return
+        }
         if (company.companyName.trim().length < 2) {
             setError('Please enter your company name.')
             return
@@ -154,7 +161,7 @@ export function JoinPage() {
             })
 
             if (pay && result.checkoutToken !== undefined) {
-                navigate(`/checkout?token=${encodeURIComponent(result.checkoutToken)}`)
+                navigate(`/checkout?token=${encodeURIComponent(result.checkoutToken)}&tier=${tier}`)
                 return
             }
 
@@ -173,8 +180,8 @@ export function JoinPage() {
         }
     }
 
-    const tier = tierForProvinces(company.provinces.length)
-    const price = TIER_CENTS[tier] / 100
+    const tier = selectedTier ?? tierForProvinces(company.provinces.length)
+    const price = monthlyTotalCents(tier, company.provinces.length) / 100
     const provinceScope =
         company.provinces.length === 0
             ? 'nationwide'
@@ -198,6 +205,7 @@ export function JoinPage() {
                         }}
                     >
                         <h1>Create your account</h1>
+                        {selectedTier && <p className="auth-description">{TIER_NAMES[selectedTier]} selected. <a href={'/start?tier=' + selectedTier}>Change plan</a></p>}
                         <p className="auth-description">
                             Register in three steps: create your account, add your business details, then review your
                             plan.

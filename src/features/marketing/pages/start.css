@@ -1,0 +1,21 @@
+.start-page { min-height: 100svh; display: flex; flex-direction: column; }
+.start-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 24px; }
+.start-header > div { display: flex; align-items: center; gap: 20px; }
+.start-header > div > a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; }
+.start-page main { flex: 1; display: grid; align-items: center; padding-block: 24px 64px; }
+html:root .marketing-page .plan-entry { width: min(800px, calc(100% - 48px)); padding: 0; }
+.plan-entry .quick-plan-panel { margin-top: 0; }
+.plan-entry .quick-plan-options { width: 100%; }
+.plan-entry .quick-plan-options label > span { gap: 4px; padding: 16px 8px; }
+.plan-entry .quick-plan-option-price { font-size: clamp(24px, 4vw, 32px); line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -.035em; }
+.plan-entry .quick-plan-options small { font-size: 12px; font-weight: 400; }
+html:root .marketing-page .quick-plan-trial { color: #676d69; font-size: 12px; line-height: 1.6; margin: 28px 0 0; text-align: center; }
+html:root[data-theme='dark'] .marketing-page .quick-plan-trial { color: #afb5b1; }
+.plan-entry-compare { display: flex; justify-content: center; margin-top: 12px; }
+@media (max-width: 700px) {
+    .start-header { padding-block: 16px; }
+    .start-header > div { gap: 12px; }
+    .start-header > div > a { font-size: 12px; gap: 4px; }
+    .start-page main { align-items: start; padding-block: 16px 32px; }
+    html:root .marketing-page .plan-entry { width: calc(100% - 32px); }
+}

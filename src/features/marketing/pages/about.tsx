@@ -23,7 +23,7 @@ export function AboutPage() {
                 }
                 description="Our purpose is to help South African businesses discover and assess opportunities in one clear, connected workspace."
             >
-                <a className="bs-button" href="/join">
+                <a className="bs-button" href="/start">
                     Get started <ArrowRightIcon size={21} />
                 </a>
                 <a className="bs-button outline" href="#our-approach">

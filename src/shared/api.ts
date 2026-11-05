@@ -315,12 +315,12 @@ export interface PublicCheckout
 }
 
 /** Starts a Paystack checkout for a pending account, authorised by the signup token. */
-export async function startPublicCheckout(token: string): Promise<PublicCheckout>
+export async function startPublicCheckout(token: string, tier?: PricingTier): Promise<PublicCheckout>
 {
     const response = await fetch('/api/public/checkout', {
         method: 'POST',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, tier }),
     })
 
     if (!response.ok)

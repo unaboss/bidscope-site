@@ -12,7 +12,7 @@ import {
 } from '@phosphor-icons/react'
 import { PublicShell, ReferenceHero, ReferenceCta } from '../components/reference-layout'
 import '../components/demo-link.css'
-import { PlanQuickStart } from '../components/plan-quick-start'
+
 
 export function LandingPage() {
     return (
@@ -27,14 +27,14 @@ export function LandingPage() {
                 }
                 description="Bidscope helps South African businesses discover, assess and organise tender opportunities in one simple workspace."
             >
-                <a className="bs-button" href="/join">
+                <a className="bs-button" href="/start">
                     Get started <ArrowRightIcon size={21} />
                 </a>
                 <a className="bs-button outline demo-link" href="/preview">
-                    See the demo
+                    See how it works
                 </a>
             </ReferenceHero>
-            <PlanQuickStart />
+
             <section className="container ref-section">
                 <div className="ref-section-heading">
                     <h2>Everything you need to find better opportunities</h2>
@@ -74,7 +74,7 @@ export function LandingPage() {
                 </div>
                 <div className="landing-growth-prompt">
                     <p>Need watchlists, deadline alerts and a wider search? Growth includes up to 4 provinces.</p>
-                    <a href="/join?tier=mid&billing=monthly">Choose Growth</a>
+                    <a href="/start?tier=mid">Choose Growth</a>
                 </div>
             </section>
             <section className="ref-tint">

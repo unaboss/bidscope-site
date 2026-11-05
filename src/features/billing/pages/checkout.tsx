@@ -21,6 +21,8 @@ export function CheckoutPage()
 {
     const [params] = useSearchParams()
     const token = params.get('token') ?? ''
+    const requestedTier = params.get('tier')
+    const tier = requestedTier === 'single' || requestedTier === 'mid' || requestedTier === 'all' ? requestedTier : undefined
     const reference = params.get('reference') ?? params.get('trxref') ?? ''
 
     const [state, setState] = useState<State>(reference !== '' ? 'confirming' : 'idle')
@@ -73,7 +75,7 @@ export function CheckoutPage()
 
         try
         {
-            const checkout = await startPublicCheckout(token)
+            const checkout = await startPublicCheckout(token, tier)
 
             setPrice(checkout.amountCents)
             window.location.href = checkout.authorizationUrl

@@ -11,7 +11,7 @@ export function CallToAction() {
                     better opportunities.
                 </h2>
                 <p>Join businesses across South Africa and save time on tenders.</p>
-                <a className="bs-button gold" href="/join">
+                <a className="bs-button gold" href="/start">
                     Start free trial <ArrowRight size={17} />
                 </a>
             </div>

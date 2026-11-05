@@ -24,15 +24,18 @@ const details = {
     },
 }
 
-export function PlanQuickStart() {
-    const [tier, setTier] = useState<PricingTier>('single')
+export function PlanQuickStart({ entry = false, initialTier = 'single' }: {
+    readonly entry?: boolean
+    readonly initialTier?: PricingTier
+}) {
+    const [tier, setTier] = useState<PricingTier>(initialTier)
     const plan = details[tier]
     return (
-        <section className="container plan-quick-start" aria-labelledby="quick-plan-title">
-            <div className="quick-plan-intro">
+        <section className={'container plan-quick-start' + (entry ? ' plan-entry' : '')} aria-labelledby="quick-plan-title">
+            {entry ? <h1 id="quick-plan-title" className="sr-only">Choose your plan</h1> : <div className="quick-plan-intro">
                 <h2 id="quick-plan-title">Choose your coverage.</h2>
                 <p>Start in one province, expand to four, or search nationwide.</p>
-            </div>
+            </div>}
             <div className="quick-plan-panel">
                 <div className="quick-plan-toolbar">
                     <fieldset className="quick-plan-options">
@@ -41,13 +44,17 @@ export function PlanQuickStart() {
                             <label key={value}>
                                 <input className="sr-only" type="radio" name="quick-plan" value={value}
                                     checked={tier === value} onChange={() => setTier(value)} />
-                                <span>{TIER_NAMES[value]}</span>
+                                <span>
+                                    {entry && <strong className="quick-plan-option-price">R{TIER_CENTS[value] / 100}</strong>}
+                                    {TIER_NAMES[value]}
+                                    {entry && <small>/month</small>}
+                                </span>
                             </label>
                         ))}
                     </fieldset>
-                    <a className="quick-plan-compare" href="/pricing">
+                    {!entry && <a className="quick-plan-compare" href="/pricing">
                         Compare plans <ArrowUpRightIcon size={16} aria-hidden="true" />
-                    </a>
+                    </a>}
                 </div>
                 <div className="quick-plan-body">
                     <div className="quick-plan-details">
@@ -68,7 +75,9 @@ export function PlanQuickStart() {
                         <span className="quick-plan-setup">Choose your provinces during setup.</span>
                     </div>
                 </div>
+                {entry && <p className="quick-plan-trial">7-day free trial available. No card needed to start.</p>}
             </div>
+            {entry && <a className="quick-plan-compare plan-entry-compare" href="/pricing">Compare all features <ArrowUpRightIcon size={16} aria-hidden="true" /></a>}
         </section>
     )
 }

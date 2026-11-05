@@ -149,7 +149,7 @@ export function ReferenceCta({
                 <h2>{title}</h2>
                 <p>Join South African businesses using Bidscope to discover opportunities and stay organised.</p>
             </div>
-            <a className="bs-button gold" href="/join">
+            <a className="bs-button gold" href="/start">
                 Get started <ArrowRightIcon size={21} />
             </a>
             <WaveDivider />

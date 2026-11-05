@@ -10,7 +10,7 @@ export function ContactPage() {
                 title="Let’s talk."
                 description="Have a question, need support, or want to learn more about Bidscope? We’re here to help."
             >
-                <a className="bs-button" href="/join">
+                <a className="bs-button" href="/start">
                     Get started <ArrowRightIcon size={21} />
                 </a>
                 <a className="bs-button outline" href="/faq">

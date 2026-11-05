@@ -15,6 +15,7 @@ import { CheckoutPage } from '@/features/billing/pages/checkout'
 import { IntroPage } from '@/features/marketing/pages/intro'
 import { JoinPage } from '@/features/auth/pages/join'
 import { PricingPage } from '@/features/marketing/pages/pricing'
+import { StartPage } from '@/features/marketing/pages/start'
 import { ProductPage } from '@/features/marketing/pages/product'
 import { FeaturesPage } from '@/features/marketing/pages/features'
 import { AboutPage } from '@/features/marketing/pages/about'
@@ -83,6 +84,7 @@ export function AppRoutes()
         <Routes>
             <Route index element={<IntroPage />} />
             <Route path="pricing" element={<PricingPage />} />
+            <Route path="start" element={<StartPage />} />
             <Route path="product" element={<ProductPage />} />
             <Route path="features" element={<FeaturesPage />} />
             <Route path="about" element={<AboutPage />} />

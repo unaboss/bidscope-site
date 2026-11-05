@@ -15,10 +15,10 @@ export function HeroSection() {
                     </h1>
                     <p className="hero-description">Relevant South African tenders, all in one place.</p>
                     <div className="hero-actions">
-                        <a className="bs-button" href="/join">
+                        <a className="bs-button" href="/start">
                             Start free trial <ArrowRight size={18} />
                         </a>
-                        <a className="bs-button outline neutral" href="#how-it-works">
+                        <a className="bs-button outline neutral" href="/preview">
                             See how it works
                         </a>
                     </div>

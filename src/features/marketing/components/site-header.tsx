@@ -82,7 +82,7 @@ export function SiteHeader({ workspace = false }: { readonly workspace?: boolean
                     <a className="login-link" href={workspace ? appHome : '/login'}>
                         {workspace ? 'Dashboard' : 'Log in'}
                     </a>
-                    <a className="bs-button small" href={workspace ? tenders : '/join'}>
+                    <a className="bs-button small" href={workspace ? tenders : '/start'}>
                         {workspace ? 'Browse tenders' : 'Get started'} {workspace && <ArrowRight size={15} />}
                     </a>
                     <button
