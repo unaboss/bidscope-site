@@ -16,11 +16,8 @@ html:root {
     --space-8: 4rem;
     --platform-radius: 0.375rem;
     --platform-shadow: 0 2px 8px rgb(22 45 31 / 0.06);
-    --color-navy: 0 122 77;
-    --color-wax: 128 85 0;
-    --color-ink: 38 51 47;
-    --primary: 158 100% 24%;
-    --primary-foreground: 0 0% 100%;
+    /* Colour tokens live in src/styles/index.css and public/theme.css; this
+       sheet only aliases the platform names onto them. */
 }
 html:root .marketing-page,
 html:root .auth-page {
@@ -84,7 +81,7 @@ html:root .marketing-page .section-label {
     color: var(--platform-muted);
 }
 html:root .marketing-page .hero h1 {
-    font-size: clamp(2.25rem, 4vw, 3.25rem);
+    font-size: clamp(1.875rem, 1rem + 2.4vw, 2.75rem);
     line-height: 1.15;
     letter-spacing: -0.035em;
 }
@@ -428,16 +425,16 @@ html:root .reference-site .site-header-inner {
 }
 html:root .reference-site .site-nav {
     gap: 38px;
-    font-size: 16px;
+    font-size: 1rem;
 }
 html:root .reference-site .site-nav a {
     padding-block: 27px;
 }
 html:root .reference-site .brand {
     color: #103e2a;
-    font-size: 30px;
+    font-size: 1.875rem;
     font-weight: 750;
-    letter-spacing: -1px;
+    letter-spacing: -0.0625rem;
     gap: 10px;
 }
 .ref-logo-mark {
@@ -451,7 +448,7 @@ html:root .reference-site .site-header .bs-button {
     padding-inline: 26px;
 }
 html:root .reference-site .bs-button {
-    font-size: 16px;
+    font-size: 1rem;
     min-height: 50px;
     padding-inline: 28px;
     border-radius: 10px;
@@ -481,14 +478,14 @@ html:root .reference-site .ref-hero {
     align-items: center;
 }
 html:root .reference-site .ref-hero h1 {
-    font-size: clamp(40px, 4.8vw, 65px);
+    font-size: clamp(2rem, 1.2rem + 2.4vw, 3rem);
     line-height: 1.08;
     font-weight: 750;
     letter-spacing: -0.035em;
     color: #0a3021;
 }
 html:root .reference-site .ref-hero-copy > p {
-    font-size: 19px;
+    font-size: 1.1875rem;
     line-height: 1.55;
     color: #36423d;
     margin-top: 24px;
@@ -571,8 +568,8 @@ html:root .reference-site .ref-hero-copy > p {
     padding: 17px;
 }
 html:root .reference-site .ref-preview-body h2 {
-    font-size: 22px;
-    letter-spacing: -0.6px;
+    font-size: 1.375rem;
+    letter-spacing: -0.0375rem;
     margin-bottom: 18px;
 }
 .ref-preview-row {
@@ -599,7 +596,7 @@ html:root .reference-site .ref-preview-body h2 {
 }
 .ref-preview-row strong {
     display: block;
-    font-size: 12px;
+    font-size: .75rem;
     color: #26372c;
     margin-bottom: 7px;
 }
@@ -616,7 +613,7 @@ html:root .reference-site .ref-preview-body h2 {
     background: #e4e7e3;
 }
 .ref-preview-row small {
-    font-size: 10px;
+    font-size: .625rem;
     border-radius: 15px;
     background: #d7eddc;
     color: #19482b;
@@ -637,18 +634,18 @@ html:root .reference-site .ref-preview-body h2 {
 }
 .ref-floating-stat span {
     display: block;
-    font-size: 11px;
+    font-size: .6875rem;
     color: #354236;
     line-height: 1.4;
 }
 .ref-floating-stat strong {
     display: block;
     margin-top: 7px;
-    font-size: 25px;
+    font-size: 1.5625rem;
     color: #124c2e;
 }
 .ref-floating-stat strong small {
-    font-size: 11px;
+    font-size: .6875rem;
     font-weight: 500;
 }
 .ref-bars {
@@ -680,7 +677,7 @@ html:root .reference-site .ref-preview-body h2 {
     bottom: -10px;
     right: 0;
     color: #64736a;
-    font-size: 10px;
+    font-size: .625rem;
 }
 .ref-visual-map .ref-country {
     left: 0;
@@ -729,7 +726,7 @@ html:root .reference-site .ref-preview-body h2 {
     gap: 13px;
 }
 .ref-visual-support .ref-floating-stat strong {
-    font-size: 16px;
+    font-size: 1rem;
 }
 .ref-visual-support .ref-floating-stat span {
     margin-top: 5px;
@@ -742,14 +739,14 @@ html:root .reference-site .ref-section-heading {
     margin: 0 auto 40px;
 }
 html:root .reference-site h2 {
-    font-size: 34px;
+    font-size: 1.75rem;
     color: #103a27;
     line-height: 1.15;
     letter-spacing: -0.025em;
     font-weight: 700;
 }
 html:root .reference-site .ref-section-heading p {
-    font-size: 18px;
+    font-size: 1.0625rem;
     line-height: 1.5;
     color: #47524a;
     max-width: 840px;
@@ -783,7 +780,7 @@ html:root .reference-site .ref-section-heading p {
 }
 html:root .reference-site h3 {
     color: #193d29;
-    font-size: 21px;
+    font-size: 1.3125rem;
     line-height: 1.25;
     font-weight: 650;
     letter-spacing: -0.02em;
@@ -793,7 +790,7 @@ html:root .reference-site h3 {
 }
 html:root .reference-site .ref-benefit-grid p {
     color: #465047;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     margin-top: 12px;
 }
@@ -831,7 +828,7 @@ html:root .reference-site .ref-benefit-grid p {
     left: 25px;
     background: #c2a049;
     color: #fff;
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 600;
     width: 37px;
     height: 37px;
@@ -839,10 +836,10 @@ html:root .reference-site .ref-benefit-grid p {
     border-radius: 50%;
 }
 html:root .reference-site .ref-steps h3 {
-    font-size: 18px;
+    font-size: 1.125rem;
 }
 .ref-steps p {
-    font-size: 15px;
+    font-size: .9375rem;
     color: #455247;
     margin-top: 8px;
     line-height: 1.5;
@@ -854,7 +851,7 @@ html:root .reference-site .ref-steps h3 {
     color: #b59a41;
 }
 html:root .reference-site .ref-plan-note {
-    font-size: 13px;
+    font-size: .8125rem;
     color: #5a685c;
     margin-top: 30px;
     line-height: 1.6;
@@ -872,7 +869,7 @@ html:root .reference-site .ref-plan-note {
     object-fit: contain;
 }
 .ref-coverage p {
-    font-size: 17px;
+    font-size: 1.0625rem;
     line-height: 1.5;
     color: #47554a;
     margin-top: 20px;
@@ -888,7 +885,7 @@ html:root .reference-site .ref-plan-note {
     display: flex;
     align-items: center;
     gap: 17px;
-    font-size: 15px;
+    font-size: .9375rem;
     line-height: 1.4;
 }
 .ref-coverage .ref-icon {
@@ -913,12 +910,12 @@ html:root .reference-site .ref-cta {
 }
 html:root .reference-site .ref-cta h2 {
     color: #fff;
-    font-size: 38px;
+    font-size: 1.75rem;
 }
 .ref-cta p {
     color: #fff;
     max-width: 560px;
-    font-size: 17px;
+    font-size: 1.0625rem;
     margin-top: 12px;
     line-height: 1.5;
 }
@@ -949,11 +946,11 @@ html:root .reference-site .ref-cta h2 {
     border: 0;
 }
 .ref-impact strong {
-    font-size: 24px;
+    font-size: 1.5rem;
     color: #17452d;
 }
 .ref-impact span {
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     color: #455547;
 }
@@ -981,7 +978,7 @@ html:root .reference-site .ref-pricing {
     background: #fff;
     color: #144c2f;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 1rem;
     border: 0;
 }
 .ref-billing button[aria-pressed='true'] {
@@ -993,7 +990,7 @@ html:root .reference-site .ref-pricing {
     background: #fae9b9;
     padding: 3px 7px;
     border-radius: 15px;
-    font-size: 10px;
+    font-size: .625rem;
     color: #4d401f;
     margin-left: 6px;
 }
@@ -1025,26 +1022,25 @@ html:root .reference-site .ref-pricing {
     background: #f0dfad;
     border-radius: 25px;
     padding: 8px 12px;
-    font-size: 12px;
+    font-size: .75rem;
     color: #4b3f22;
 }
 .ref-plans article > p {
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     color: #515b51;
     margin-top: 10px;
-    min-height: 72px;
 }
 .ref-price {
-    font-size: 38px;
+    font-size: 1.875rem;
     font-weight: 700;
     color: #123e27;
     margin-block: 22px;
-    letter-spacing: -1px;
+    letter-spacing: -0.0625rem;
 }
 .ref-price > span {
     color: #4c574f;
-    font-size: 15px;
+    font-size: .9375rem;
     font-weight: 400;
     letter-spacing: normal;
 }
@@ -1061,7 +1057,7 @@ html:root .reference-site .ref-pricing {
     gap: 12px;
     align-items: start;
     color: #35463b;
-    font-size: 15px;
+    font-size: .9375rem;
     line-height: 1.45;
 }
 .ref-plans li svg {
@@ -1073,13 +1069,13 @@ html:root .reference-site .ref-pricing {
     width: 100%;
 }
 .ref-comparison-heading {
-    margin-top: 58px;
-    margin-bottom: 26px;
+    margin-top: 48px;
+    margin-bottom: 18px;
 }
 .ref-comparison-heading p {
     margin-top: 12px;
     color: #536055;
-    font-size: 17px;
+    font-size: 1.0625rem;
 }
 .ref-table-scroll {
     overflow: auto;
@@ -1088,11 +1084,11 @@ html:root .reference-site .ref-pricing {
 .ref-comparison {
     width: 100%;
     border-collapse: collapse;
-    font-size: 15px;
+    font-size: .9375rem;
 }
 .ref-comparison caption {
     text-align: left;
-    font-size: 13px;
+    font-size: .8125rem;
     color: #5c6a5d;
     padding-bottom: 12px;
 }
@@ -1107,12 +1103,18 @@ html:root .reference-site .ref-pricing {
 .ref-comparison thead th:not(:first-child) {
     text-align: center;
 }
+/* Dividers carry the grouping; banding was noise on a 12-row table. */
 .ref-comparison thead {
-    background: #e7eedf;
     color: #183f28;
 }
-.ref-comparison tr:nth-child(even) {
-    background: #f3f6ef;
+.ref-comparison thead tr {
+    border-bottom: 1px solid #cfdccd;
+}
+.ref-comparison tbody tr {
+    border-bottom: 1px solid #eef1ec;
+}
+.ref-comparison tbody tr:last-child {
+    border-bottom: 0;
 }
 .ref-comparison tbody th {
     font-weight: 400;
@@ -1131,7 +1133,7 @@ html:root .reference-site .ref-pricing {
 }
 .ref-billing-faq > div:first-child p {
     margin-top: 14px;
-    font-size: 16px;
+    font-size: 1rem;
     color: #556358;
 }
 .ref-faq-hero {
@@ -1143,7 +1145,7 @@ html:root .reference-site .ref-pricing {
 }
 .ref-faq-hero h1 {
     color: #103b27;
-    font-size: clamp(36px, 4.7vw, 60px);
+    font-size: clamp(1.875rem, 1rem + 2.4vw, 2.75rem);
     font-weight: 750;
     line-height: 1.15;
     letter-spacing: -0.03em;
@@ -1151,7 +1153,7 @@ html:root .reference-site .ref-pricing {
 .ref-faq-hero > div > p {
     max-width: 850px;
     margin: 20px auto 0;
-    font-size: 20px;
+    font-size: 1.25rem;
     line-height: 1.5;
     color: #5b635f;
 }
@@ -1173,7 +1175,7 @@ html:root .reference-site .ref-pricing {
     border-radius: 18px;
     padding: 14px 24px 14px 68px;
     background: #fff;
-    font-size: 17px;
+    font-size: 1.0625rem;
     box-shadow: 0 8px 22px #203b2510;
 }
 .ref-faq-hero .ref-waves {
@@ -1183,7 +1185,7 @@ html:root .reference-site .ref-pricing {
 }
 .ref-faq-hero .ref-search-status {
     min-height: 20px;
-    font-size: 13px;
+    font-size: .8125rem;
     margin-top: 10px;
 }
 .ref-faq-layout {
@@ -1211,7 +1213,7 @@ html:root .reference-site .ref-pricing {
     background: #fff;
     color: #36433c;
     text-align: left;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
 }
 .ref-faq-topics :is(button, a) svg {
@@ -1236,7 +1238,7 @@ html:root .reference-site .ref-pricing {
 }
 .ref-faq-answers .ds-accordion-trigger {
     padding: 23px 27px;
-    font-size: 21px;
+    font-size: 1.3125rem;
     color: #16412a;
     line-height: 1.35;
 }
@@ -1245,7 +1247,7 @@ html:root .reference-site .ref-pricing {
 }
 .ref-faq-answers .ds-accordion-panel {
     padding: 24px 27px;
-    font-size: 17px;
+    font-size: 1.0625rem;
 }
 .ref-help {
     display: flex;
@@ -1264,7 +1266,7 @@ html:root .reference-site .ref-pricing {
     flex: 1;
 }
 .ref-help p {
-    font-size: 17px;
+    font-size: 1.0625rem;
     margin-top: 12px;
     color: #59645a;
 }
@@ -1280,10 +1282,10 @@ html:root .reference-site .ref-pricing {
     box-shadow: 0 8px 30px #163e2306;
 }
 .ref-contact-grid .ds-contact-form h2 {
-    font-size: 34px;
+    font-size: 2.125rem;
 }
 .ref-contact-grid .ds-contact-form > p {
-    font-size: 17px;
+    font-size: 1.0625rem;
     margin-top: 15px;
 }
 .ref-contact-grid .ds-contact-fields {
@@ -1291,13 +1293,13 @@ html:root .reference-site .ref-pricing {
     margin-top: 30px;
 }
 .ref-contact-grid .ds-contact-fields label {
-    font-size: 17px;
+    font-size: 1.0625rem;
     color: #1b3b27;
 }
 .ref-contact-grid .ds-contact-fields :is(input, textarea) {
     border: 1px solid #b9c5b8;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: 1rem;
     padding: 14px;
 }
 .ref-contact-grid .ds-contact-form > .bs-button {
@@ -1305,7 +1307,7 @@ html:root .reference-site .ref-pricing {
 }
 .ref-connect > p {
     margin-top: 16px;
-    font-size: 17px;
+    font-size: 1.0625rem;
     color: #5b685c;
     margin-bottom: 25px;
 }
@@ -1319,13 +1321,13 @@ html:root .reference-site .ref-pricing {
     box-shadow: 0 6px 18px #123c2205;
 }
 .ref-connect article p {
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     color: #5c675c;
     margin-top: 9px;
 }
 .ref-connect article a {
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     display: inline-block;
     color: #155433;
@@ -1367,7 +1369,7 @@ html:root .ref-auth .auth-brand {
 }
 html:root .ref-auth .auth-brand .brand {
     color: #123d29;
-    font-size: 34px;
+    font-size: 2.125rem;
     font-family: Inter, Arial, sans-serif;
 }
 .ref-auth-back {
@@ -1378,7 +1380,7 @@ html:root .ref-auth .auth-brand .brand {
     display: inline-flex;
     gap: 10px;
     align-items: center;
-    font-size: 17px;
+    font-size: 1.0625rem;
     color: #174d2f;
     font-weight: 500;
 }
@@ -1389,14 +1391,14 @@ html:root .ref-auth .auth-content {
 }
 html:root .ref-auth .auth-content h1 {
     font:
-        750 clamp(34px, 4vw, 53px)/1.1 Inter,
+        750 clamp(1.875rem, 2.6vw, 2.5rem)/1.1 Inter,
         Arial,
         sans-serif;
     color: #103c27;
     letter-spacing: -0.035em;
 }
 html:root .ref-auth .auth-description {
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1.5;
     color: #5a665e;
     margin-top: 22px;
@@ -1405,7 +1407,7 @@ html:root .ref-auth .auth-description {
 html:root .ref-auth .auth-field input {
     min-height: 54px;
     font:
-        400 16px Inter,
+        400 1rem Inter,
         Arial,
         sans-serif;
     border: 1px solid #aab8ac;
@@ -1415,7 +1417,7 @@ html:root .ref-auth .auth-field input {
 }
 html:root .ref-auth .auth-label {
     color: #1c3c2a;
-    font-size: 17px;
+    font-size: 1.0625rem;
     font-weight: 600;
     margin-bottom: 10px;
     display: block;
@@ -1440,13 +1442,13 @@ html:root .ref-auth .auth-art {
 }
 .ref-auth-copy h2 {
     color: #fff;
-    font-size: 42px;
+    font-size: 2rem;
     line-height: 1.12;
     font-weight: 700;
     letter-spacing: -0.02em;
 }
 .ref-auth-copy p {
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1.5;
     color: #fff;
     margin-top: 25px;
@@ -1494,12 +1496,12 @@ html:root .ref-auth .auth-art {
     color: #1b5d38;
 }
 .ref-auth-benefits h3 {
-    font-size: 21px;
+    font-size: 1.3125rem;
     color: #fff;
     margin: 0;
 }
 .ref-auth-benefits p {
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.5;
     color: #fff;
     margin-top: 8px;
@@ -1520,9 +1522,21 @@ html:root .ref-login .auth-art {
     align-items: center;
 }
 html:root .ref-login .auth-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     min-height: 100dvh;
     width: 58%;
-    padding-top: 220px;
+    padding-top: 148px;
+}
+/*
+ * Forms read at a comfortable measure, never the full column: a 1400px-wide
+ * input is unreadable and impossible to scan. One cap, applied to every child
+ * so the heading, fields, action and footer share one left edge.
+ */
+html:root .ref-login .auth-content > * {
+    width: 100%;
+    max-width: 26rem;
 }
 html:root .ref-login .auth-brand {
     top: 55px;
@@ -1537,19 +1551,19 @@ html:root .ref-login .auth-field-group + .auth-field-group {
 }
 html:root .ref-auth .auth-primary {
     min-height: 54px;
-    font-size: 18px;
+    font-size: 1.125rem;
     background: linear-gradient(100deg, #165a3c, #0b442e);
     border-radius: 10px;
 }
 html:root .ref-auth .auth-footer {
-    font-size: 16px;
+    font-size: 1rem;
     margin-top: 35px;
 }
 html:root .ref-auth .auth-progress {
     display: block;
     margin-bottom: 18px;
     color: #165a3c;
-    font-size: 14px;
+    font-size: .875rem;
     letter-spacing: normal;
     text-transform: none;
 }
@@ -1577,7 +1591,7 @@ html:root .ref-auth .auth-security {
         padding: 12px;
     }
     .ref-preview-body h2 {
-        font-size: 18px;
+        font-size: 1.125rem;
     }
     .ref-floating-stat {
         left: 20px;
@@ -1611,7 +1625,7 @@ html:root .ref-auth .auth-security {
     }
     .ref-coverage li {
         gap: 12px;
-        font-size: 14px;
+        font-size: .875rem;
     }
     .ref-coverage .ref-icon {
         width: 40px;
@@ -1621,10 +1635,10 @@ html:root .ref-auth .auth-security {
         padding: 23px;
     }
     .ref-price {
-        font-size: 32px;
+        font-size: 2rem;
     }
     .ref-plans article > p {
-        font-size: 15px;
+        font-size: .9375rem;
     }
     .ref-faq-layout {
         grid-template-columns: 250px minmax(0, 1fr);
@@ -1635,31 +1649,31 @@ html:root .ref-auth .auth-security {
     }
     .ref-faq-topics :is(button, a) {
         gap: 10px;
-        font-size: 14px;
+        font-size: .875rem;
         padding-inline: 12px;
     }
     .ref-faq-answers .ds-accordion-trigger {
-        font-size: 19px;
+        font-size: 1.1875rem;
         padding: 20px;
     }
     .ref-faq-answers .ds-accordion-panel {
         padding: 20px;
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-auth-copy h2 {
-        font-size: 32px;
+        font-size: 2rem;
     }
     .ref-auth-copy p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-auth-map {
         height: 230px;
     }
     .ref-auth-benefits h3 {
-        font-size: 18px;
+        font-size: 1.125rem;
     }
     .ref-auth-benefits p {
-        font-size: 14px;
+        font-size: .875rem;
     }
     .ref-auth-benefits > div > span {
         width: 50px;
@@ -1684,7 +1698,7 @@ html:root .ref-auth .auth-security {
         height: 300px;
     }
     .ref-hero-copy > p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-floating-stat {
         min-width: 170px;
@@ -1694,13 +1708,13 @@ html:root .ref-auth .auth-security {
         left: 0;
     }
     .ref-floating-stat strong {
-        font-size: 21px;
+        font-size: 1.3125rem;
     }
     .ref-preview-body h2 {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-preview-row strong {
-        font-size: 10px;
+        font-size: .625rem;
     }
     .ref-preview-row {
         gap: 8px;
@@ -1711,7 +1725,7 @@ html:root .ref-auth .auth-security {
         padding: 3px;
     }
     .ref-preview-row small {
-        font-size: 8px;
+        font-size: .5rem;
         padding: 3px 5px;
     }
     .ref-country {
@@ -1727,7 +1741,7 @@ html:root .ref-auth .auth-security {
         gap: 14px;
     }
     .ref-hero-actions .bs-button {
-        font-size: 14px;
+        font-size: .875rem;
         padding-inline: 19px;
     }
     .ref-benefit-grid {
@@ -1764,7 +1778,7 @@ html:root .ref-auth .auth-security {
         padding: 35px;
     }
     .ref-cta h2 {
-        font-size: 30px;
+        font-size: 1.875rem;
     }
     .ref-plans {
         gap: 16px;
@@ -1773,19 +1787,19 @@ html:root .ref-auth .auth-security {
         padding: 18px;
     }
     .ref-plans article > p {
-        font-size: 13px;
+        font-size: .8125rem;
     }
     .ref-price {
-        font-size: 28px;
+        font-size: 1.75rem;
     }
     .ref-price > span {
-        font-size: 13px;
+        font-size: .8125rem;
     }
     .ref-plan-top {
         flex-wrap: wrap;
     }
     .ref-popular {
-        font-size: 10px;
+        font-size: .625rem;
         padding: 6px 9px;
     }
     .ref-plans .ref-icon {
@@ -1793,7 +1807,7 @@ html:root .ref-auth .auth-security {
         height: 48px;
     }
     .ref-plans li {
-        font-size: 13px;
+        font-size: .8125rem;
     }
     .ref-contact-grid {
         gap: 25px;
@@ -1811,7 +1825,7 @@ html:root .ref-auth .auth-security {
     }
     .ref-connect article p,
     .ref-connect article a {
-        font-size: 14px;
+        font-size: .875rem;
     }
     html:root .ref-auth .auth-content {
         width: 65%;
@@ -1823,7 +1837,7 @@ html:root .ref-auth .auth-security {
         padding: 30px 20px;
     }
     .ref-auth-copy h2 {
-        font-size: 26px;
+        font-size: 1.625rem;
     }
     .ref-auth-benefits {
         display: none;
@@ -1846,7 +1860,7 @@ html:root .ref-auth .auth-security {
         gap: 18px;
     }
     html:root .reference-site .brand {
-        font-size: 24px;
+        font-size: 1.5rem;
         gap: 6px;
     }
     .ref-logo-mark {
@@ -1854,7 +1868,7 @@ html:root .ref-auth .auth-security {
         height: 27px;
     }
     html:root .reference-site .site-header .bs-button {
-        font-size: 12px;
+        font-size: .75rem;
         padding-inline: 15px;
         min-height: 42px;
     }
@@ -1867,13 +1881,13 @@ html:root .ref-auth .auth-security {
         gap: 30px;
     }
     html:root .reference-site .ref-hero h1 {
-        font-size: clamp(36px, 10vw, 46px);
+        font-size: clamp(2.25rem, 10vw, 2.875rem);
     }
     .ref-hero-copy > p {
         max-width: none;
     }
     html:root .reference-site .ref-hero-copy > p {
-        font-size: 16px;
+        font-size: 1rem;
         margin-top: 20px;
     }
     .ref-hero-actions {
@@ -1881,7 +1895,7 @@ html:root .ref-auth .auth-security {
         gap: 12px;
     }
     .ref-hero-actions .bs-button {
-        font-size: 14px;
+        font-size: .875rem;
         min-height: 46px;
         padding-inline: 19px;
     }
@@ -1910,7 +1924,7 @@ html:root .ref-auth .auth-security {
         bottom: 5px;
     }
     .ref-illustration-label {
-        font-size: 9px;
+        font-size: .5625rem;
     }
     .ref-hero > .ref-waves {
         height: 80px;
@@ -1919,10 +1933,10 @@ html:root .ref-auth .auth-security {
         padding-block: 40px;
     }
     html:root .reference-site h2 {
-        font-size: 27px;
+        font-size: 1.6875rem;
     }
     html:root .reference-site .ref-section-heading p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-section-heading {
         margin-bottom: 30px;
@@ -1936,7 +1950,7 @@ html:root .ref-auth .auth-security {
         padding: 23px;
     }
     html:root .reference-site .ref-benefit-grid h3 {
-        font-size: 21px;
+        font-size: 1.3125rem;
     }
     .ref-steps {
         grid-template-columns: 1fr;
@@ -1955,7 +1969,7 @@ html:root .ref-auth .auth-security {
     .ref-step-icon > span {
         left: 17px;
         top: -24px;
-        font-size: 20px;
+        font-size: 1.25rem;
     }
     .ref-step-arrow {
         display: none;
@@ -1974,10 +1988,10 @@ html:root .ref-auth .auth-security {
         padding-left: 0;
     }
     .ref-coverage li {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-coverage p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     html:root .reference-site .ref-cta {
         width: calc(100% - 24px);
@@ -1989,13 +2003,13 @@ html:root .ref-auth .auth-security {
         border-radius: 15px;
     }
     html:root .reference-site .ref-cta h2 {
-        font-size: 30px;
+        font-size: 1.875rem;
     }
     .ref-cta h2 br {
         display: none;
     }
     .ref-cta p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-cta .ref-waves {
         width: 110%;
@@ -2019,10 +2033,10 @@ html:root .ref-auth .auth-security {
     .ref-billing button {
         min-width: 120px;
         padding-inline: 15px;
-        font-size: 14px;
+        font-size: .875rem;
     }
     .ref-billing button > span {
-        font-size: 9px;
+        font-size: .5625rem;
     }
     .ref-plans {
         grid-template-columns: 1fr;
@@ -2032,20 +2046,20 @@ html:root .ref-auth .auth-security {
         padding: 25px;
     }
     .ref-plans article > p {
-        font-size: 16px;
+        font-size: 1rem;
         min-height: 0;
     }
     .ref-plan-top {
         flex-wrap: nowrap;
     }
     .ref-popular {
-        font-size: 12px;
+        font-size: .75rem;
     }
     .ref-price {
-        font-size: 37px;
+        font-size: 2.3125rem;
     }
     .ref-plans li {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-plans .ref-icon {
         width: 60px;
@@ -2053,7 +2067,7 @@ html:root .ref-auth .auth-security {
     }
     .ref-comparison {
         min-width: 520px;
-        font-size: 13px;
+        font-size: .8125rem;
     }
     .ref-comparison :is(th, td) {
         padding: 12px;
@@ -2070,17 +2084,17 @@ html:root .ref-auth .auth-security {
         padding-bottom: 80px;
     }
     .ref-faq-hero h1 {
-        font-size: 36px;
+        font-size: 2.25rem;
     }
     .ref-faq-hero > div > p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-faq-search {
         margin-top: 25px;
     }
     .ref-faq-search input {
         min-height: 55px;
-        font-size: 14px;
+        font-size: .875rem;
         padding-left: 50px;
     }
     .ref-faq-search > svg {
@@ -2098,16 +2112,16 @@ html:root .ref-auth .auth-security {
         gap: 7px;
     }
     .ref-faq-topics :is(button, a) {
-        font-size: 16px;
+        font-size: 1rem;
         min-height: 48px;
     }
     .ref-faq-answers .ds-accordion-trigger {
         padding: 20px;
-        font-size: 18px;
+        font-size: 1.125rem;
     }
     .ref-faq-answers .ds-accordion-panel {
         padding: 20px;
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-help {
         flex-wrap: wrap;
@@ -2123,10 +2137,10 @@ html:root .ref-auth .auth-security {
         flex-basis: 60%;
     }
     .ref-help h2 {
-        font-size: 24px;
+        font-size: 1.5rem;
     }
     .ref-help p {
-        font-size: 15px;
+        font-size: .9375rem;
     }
     .ref-contact-grid {
         grid-template-columns: 1fr;
@@ -2136,14 +2150,14 @@ html:root .ref-auth .auth-security {
         padding: 23px;
     }
     .ref-contact-grid .ds-contact-form h2 {
-        font-size: 28px;
+        font-size: 1.75rem;
     }
     .ref-contact-grid .ds-contact-form > p {
-        font-size: 16px;
+        font-size: 1rem;
     }
     .ref-connect article p,
     .ref-connect article a {
-        font-size: 16px;
+        font-size: 1rem;
     }
     html:root .reference-site .site-footer {
         grid-template-columns: 1fr 1fr;
@@ -2156,20 +2170,20 @@ html:root .ref-auth .auth-security {
         padding: 0;
     }
     .reference-site .site-footer .copyright {
-        font-size: 12px;
+        font-size: .75rem;
     }
     html:root .ref-auth .auth-brand {
         left: 24px;
         top: 25px;
     }
     html:root .ref-auth .auth-brand .brand {
-        font-size: 28px;
+        font-size: 1.75rem;
     }
     .ref-auth-back {
         top: 80px;
         left: 25px;
         right: auto;
-        font-size: 15px;
+        font-size: .9375rem;
     }
     html:root .ref-auth .auth-content,
     html:root .ref-login .auth-content {
@@ -2180,10 +2194,10 @@ html:root .ref-auth .auth-security {
         display: none;
     }
     html:root .ref-auth .auth-content h1 {
-        font-size: 38px;
+        font-size: 2.375rem;
     }
     html:root .ref-auth .auth-description {
-        font-size: 16px;
+        font-size: 1rem;
         margin-top: 18px;
         margin-bottom: 28px;
     }
@@ -2195,7 +2209,7 @@ html:root .ref-auth .auth-security {
         left: 25px;
     }
     html:root .ref-auth .auth-footer {
-        font-size: 15px;
+        font-size: .9375rem;
     }
 }
 
@@ -2237,7 +2251,7 @@ html:root .ref-auth .ref-auth-benefits h3 {
 }
 @media (max-width: 360px) {
     html:root .reference-site .brand {
-        font-size: 21px;
+        font-size: 1.3125rem;
         gap: 6px;
     }
     html:root .reference-site .ref-logo-mark {
@@ -2270,16 +2284,16 @@ html:root .reference-site .ds-contact-fields :is(input, textarea) {
 }
 /* Registration business step: shares AuthLayout, AuthField and Button with account setup. */
 html:root .auth-business .auth-content h1 {
-    font-size: clamp(32px, 3vw, 48px);
+    font-size: clamp(1.75rem, 1rem + 2vw, 2.25rem);
     line-height: 1.12;
 }
 html:root .auth-business .auth-progress {
     margin-bottom: 22px;
-    font-size: 16px;
+    font-size: 1rem;
 }
 html:root .auth-business .auth-description {
     margin: 14px 0 32px;
-    font-size: 18px;
+    font-size: 1.125rem;
     color: #6c7178;
 }
 .auth-business-fields {
@@ -2311,14 +2325,14 @@ html:root .auth-business .auth-description {
     min-width: 150px;
 }
 .auth-csd-copy h2 {
-    font-size: 18px;
+    font-size: 1.125rem;
     line-height: 1.4;
     font-weight: 650;
     color: #111b17;
     margin: 0 0 3px;
 }
 .auth-csd-copy p {
-    font-size: 15px;
+    font-size: .9375rem;
     color: #666b72;
     line-height: 1.45;
     margin: 0;
@@ -2335,7 +2349,7 @@ html:root .auth-business .auth-description {
     border-radius: 9px;
     background: white;
     color: #005b37;
-    font-size: 14px;
+    font-size: .875rem;
     white-space: normal;
     height: auto;
     padding: 10px 14px;
@@ -2348,7 +2362,7 @@ html:root .auth-business .auth-description {
     align-items: center;
     gap: 24px;
     color: #666b72;
-    font-size: 15px;
+    font-size: .9375rem;
 }
 .auth-manual-divider::before,
 .auth-manual-divider::after {
@@ -2358,7 +2372,7 @@ html:root .auth-business .auth-description {
     background: #d6d8da;
 }
 html:root .auth-business .auth-label {
-    font-size: 16px;
+    font-size: 1rem;
     color: #111b17;
 }
 html:root .auth-business .auth-field input {
@@ -2389,7 +2403,7 @@ html:root .auth-business .auth-field input {
 .auth-selection-count {
     flex-shrink: 0;
     color: #656b73;
-    font-size: 12px;
+    font-size: .75rem;
 }
 .auth-multi-control {
     display: flex;
@@ -2415,7 +2429,7 @@ html:root .auth-business .auth-field input {
     border-radius: 20px;
     background: #e3f3e9;
     color: #103f2d;
-    font-size: 12px;
+    font-size: .75rem;
     gap: 6px;
 }
 .auth-selection-chip span {
@@ -2437,7 +2451,7 @@ html:root .auth-business .auth-field input {
     background: transparent;
 }
 .auth-multi-trigger span {
-    font-size: 14px;
+    font-size: .875rem;
     color: #6a7077;
     text-align: left;
 }
@@ -2473,7 +2487,7 @@ html:root .auth-business .auth-field input {
 html:root .auth-business .auth-multi-panel .auth-field input {
     min-height: 35px;
     height: 35px;
-    font-size: 13px;
+    font-size: .8125rem;
     padding-left: 37px;
     padding-right: 8px;
     border-radius: 7px;
@@ -2494,7 +2508,7 @@ html:root .auth-business .auth-multi-panel .auth-field input {
     gap: 12px;
     padding: 7px 8px;
     border-radius: 5px;
-    font-size: 13px;
+    font-size: .8125rem;
     line-height: 1.45;
     cursor: pointer;
     color: #17271f;
@@ -2523,7 +2537,7 @@ html:root .auth-business .auth-multi-panel .auth-field input {
     padding: 8px 13px;
 }
 .auth-multi-footer .nt-button {
-    font-size: 13px;
+    font-size: .8125rem;
     border-radius: 8px;
     height: 35px;
     color: #005d37;
@@ -2534,7 +2548,7 @@ html:root .auth-business .auth-multi-panel .auth-field input {
 }
 .auth-multi-empty {
     padding: 12px 8px;
-    font-size: 14px;
+    font-size: .875rem;
     color: #656b73;
 }
 html:root .auth-business .join-actions {
@@ -2542,7 +2556,7 @@ html:root .auth-business .join-actions {
     gap: 16px;
 }
 html:root .auth-business .join-actions > button {
-    font-size: 16px;
+    font-size: 1rem;
     min-height: 50px;
     border-radius: 9px;
 }
@@ -2560,12 +2574,12 @@ html:root .auth-business .join-actions > button:last-child {
 .auth-business .ref-auth-copy h2 {
     margin: 0;
     font-family: Inter, Arial, sans-serif;
-    font-size: 38px;
+    font-size: 2.375rem;
     line-height: 1.08;
 }
 .auth-business .ref-auth-copy p {
     margin-top: 24px;
-    font-size: 17px;
+    font-size: 1.0625rem;
     max-width: 310px;
     line-height: 1.4;
 }
@@ -2591,11 +2605,11 @@ html:root .auth-business .join-actions > button:last-child {
     gap: 24px;
 }
 .auth-business .ref-auth-benefits h3 {
-    font-size: 19px;
+    font-size: 1.1875rem;
     line-height: 1.25;
 }
 .auth-business .ref-auth-benefits p {
-    font-size: 15px;
+    font-size: .9375rem;
     margin-top: 5px;
     max-width: 300px;
     line-height: 1.45;
@@ -2611,9 +2625,9 @@ html:root .auth-business .join-actions > button:last-child {
 }
 @media (max-width: 1200px) {
     .auth-business .ref-auth-copy h2 {
-        font-size: 32px;
+        font-size: 2rem;
     }
     .auth-selection-count {
-        font-size: 11px;
+        font-size: .6875rem;
     }
 }

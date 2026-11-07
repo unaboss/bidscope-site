@@ -1,42 +1,362 @@
-.discovery-page { color: #253c32; }
-.discovery-page .workspace-title { align-items: center; gap: 16px; }
-.discovery-page .workspace-title h1 { font-size: 26px; letter-spacing: -.6px; line-height: 1.25; }
-.discovery-page .workspace-title p { font-size: 13px; margin-top: 6px; color: #64716a; }
-.discovery-page .matching-filter { font-size: 13px; gap: 8px; white-space: nowrap; }
-.discovery-page .tender-filters { display: grid; grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(130px, 1fr)); gap: 10px; margin: 22px 0 0; padding: 16px; border: 1px solid #dce2dc; border-radius: 4px; background: #f7f9f7; }
-.discovery-page .search-control { min-width: 0; }
-.discovery-page .search-control input, .discovery-page .tender-filters select { width: 100%; max-width: none; height: 40px; border: 1px solid #cdd6ce; border-radius: 4px; background: #fff; color: #253c32; font: inherit; font-size: 13px; }
-.discovery-page .tender-filters select { padding: 0 25px 0 10px; }
-.discovery-results-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-height: 50px; font-size: 12px; color: #64716a; }
-.discovery-results-bar p { margin-right: auto; font-weight: 600; color: #344b3f; }
-.discovery-results-bar button { color: #18553f; text-decoration: underline; text-underline-offset: 3px; }
-.discovery-page .tender-list { gap: 0; border: 1px solid #dce2dc; border-radius: 4px; overflow: visible; background: white; }
-.discovery-page .discovery-row { grid-template-columns: minmax(0, 1fr) minmax(150px, .45fr) 140px 60px; gap: 24px; padding: 18px 20px; border: 0; border-bottom: 1px solid #e2e7e2; border-radius: 0; box-shadow: none; transform: none; transition: none; }
-.discovery-page .discovery-row:last-child { border-bottom: 0; }
-.discovery-page .discovery-row:hover { background: #f5f8f5; transform: none; box-shadow: none; }
-.discovery-page .discovery-row h2 { font-size: 14px; line-height: 1.45; font-weight: 600; letter-spacing: 0; overflow-wrap: anywhere; }
-.discovery-page .discovery-row p { font-size: 12px; line-height: 1.5; margin-top: 5px; color: #53645a; }
-.discovery-reference { display: block; margin-top: 5px; font-size: 11px; color: #69776e; overflow-wrap: anywhere; }
-.discovery-classification, .discovery-deadline { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
-.discovery-cell-label { font-size: 10px; letter-spacing: .03em; color: #69776e; }
-.discovery-location { color: #69776e; }
-.discovery-deadline time { font-variant-numeric: tabular-nums; }
-.discovery-open { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 12px; font-weight: 600; color: #18553f; }
-.discovery-page :is(a, button, input, select):focus-visible { outline: 2px solid #18553f; outline-offset: 3px; box-shadow: none; }
-.discovery-page .list-pagination { font-size: 12px; }
-@media (max-width: 1000px) {
-    .discovery-page .tender-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .discovery-page .search-control { grid-column: 1 / -1; }
-    .discovery-page .discovery-row { grid-template-columns: minmax(0, 1fr) 170px 120px; gap: 16px; }
-    .discovery-page .discovery-open { display: none; }
+/*
+ * Tender discovery. Same surfaces as the dashboard — 1px line, 1rem radius,
+ * forest ink, gold for emphasis — so the workspace reads as one product. Every
+ * colour is a theme token, which is what makes the page survive dark mode.
+ */
+.discovery-page {
+    --surface: rgb(var(--color-panel));
+    --line: rgb(var(--color-neutral-200));
+    --ink: rgb(var(--color-ink));
+    --muted: rgb(var(--color-ink) / 0.55);
+    --accent: rgb(var(--color-navy));
+    color: var(--ink);
+}
+html:root[data-theme='dark'] .discovery-page {
+    --accent: #8ed3ad;
+}
+
+/* Filter bar: one surface holding the whole query. */
+.discovery-page .tender-filters {
+    display: grid;
+    grid-template-columns: minmax(15rem, 2fr) repeat(3, minmax(8rem, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.875rem;
+    background: var(--surface);
+}
+.discovery-page .search-control {
+    position: relative;
+    min-width: 0;
+}
+.discovery-page .search-control input,
+.discovery-page .tender-filters select {
+    width: 100%;
+    max-width: none;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: rgb(var(--color-ink) / 0.03);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.8125rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+.discovery-page .search-control input {
+    padding-inline-end: 2.5rem;
+}
+.discovery-page .search-control svg {
+    position: absolute;
+    inset-inline-end: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+}
+.discovery-page .search-control input::placeholder {
+    color: rgb(var(--color-ink) / 0.42);
+}
+.discovery-page .tender-filters select {
+    padding-inline-end: 2rem;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+        linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 1rem) 1.125rem, calc(100% - 0.6875rem) 1.125rem;
+    background-size: 0.3125rem 0.3125rem, 0.3125rem 0.3125rem;
+    background-repeat: no-repeat;
+}
+.discovery-page .search-control input:focus,
+.discovery-page .tender-filters select:focus-visible {
+    border-color: rgb(var(--color-navy) / 0.55);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px rgb(var(--color-navy) / 0.12);
+    outline: none;
+}
+
+/* Title row. */
+.discovery-page .workspace-title {
+    align-items: flex-end;
+    gap: 1rem;
+}
+.discovery-page .workspace-title h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+.discovery-page .workspace-title p {
+    margin-top: 0.375rem;
+    font-size: 0.875rem;
+    color: var(--muted);
+}
+.discovery-page .matching-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0 0.875rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+.discovery-page .matching-filter:hover {
+    border-color: rgb(var(--color-navy) / 0.4);
+    color: var(--ink);
+}
+.discovery-page .matching-filter:has(input:checked) {
+    border-color: rgb(var(--color-navy) / 0.5);
+    background: rgb(var(--color-navy) / 0.08);
+    color: var(--accent);
+    font-weight: 600;
+}
+.discovery-page .matching-filter input {
+    accent-color: rgb(var(--color-navy));
+}
+
+/* Result count row. */
+.discovery-results-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    min-height: 3rem;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.discovery-results-bar p {
+    margin-inline-end: auto;
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.discovery-results-bar button {
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.2rem;
+    cursor: pointer;
+}
+
+/* The list is one surface, divided by lines rather than boxed per row. */
+.discovery-page .tender-list {
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: var(--surface);
+    gap: 0;
+}
+.discovery-page .discovery-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 0.45fr) 9rem 3.75rem;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border: 0;
+    border-bottom: 1px solid rgb(var(--color-neutral-200) / 0.7);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    color: var(--ink);
+    transition: background-color 160ms ease;
+}
+.discovery-page .discovery-row:last-child {
+    border-bottom: 0;
+}
+.discovery-page .discovery-row:hover {
+    background: rgb(var(--color-ink) / 0.035);
+    box-shadow: none;
+    transform: none;
+}
+.discovery-page .discovery-row h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.42;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+}
+.discovery-page .discovery-row p {
+    margin-top: 0.3125rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--muted);
+}
+.discovery-page .discovery-reference {
+    display: block;
+    margin-top: 0.25rem;
+    color: rgb(var(--color-ink) / 0.42);
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+.discovery-classification,
+.discovery-deadline {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1875rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.discovery-cell-label {
+    color: rgb(var(--color-ink) / 0.45);
+    font-size: 0.6875rem;
+    font-weight: 500;
+}
+.discovery-location {
+    color: var(--muted);
+}
+.discovery-deadline time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+.discovery-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.discovery-open svg {
+    transition: transform 160ms ease;
+}
+.discovery-row:hover .discovery-open svg {
+    transform: translateX(2px);
+}
+.discovery-page :is(a, button, input, select):focus-visible {
+    outline: 2px solid rgb(var(--color-navy) / 0.65);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* Pagination. */
+.discovery-page .list-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+.discovery-page .list-pagination > div {
+    display: flex;
+    gap: 0.375rem;
+}
+.discovery-page .list-pagination button {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease;
+}
+.discovery-page .list-pagination button:hover:not(:disabled) {
+    border-color: rgb(var(--color-navy) / 0.45);
+    background: rgb(var(--color-navy) / 0.06);
+}
+.discovery-page .list-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Empty state, composed rather than defaulted. */
+.discovery-page .list-message {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--muted);
+}
+.discovery-page .list-message > svg {
+    color: rgb(var(--color-navy) / 0.35);
+}
+.discovery-page .list-message h2 {
+    margin-top: 0.25rem;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 650;
+}
+.discovery-page .list-message p {
+    font-size: 0.8125rem;
+}
+.discovery-page .list-message .bs-button {
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 992px) {
+    .discovery-page .tender-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .discovery-page .search-control {
+        grid-column: 1 / -1;
+    }
+    .discovery-page .discovery-row {
+        grid-template-columns: minmax(0, 1fr) 10.5rem 7.5rem;
+        gap: 1rem;
+    }
+    .discovery-page .discovery-open {
+        display: none;
+    }
 }
 @media (max-width: 640px) {
-    .discovery-page .workspace-title { align-items: flex-start; flex-direction: column; gap: 12px; }
-    .discovery-page .tender-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 12px; }
-    .discovery-page .tender-filters select:last-child { grid-column: 1 / -1; }
-    .discovery-page .discovery-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 16px; }
-    .discovery-page .discovery-opportunity { grid-column: 1 / -1; }
-    .discovery-page .discovery-row > div { min-width: 0; }
-    .discovery-page .discovery-classification { grid-column: 1; }
-    .discovery-page .discovery-deadline { grid-column: 2; align-items: flex-end; text-align: right; }
+    .discovery-page .workspace-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .discovery-page .tender-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .discovery-page .tender-filters select:last-child {
+        grid-column: 1 / -1;
+    }
+    .discovery-page .discovery-row {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0.75rem;
+        padding: 0.875rem 1rem;
+    }
+    .discovery-page .discovery-opportunity {
+        grid-column: 1 / -1;
+    }
+    .discovery-page .discovery-row > div {
+        min-width: 0;
+    }
+    .discovery-page .discovery-classification {
+        grid-column: 1;
+    }
+    .discovery-page .discovery-deadline {
+        grid-column: 2;
+        align-items: flex-end;
+        text-align: end;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .discovery-page .discovery-row,
+    .discovery-open svg {
+        transition: none;
+    }
 }

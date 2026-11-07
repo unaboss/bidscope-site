@@ -220,7 +220,7 @@ html:root .ref-auth.ref-registration .ref-auth-map::before {
 }
 
 /* Switch when both columns no longer have enough room, including browser zoom. */
-@media (max-width: 64rem) {
+@media (max-width: 1024px) {
     html:root .ref-auth.ref-registration .auth-card {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -232,4 +232,17 @@ html:root .ref-auth.ref-registration .ref-auth-map::before {
     html:root .ref-auth.ref-registration .auth-art {
         display: none;
     }
+}
+
+/*
+ * Registration keeps the storefront's measure: fields stop at 38rem however
+ * wide the two-column layout gets, so labels and inputs never stretch across a
+ * 1600px panel.
+ */
+html:root .ref-auth.ref-registration .auth-content > * {
+    width: 100%;
+    max-width: 38rem;
+}
+html:root .ref-auth.ref-registration .auth-content > .join-content {
+    max-width: 38rem;
 }

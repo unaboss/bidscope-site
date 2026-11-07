@@ -56,23 +56,25 @@ function PreviewBar({ tier, onTierChange }: PreviewBarProps)
         <div
             role="region"
             aria-label="App preview"
-            className="fixed inset-x-0 bottom-3 z-[35] flex justify-center px-3 sm:bottom-5 lg:inset-x-auto lg:bottom-0 lg:start-0 lg:block lg:w-64 lg:p-4"
+            // There is no navigation rail to dock to any more, so the bar stays a
+            // floating pill at the foot of the page at every width.
+            className="fixed inset-x-0 bottom-3 z-[35] flex justify-center px-3 sm:bottom-5"
         >
-            <div className="flex items-center gap-1 rounded-full border border-[#B08D57]/35 bg-[#fdfcfb] p-1.5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)] sm:gap-2 lg:grid lg:grid-cols-[1fr_auto] lg:gap-2.5 lg:rounded-xl lg:p-3">
-                <span className="hidden ps-3 font-mono text-[10px] uppercase tracking-[0.18em] text-[#075037]/75 sm:inline lg:order-1 lg:ps-1">Preview</span>
-                <div className="w-[10.5rem] sm:w-56 lg:order-3 lg:col-span-2 lg:w-auto">
+            <div className="flex items-center gap-1 rounded-full border border-[#B08D57]/35 bg-panel p-1.5 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.45)] sm:gap-2">
+                <span className="hidden ps-3 text-xs font-medium text-ink/60 sm:inline">Preview</span>
+                <div className="w-[10.5rem] sm:w-56">
                     <TierToggle tier={tier} onChange={onTierChange} pill />
                 </div>
                 <a
                     href={`/subscribe?tier=${tier}`}
-                    className={cn(BUTTON_GOLD, 'h-8 rounded-full px-3 text-[10px] tracking-[0.14em] sm:px-4 lg:order-4 lg:col-span-2 lg:h-9')}
+                    className={cn(BUTTON_GOLD, 'h-8 rounded-full px-3 text-[10px] tracking-[0.14em] sm:px-4 sm:h-9')}
                 >
                     Subscribe
                 </a>
                 <a
-                    href="/pricing"
+                    href="/"
                     aria-label="Close the preview"
-                    className={cn('grid size-8 shrink-0 place-items-center rounded-full text-[#14251d]/60 transition-colors hover:text-[#075037] lg:order-2', FOCUS)}
+                    className={cn('grid size-8 shrink-0 place-items-center rounded-full text-ink/60 transition-colors hover:text-navy', FOCUS)}
                 >
                     <XIcon className="size-4" />
                 </a>
@@ -110,8 +112,8 @@ export function PreviewApp()
             <PreviewContext.Provider value={preview}>
                 {/* A new plan remounts the pages, so each one loads again on that plan's data. */}
                 <FixedPlanProvider key={tier} account={demoAccount(tier)}>
-                    {/* Below desktop the bar floats over the page: leave room under it. */}
-                    <div className="[&_#main-content]:pb-28 lg:[&_#main-content]:pb-12">
+                    {/* The bar floats over the page: leave room under it. */}
+                    <div className="[&_#main-content]:pb-32">
                         <AppPages />
                     </div>
                 </FixedPlanProvider>

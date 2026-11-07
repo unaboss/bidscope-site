@@ -14,12 +14,10 @@ export function LockedFeature({ title, detail, className }: LockedFeatureProps)
 {
     return (
         <div className={`flex flex-col items-start gap-3 rounded-xl border border-wax/35 bg-wax/[0.06] p-5 ${className ?? ''}`} role="note">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Growth and Pro</span>
-            <p className="font-serif text-lg font-semibold text-ink">{title}</p>
+            <span className="text-xs font-medium text-ink/55">Included in Growth and Pro</span>
+            <p className="font-sans text-lg font-semibold text-ink">{title}</p>
             <p className="max-w-xl text-sm leading-relaxed text-ink/65">{detail}</p>
-            <UpgradeLink
-                className="inline-flex h-9 items-center rounded-md bg-gradient-to-b from-[#D9B97E] to-[#B08D57] px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-[#06140F] hover:from-[#F0D9A4]"
-            >
+            <UpgradeLink className="inline-flex h-10 items-center gap-2 rounded-full bg-navy px-5 text-sm font-semibold text-white transition-colors hover:bg-navy/90">
                 Upgrade to Growth
             </UpgradeLink>
         </div>

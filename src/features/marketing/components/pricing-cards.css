@@ -1,0 +1,196 @@
+/*
+ * Plan cards: the included provinces, the top-up answer, and one commitment
+ * block at the foot. Everything below the price is optional detail; the action
+ * never moves, so the three cards stay comparable at a glance.
+ */
+
+/* Top-up disclosure: a pill that opens a measured panel beneath itself. */
+.plan-topup {
+    margin-top: 0.25rem;
+}
+.plan-topup-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.6875rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: #eef3ec;
+    color: #1d5c3c;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.plan-topup-trigger:hover {
+    background: #e3ece0;
+    border-color: #cddac7;
+}
+.plan-topup-trigger:focus-visible {
+    outline: 2px solid #a77828;
+    outline-offset: 2px;
+}
+.plan-topup[data-open='true'] .plan-topup-trigger {
+    background: #fbf3df;
+    border-color: #e6d3a2;
+    color: #6d5416;
+}
+.plan-topup-trigger.is-static {
+    background: transparent;
+    border-color: #d6dfd4;
+    color: #4c574f;
+    cursor: default;
+}
+.plan-topup-caret {
+    transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.plan-topup[data-open='true'] .plan-topup-caret {
+    transform: rotate(180deg);
+}
+.plan-topup-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 180ms ease-out;
+}
+.plan-topup[data-open='true'] .plan-topup-panel {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+.plan-topup-panel > div {
+    overflow: hidden;
+}
+.plan-topup-panel p {
+    margin: 0.625rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: #566257;
+}
+.plan-topup-panel strong {
+    color: #1d4b34;
+    font-weight: 600;
+}
+
+/* Commitment block: the promise, then the one action. */
+.plan-commit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 1.25rem;
+}
+.plan-trial {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6d5416;
+    letter-spacing: 0.01em;
+}
+.plan-trial svg {
+    color: #a77828;
+    flex-shrink: 0;
+}
+.ref-plans article > .plan-commit > .bs-button {
+    margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .plan-topup-panel,
+    .plan-topup-caret,
+    .plan-topup-trigger {
+        transition: none;
+    }
+}
+
+/* Dark mode: the pill and panel follow the theme's greens and golds. */
+html:root[data-theme='dark'] .plan-topup-trigger {
+    background: #1d3527;
+    color: #cfe3d5;
+}
+html:root[data-theme='dark'] .plan-topup-trigger:hover {
+    background: #24402f;
+    border-color: #35533f;
+}
+html:root[data-theme='dark'] .plan-topup-trigger.is-static {
+    background: transparent;
+    border-color: #3d5445;
+    color: #b4c3b8;
+}
+html:root[data-theme='dark'] .plan-topup[data-open='true'] .plan-topup-trigger {
+    background: #2a2a1c;
+    border-color: #5a4c26;
+    color: #e6c882;
+}
+html:root[data-theme='dark'] .plan-topup-panel p {
+    color: #b4c3b8;
+}
+html:root[data-theme='dark'] .plan-topup-panel strong {
+    color: #e3eee6;
+}
+html:root[data-theme='dark'] .plan-trial {
+    color: #e6c882;
+}
+html:root[data-theme='dark'] .plan-trial svg {
+    color: #d9b661;
+}
+
+/*
+ * Pricing furniture: the baseline strip, and the comparison table read from the
+ * Worker's feature catalogue. Both exist to answer "what do I get", so neither
+ * is decorative.
+ */
+.pricing-baseline {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.75rem;
+    margin: -1.5rem 0 2rem;
+    padding: 0;
+    list-style: none;
+}
+.pricing-baseline li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: #596a61;
+    font-size: 0.8125rem;
+}
+.pricing-baseline svg {
+    flex-shrink: 0;
+    color: #007a4d;
+}
+html:root[data-theme='dark'] .pricing-baseline li {
+    color: #afc2b7;
+}
+html:root[data-theme='dark'] .pricing-baseline svg {
+    color: #48b78b;
+}
+
+/* The feature label carries a one-line explanation; the row stays scannable. */
+.ref-comparison th[scope='row'] {
+    display: table-cell;
+}
+.ref-comparison-detail {
+    display: block;
+    margin-top: 0.1875rem;
+    max-width: 46ch;
+    color: #596a61;
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.45;
+}
+html:root[data-theme='dark'] .ref-comparison-detail {
+    color: #afc2b7;
+}
+.ref-excluded {
+    display: inline-grid;
+    place-items: center;
+    color: #948f86;
+}
+html:root[data-theme='dark'] .ref-excluded {
+    color: #7e8f86;
+}

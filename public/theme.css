@@ -1,4 +1,55 @@
 /* Forest-and-gold themes share the same structure, type and spacing. */
+
+/*
+ * One root scale for every size on every page.
+ *
+ * CSS pixels are absolute, so the same 16px body copy is physically larger on
+ * a 1600px panel than on a 1280px one, and larger again on a dense panel driven
+ * at 200% OS scaling — which reports a wide viewport while showing less. Rather
+ * than clip each component, every font size, line height and letter spacing in
+ * the stylesheets is authored in `rem`, and this scale moves them together.
+ *
+ * Wide panels step down twice; dense panels one step further, because at the
+ * same CSS width they are the ones sitting closest to the eye.
+ */
+:root {
+    --ui-scale: 1;
+}
+html {
+    font-size: calc(16px * var(--ui-scale));
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+@media (min-width: 1024px) {
+    :root {
+        --ui-scale: 0.97;
+    }
+}
+@media (min-width: 1280px) {
+    :root {
+        --ui-scale: 0.95;
+    }
+}
+@media (min-width: 1600px) {
+    :root {
+        --ui-scale: 0.93;
+    }
+}
+@media (min-width: 1920px) {
+    :root {
+        --ui-scale: 0.9;
+    }
+}
+@media (min-resolution: 2dppx) and (min-width: 1280px) {
+    :root {
+        --ui-scale: 0.93;
+    }
+}
+@media (min-resolution: 2dppx) and (min-width: 1600px) {
+    :root {
+        --ui-scale: 0.9;
+    }
+}
 .theme-toggle {
     display: inline-flex;
     align-items: center;
@@ -28,9 +79,16 @@
 }
 .login-theme-toggle {
     position: absolute;
-    right: 5%;
-    top: 100px;
+    /* The content column is the viewport minus the 42% art panel; sit on its
+       inner edge, on the brand's line, so the toggle reads as page chrome. */
+    right: calc(42% + 5.5%);
+    top: 62px;
     z-index: 4;
+}
+@media (max-width: 1000px) {
+    .login-theme-toggle {
+        right: calc(35% + 35px);
+    }
 }
 @media (max-width: 600px) {
     .login-theme-toggle {
@@ -38,48 +96,73 @@
         right: 24px;
     }
 }
+/*
+ * Dark theme — design.md §3.1. The brand green brightens so it can carry text
+ * on a dark canvas; the gold stays an accent.
+ */
 html:root[data-theme='dark'] {
     color-scheme: dark;
-    --theme-page: #0d1914;
-    --theme-surface: #14251d;
-    --theme-raised: #1c3025;
-    --theme-text: #e3eee6;
-    --theme-muted: #adbeaf;
-    --theme-border: #4e6958;
-    --theme-accent: #c6a85e;
-    --color-ink: 227 238 230;
-    --color-navy: 9 96 60;
-    --color-cream: 13 25 20;
-    --color-panel: 20 37 29;
-    --color-night: 13 25 20;
-    --color-neutral-50: 20 37 29;
-    --color-neutral-100: 28 48 37;
-    --color-neutral-200: 58 78 65;
-    --color-neutral-300: 78 105 88;
-    --color-neutral-400: 135 158 143;
-    --color-neutral-500: 173 190 175;
-    --color-neutral-600: 190 207 193;
-    --color-neutral-700: 207 223 211;
-    --color-neutral-800: 220 235 224;
-    --color-neutral-900: 227 238 230;
-    --color-danger: 255 156 143;
-    --color-success: 143 210 164;
-    --color-warn: 235 198 120;
-    --background: 155 32% 7%;
-    --foreground: 136 24% 91%;
-    --card: 152 30% 11%;
-    --card-foreground: 136 24% 91%;
-    --popover: 152 30% 11%;
-    --popover-foreground: 136 24% 91%;
-    --secondary: 147 26% 15%;
-    --secondary-foreground: 136 24% 91%;
-    --muted: 147 26% 15%;
-    --muted-foreground: 128 12% 71%;
-    --accent: 147 26% 15%;
-    --accent-foreground: 136 24% 91%;
-    --border: 144 15% 36%;
-    --input: 144 15% 36%;
-    --ring: 139 44% 71%;
+
+    /* Named tokens */
+    --brand: #48b78b;
+    --brand-deep: #d5f3e3;
+    --accent: #e9b84d;
+    --canvas: #0c1612;
+    --surface: #13231c;
+    --elevated: #192b23;
+    --text: #f1f6f2;
+    --text-muted: #afc2b7;
+    --border-subtle: #344d40;
+    --focus-ring: #79dfaf;
+    --shadow-popover: 0 16px 40px rgb(0 0 0 / 30%);
+
+    /* The marketing stylesheets read these */
+    --theme-page: #0c1612;
+    --theme-surface: #13231c;
+    --theme-raised: #192b23;
+    --theme-text: #f1f6f2;
+    --theme-muted: #afc2b7;
+    --theme-border: #344d40;
+    --theme-accent: #e9b84d;
+
+    /* Channel triplets */
+    --color-ink: 241 246 242;
+    --color-forest: 213 243 227;
+    --color-navy: 72 183 139;
+    --color-wax: 233 184 77;
+    --color-gold: 233 184 77;
+    --color-cream: 12 22 18;
+    --color-panel: 19 35 28;
+    --color-night: 12 22 18;
+    --color-neutral-50: 19 35 28;
+    --color-neutral-100: 25 43 35;
+    --color-neutral-200: 52 77 64;
+    --color-neutral-300: 74 102 88;
+    --color-neutral-400: 128 150 138;
+    --color-neutral-500: 175 194 183;
+    --color-neutral-600: 190 205 196;
+    --color-neutral-700: 205 219 209;
+    --color-neutral-800: 222 234 226;
+    --color-neutral-900: 241 246 242;
+    --color-success: 102 211 160;
+    --color-warn: 241 197 107;
+    --color-danger: 255 149 138;
+
+    --background: 155 34% 7%;
+    --foreground: 140 22% 95%;
+    --card: 155 21% 10%;
+    --card-foreground: 140 22% 95%;
+    --popover: 155 21% 11%;
+    --popover-foreground: 140 22% 95%;
+    --secondary: 150 25% 13%;
+    --secondary-foreground: 140 22% 95%;
+    --muted: 150 25% 13%;
+    --muted-foreground: 143 15% 72%;
+    --accent: 42 78% 60%;
+    --accent-foreground: 155 34% 7%;
+    --border: 149 20% 24%;
+    --input: 149 20% 24%;
+    --ring: 154 52% 71%;
     background: var(--theme-page);
 }
 html:root[data-theme='dark'] body {
@@ -90,7 +173,8 @@ html:root[data-theme='dark'] :is(.marketing-page, .auth-page.ref-auth, .ref-auth
     background: var(--theme-page);
     color: var(--theme-text);
 }
-html:root[data-theme='dark'] :is(.marketing-page, .ref-auth) :is(h1, h2, h3, h4, label, .brand, .ref-price) {
+/* The workspace carries the same wordmark, so it darkens with everything else. */
+html:root[data-theme='dark'] :is(.marketing-page, .ref-auth, .workspace-frame) :is(h1, h2, h3, h4, label, .brand, .ref-price) {
     color: var(--theme-text);
 }
 html:root[data-theme='dark']
@@ -424,11 +508,11 @@ html:root[data-theme='dark'] .marketing-page :is(.cta-banner h2, .cta-banner p) 
         gap: 6px;
     }
     html:root .marketing-page .site-header .brand {
-        font-size: 20px;
+        font-size: 1.25rem;
         gap: 6px;
     }
     html:root .marketing-page .site-header .bs-button {
-        font-size: 11px;
+        font-size: .6875rem;
         padding-inline: 8px;
         min-height: 40px;
     }
@@ -450,4 +534,122 @@ html:root[data-theme='dark'] .marketing-page :is(.cta-banner h2, .cta-banner p) 
 html:root[data-theme='dark'] .ref-auth .auth-field input[aria-invalid='true'] {
     border-color: #efa58d;
     background: #30231e;
+}
+
+/* ---------------------------------------------------------------------------
+ * Workspace surfaces in dark mode.
+ *
+ * The tender list, the tender detail and their filters are the only workspace
+ * pages still painted with fixed colours; everything else already uses the
+ * shared tokens. These overrides keep them legible in the dark theme instead of
+ * leaving white cards behind light text.
+ * ------------------------------------------------------------------------- */
+html:root[data-theme='dark'] :is(.tender-list-row, .detail-summary article, .detail-panel) {
+    background: rgb(var(--color-panel));
+    border-color: rgb(var(--color-neutral-200));
+}
+html:root[data-theme='dark'] .tender-list-row:hover {
+    background: rgb(var(--color-neutral-100));
+    border-color: rgb(var(--color-neutral-300));
+}
+html:root[data-theme='dark'] .tender-list-row p,
+html:root[data-theme='dark'] .list-message,
+html:root[data-theme='dark'] .list-pagination,
+html:root[data-theme='dark'] .detail-back,
+html:root[data-theme='dark'] .detail-meta,
+html:root[data-theme='dark'] .detail-summary span,
+html:root[data-theme='dark'] .detail-contact,
+html:root[data-theme='dark'] .matching-filter {
+    color: rgb(var(--color-ink) / 0.62);
+}
+html:root[data-theme='dark'] .list-message h2,
+html:root[data-theme='dark'] .detail-tab-content h2,
+html:root[data-theme='dark'] .detail-tab-content h3 {
+    color: rgb(var(--color-ink));
+}
+html:root[data-theme='dark'] .detail-tab-content {
+    color: rgb(var(--color-ink) / 0.78);
+}
+html:root[data-theme='dark'] .detail-contact a {
+    color: #8ed3ad;
+}
+html:root[data-theme='dark'] :is(.search-control input, .tender-filters select) {
+    border-color: rgb(var(--color-neutral-300));
+    background: rgb(var(--color-panel));
+    color: rgb(var(--color-ink));
+}
+html:root[data-theme='dark'] .search-control svg {
+    color: rgb(var(--color-ink) / 0.55);
+}
+html:root[data-theme='dark'] .search-control input::placeholder {
+    color: rgb(var(--color-ink) / 0.45);
+}
+html:root[data-theme='dark'] .list-pagination button {
+    border-color: rgb(var(--color-neutral-300));
+    background: rgb(var(--color-panel));
+    color: rgb(var(--color-ink) / 0.8);
+}
+html:root[data-theme='dark'] .detail-tabs {
+    border-color: rgb(var(--color-neutral-200));
+}
+html:root[data-theme='dark'] .detail-tabs button {
+    color: rgb(var(--color-ink) / 0.62);
+}
+html:root[data-theme='dark'] .detail-tabs button[aria-selected='true'] {
+    background: rgb(var(--color-navy));
+    color: #fff;
+}
+html:root[data-theme='dark'] .detail-summary article > svg {
+    color: rgb(var(--color-wax));
+}
+
+/*
+ * Outline buttons and inline links inside the workspace. The gold-outline
+ * button is tuned for cream; on a dark page it needs a lighter rule and text or
+ * it disappears into the surface.
+ */
+html:root[data-theme='dark'] .workspace-frame .bs-button.outline {
+    background: transparent;
+    border-color: rgb(230 200 130 / 0.45);
+    color: #e6c882;
+}
+html:root[data-theme='dark'] .workspace-frame .bs-button.outline:hover {
+    background: rgb(230 200 130 / 0.12);
+    border-color: rgb(230 200 130 / 0.7);
+}
+html:root[data-theme='dark'] .workspace-frame .bs-button {
+    background: #1f6b45;
+    border-color: #1f6b45;
+    color: #fff;
+}
+html:root[data-theme='dark'] .workspace-frame .bs-button:hover {
+    background: #247a4e;
+}
+html:root[data-theme='dark'] .workspace-frame .detail-tab-content a {
+    color: #8ed3ad;
+}
+html:root[data-theme='dark'] .workspace-frame .nt-button {
+    border-color: rgb(var(--color-neutral-300));
+    color: rgb(var(--color-ink));
+}
+html:root[data-theme='dark'] .workspace-frame .detail-source-link {
+    border-color: rgb(230 200 130 / 0.45);
+    color: #e6c882;
+}
+html:root[data-theme='dark'] .workspace-frame .detail-source-link:hover {
+    background: rgb(230 200 130 / 0.12);
+    border-color: rgb(230 200 130 / 0.7);
+}
+html:root[data-theme='dark'] .workspace-frame .detail-provenance p {
+    color: rgb(var(--color-ink) / 0.6);
+}
+html:root[data-theme='dark'] .ref-comparison thead tr {
+    border-color: rgb(var(--color-neutral-300));
+}
+html:root[data-theme='dark'] .ref-comparison tbody tr {
+    border-color: rgb(var(--color-neutral-200) / 0.6);
+}
+html:root[data-theme='dark'] .ref-included {
+    background: rgb(72 183 139 / 0.16);
+    color: #8ed3ad;
 }

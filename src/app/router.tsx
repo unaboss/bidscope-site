@@ -95,7 +95,7 @@ export function AppRoutes()
             <Route path="join" element={<JoinPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="subscribe" element={<SubscribePage />} />
-            {['discover', 'bookmarks', 'calendar', 'profile', 'settings', 'billing', 'tenders/:id'].map((path) => (
+            {['discover', 'bookmarks', 'calendar', 'clients', 'profile', 'settings', 'billing', 'tenders/:id'].map((path) => (
                 <Route key={path} path={path} element={<WorkspaceRedirect />} />
             ))}
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -133,7 +133,7 @@ function SignInRedirect()
 function Splash()
 {
     return (
-        <div className="grid min-h-dvh place-items-center bg-cream font-mono text-[11px] uppercase tracking-[0.18em] text-ink/40">
+        <div className="grid min-h-dvh place-items-center bg-cream text-sm text-ink/45">
             Loading…
         </div>
     )

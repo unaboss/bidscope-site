@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { CaretRightIcon, CheckIcon } from '@phosphor-icons/react'
 import { ApiError, confirmCheckout, getAccount, getSettings, startCheckout } from '@/shared/api'
 import { Button } from '@/shared/ui/button'
 import { PageHeader } from '@/shared/ui/page-header'
 import { TIER_CENTS, TIER_NAMES, tierForProvinces } from '@/features/billing/pricing'
+import { formatDate } from '@/shared/lib/format'
 import type { Account, Settings } from '@/shared/types'
 
 /** Plan and province count shown on the card. */
@@ -81,38 +83,93 @@ export function BillingPage()
     const rands = TIER_CENTS[tierForProvinces(provinces)] / 100
     const plan = account?.effectivePlan ?? '—'
 
+    const trialEnd = account?.trialEndsAt ?? null
+    const included = account?.features.filter((feature) => feature.enabled) ?? []
+    const notIncluded = account?.features.filter((feature) => !feature.enabled) ?? []
+
     return (
-        <div className="flex flex-col gap-8">
-            <PageHeader eyebrow="Account" title="Billing" description="Your plan, trial and subscription." />
-
-            <section className="max-w-xl rounded-xl border border-line bg-panel p-6 shadow-panel">
-                <div className="flex items-baseline justify-between">
-                    <div>
-                        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink/50">{planLabel(provinces)}</p>
-                        <p className="mt-1 text-3xl font-semibold">R{rands}<span className="text-sm font-normal text-ink/50">/month</span></p>
-                    </div>
-                    <p className="text-sm text-ink/60">Current plan: <strong>{plan}</strong></p>
-                </div>
-
-                <div className="mt-6">
+        <div className="flex flex-col gap-6">
+            <PageHeader
+                eyebrow="Account"
+                title="Billing"
+                description="Your plan, its coverage, and what renews when."
+                actions={
                     <Button onClick={() => void subscribe()} disabled={busy}>
-                        {busy ? 'Starting…' : 'Subscribe'}
+                        {busy ? 'Starting…' : plan === 'pro' ? 'Manage subscription' : 'Change plan'}
                     </Button>
-                    <p className="mt-2 text-xs text-ink/45">
-                        Secure checkout via Paystack. You can cancel any time.
+                }
+            />
+
+            <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
+                <section className="rounded-xl border border-line bg-panel p-6">
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                        <div>
+                            <h2 className="text-lg font-semibold text-ink">{planLabel(provinces)}</h2>
+                            <p className="mt-1 flex items-baseline gap-1 text-ink">
+                                <span className="text-3xl font-semibold tabular-nums">R{rands}</span>
+                                <span className="text-sm text-ink/55">per month, billed in ZAR</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <dl className="mt-6 grid gap-4 border-t border-line pt-5 sm:grid-cols-2">
+                        <div>
+                            <dt className="text-xs text-ink/55">Provinces covered</dt>
+                            <dd className="mt-0.5 text-sm font-medium text-ink">
+                                {provinces === 0 ? 'Nationwide' : provinces}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt className="text-xs text-ink/55">
+                                {account?.trialActive === true ? 'Trial ends' : 'Renews'}
+                            </dt>
+                            <dd className="mt-0.5 text-sm font-medium text-ink">
+                                {account?.trialActive === true && trialEnd !== null
+                                    ? `${formatDate(trialEnd)}${account.trialDaysLeft !== null ? ` · ${account.trialDaysLeft} days left` : ''}`
+                                    : 'Monthly, until cancelled'}
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <p className="mt-5 border-t border-line pt-4 text-xs leading-relaxed text-ink/50">
+                        Checkout runs through Paystack. Cancel any time; access continues to the end of the
+                        paid period.
                     </p>
-                </div>
 
+                    {message !== '' && (
+                        <p role="status" className="mt-4 rounded-lg border border-line bg-cream px-3 py-2 text-sm text-ink">
+                            {message}
+                        </p>
+                    )}
+                </section>
 
-                {account?.trialActive === true && account.trialEndsAt !== null && (
-                    <p className="mt-4 text-sm text-ink/60">
-                        Free trial until <strong>{account.trialEndsAt}</strong>
-                        {account.trialDaysLeft !== null && ` (${account.trialDaysLeft} days left)`}.
-                    </p>
-                )}
+                <section className="flex flex-col gap-4">
+                    <div className="rounded-xl border border-line bg-panel p-5">
+                        <h2 className="text-sm font-semibold text-ink">Included in your plan</h2>
+                        <ul className="mt-3 flex flex-col gap-2">
+                            {included.map((feature) => (
+                                <li key={feature.key} className="flex items-start gap-2 text-sm text-ink/75">
+                                    <CheckIcon size={16} className="mt-0.5 shrink-0 text-navy" aria-hidden="true" />
+                                    {feature.label}
+                                </li>
+                            ))}
+                        </ul>
+                        {notIncluded.length > 0 && (
+                            <p className="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-ink/50">
+                                Not on this plan: {notIncluded.map((feature) => feature.label).join(', ')}.
+                            </p>
+                        )}
+                    </div>
 
-                {message !== '' && <p className="mt-4 text-sm text-navy">{message}</p>}
-            </section>
+                    <Link
+                        to="/profile"
+                        className="flex items-center justify-between gap-3 rounded-xl border border-line bg-panel px-5 py-4 text-sm font-medium text-ink transition-colors hover:border-navy/40 hover:bg-navy/[0.04]"
+                    >
+                        Change your provinces and categories
+                        <CaretRightIcon size={15} aria-hidden="true" className="shrink-0 text-ink/40" />
+                    </Link>
+                </section>
+            </div>
         </div>
     )
 }

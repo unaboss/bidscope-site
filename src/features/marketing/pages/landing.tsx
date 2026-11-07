@@ -11,7 +11,6 @@ import {
     MapPinIcon,
 } from '@phosphor-icons/react'
 import { PublicShell, ReferenceHero, ReferenceCta } from '../components/reference-layout'
-import '../components/demo-link.css'
 
 
 export function LandingPage() {
@@ -30,7 +29,7 @@ export function LandingPage() {
                 <a className="bs-button" href="/start">
                     Get started <ArrowRightIcon size={21} />
                 </a>
-                <a className="bs-button outline demo-link" href="/preview">
+                <a className="bs-button outline" href="/how-it-works">
                     See how it works
                 </a>
             </ReferenceHero>

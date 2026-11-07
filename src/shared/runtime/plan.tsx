@@ -38,3 +38,26 @@ export function useFeature(key: string): boolean
 
     return account === null || account.features.some((feature) => feature.key === key && feature.enabled)
 }
+
+/** The plan in force, titled for display ("Pro"), or null while it loads. */
+export function usePlanName(): string | null
+{
+    const account = useContext(PlanContext)
+
+    if (account === null)
+    {
+        return null
+    }
+
+    const name = account.effectivePlan
+
+    return name.charAt(0).toUpperCase() + name.slice(1)
+}
+
+/** Whole days left in the trial, or null when the plan is not a live trial. */
+export function useTrialDays(): number | null
+{
+    const account = useContext(PlanContext)
+
+    return account?.trialActive ? account.trialDaysLeft : null
+}

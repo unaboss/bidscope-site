@@ -10,6 +10,8 @@ export default {
                 ink: 'rgb(var(--color-ink) / <alpha-value>)',
                 navy: 'rgb(var(--color-navy) / <alpha-value>)',
                 wax: 'rgb(var(--color-wax) / <alpha-value>)',
+                gold: 'rgb(var(--color-gold) / <alpha-value>)',
+                forest: 'rgb(var(--color-forest) / <alpha-value>)',
                 cream: 'rgb(var(--color-cream) / <alpha-value>)',
                 panel: 'rgb(var(--color-panel) / <alpha-value>)',
                 night: 'rgb(var(--color-night) / <alpha-value>)',

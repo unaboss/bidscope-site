@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { CheckIcon, ArrowUpRightIcon } from '@phosphor-icons/react'
+import { ArrowUpRightIcon, CheckIcon, ShieldCheckIcon } from '@phosphor-icons/react'
 import { TIER_CENTS, TIER_NAMES } from '@/features/billing/pricing'
 import type { PricingTier } from '@/shared/api'
 import { RollingPrice } from './rolling-price'
 import './plan-quick-start.css'
 
 const tiers: PricingTier[] = ['single', 'mid', 'all']
+
 const details = {
     single: {
         title: 'A focused search in one province.',
@@ -24,60 +25,95 @@ const details = {
     },
 }
 
+/**
+ * The plan decision that opens registration.
+ *
+ * The three plans are one segmented control, so the choice reads as a control
+ * rather than three cards competing for attention; the commitment — price,
+ * trial, action — sits beside it. Prices appear twice on purpose: small in the
+ * segment (which plan), large in the panel (what it costs).
+ */
 export function PlanQuickStart({ entry = false, initialTier = 'single' }: {
     readonly entry?: boolean
     readonly initialTier?: PricingTier
 }) {
     const [tier, setTier] = useState<PricingTier>(initialTier)
     const plan = details[tier]
+    const price = TIER_CENTS[tier] / 100
+
     return (
-        <section className={'container plan-quick-start' + (entry ? ' plan-entry' : '')} aria-labelledby="quick-plan-title">
-            {entry ? <h1 id="quick-plan-title" className="sr-only">Choose your plan</h1> : <div className="quick-plan-intro">
-                <h2 id="quick-plan-title">Choose your coverage.</h2>
-                <p>Start in one province, expand to four, or search nationwide.</p>
-            </div>}
+        <section
+            className={'container plan-quick-start' + (entry ? ' plan-entry' : '')}
+            aria-labelledby="quick-plan-title"
+        >
+            <header className="quick-plan-head">
+                <p className="quick-plan-step">Step 1 of 3</p>
+                {entry ? (
+                    <h1 id="quick-plan-title">Choose your plan.</h1>
+                ) : (
+                    <h2 id="quick-plan-title">Choose your plan.</h2>
+                )}
+                <p className="quick-plan-lead">
+                    Seven days free on every plan. Change or cancel whenever you like.
+                </p>
+            </header>
+
             <div className="quick-plan-panel">
                 <div className="quick-plan-toolbar">
                     <fieldset className="quick-plan-options">
-                        <legend className="sr-only">Choose a monthly plan</legend>
+                        <legend className="sr-only">Plan</legend>
                         {tiers.map((value) => (
-                            <label key={value}>
-                                <input className="sr-only" type="radio" name="quick-plan" value={value}
-                                    checked={tier === value} onChange={() => setTier(value)} />
-                                <span>
-                                    {entry && <strong className="quick-plan-option-price">R{TIER_CENTS[value] / 100}</strong>}
-                                    {TIER_NAMES[value]}
-                                    {entry && <small>/month</small>}
-                                </span>
+                            <label key={value} className={tier === value ? 'is-selected' : undefined}>
+                                <input
+                                    className="sr-only"
+                                    type="radio"
+                                    name="quick-plan"
+                                    value={value}
+                                    checked={tier === value}
+                                    onChange={() => setTier(value)}
+                                />
+                                <span className="quick-plan-option-price">R{TIER_CENTS[value] / 100}</span>
+                                <span className="quick-plan-option-name">{TIER_NAMES[value]}</span>
                             </label>
                         ))}
                     </fieldset>
-                    {!entry && <a className="quick-plan-compare" href="/pricing">
-                        Compare plans <ArrowUpRightIcon size={16} aria-hidden="true" />
-                    </a>}
+                    <a className="quick-plan-compare" href="/pricing">
+                        Compare plans <ArrowUpRightIcon size={15} aria-hidden="true" />
+                    </a>
                 </div>
+
                 <div className="quick-plan-body">
                     <div className="quick-plan-details">
                         <h3>{plan.title}</h3>
                         <p>{plan.description}</p>
-                        <ul aria-label={TIER_NAMES[tier] + ' features'}>
+                        <ul aria-label={`${TIER_NAMES[tier]} features`}>
                             {plan.features.map((feature) => (
-                                <li key={feature}><CheckIcon size={18} aria-hidden="true" />{feature}</li>
+                                <li key={feature}>
+                                    <CheckIcon size={17} aria-hidden="true" />
+                                    {feature}
+                                </li>
                             ))}
                         </ul>
                     </div>
+
                     <div className="quick-plan-purchase">
-                        <RollingPrice amount={TIER_CENTS[tier] / 100} yearly={false} />
-                        <span className="quick-plan-billing">Billed monthly in ZAR</span>
-                        <a className="bs-button" href={'/join?tier=' + tier + '&billing=monthly'}>
-                            Get started with {TIER_NAMES[tier]}
+                        <RollingPrice amount={price} yearly={false} />
+                        <p className="quick-plan-trial">
+                            <span className="quick-plan-trial-pill">
+                                <ShieldCheckIcon size={15} aria-hidden="true" />
+                                7 days free
+                            </span>
+                            No card needed to start
+                        </p>
+                        <a className="bs-button" href={`/join?tier=${tier}&billing=monthly`}>
+                            Start free trial
                         </a>
-                        <span className="quick-plan-setup">Choose your provinces during setup.</span>
+                        <span className="quick-plan-setup">
+                            Billed monthly in ZAR after the trial. Choose your provinces next.
+                        </span>
                     </div>
                 </div>
-                {entry && <p className="quick-plan-trial">7-day free trial available. No card needed to start.</p>}
             </div>
-            {entry && <a className="quick-plan-compare plan-entry-compare" href="/pricing">Compare all features <ArrowUpRightIcon size={16} aria-hidden="true" /></a>}
         </section>
     )
 }

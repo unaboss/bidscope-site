@@ -27,7 +27,7 @@ export function todayCentsFor(tier: PricingTier, count: number, promo: boolean):
 
 export function FieldLabel({ htmlFor, children }: { readonly htmlFor: string, readonly children: ReactNode })
 {
-    return <label htmlFor={htmlFor} className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.16em] text-[#14251d]/55">{children}</label>
+    return <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-ink/55">{children}</label>
 }
 
 /** What each plan includes, listed on the pricing card and at payment. */
@@ -93,7 +93,7 @@ export function TierToggle({ tier, onChange, pill = false }: TierToggleProps)
                     aria-checked={tier === option}
                     onClick={() => onChange(option)}
                     className={cn(
-                        'px-1 text-center font-mono text-[10px] uppercase tracking-[0.1em] transition-colors',
+                        'px-1 text-center text-xs font-medium transition-colors',
                         pill ? 'rounded-full py-1.5' : 'rounded-md py-2',
                         tier === option ? 'bg-[#075037] font-bold text-[#fdfcfb]' : 'text-[#14251d]/60 hover:text-[#075037]',
                         FOCUS,
@@ -126,7 +126,7 @@ export function PriceBlock({ tier, count, promo, compact = false }: PriceBlockPr
             <p className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                 {promo && <s className={cn('font-serif font-semibold text-[#14251d]/40 decoration-[#075037]/80 decoration-2', compact ? 'text-lg' : 'text-xl')}>{full}</s>}
                 <span className={cn('font-serif font-semibold tracking-tight', compact ? 'text-3xl' : 'text-4xl', GOLD_TEXT)}>{formatRands(today)}</span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#14251d]/45">/ month</span>
+                <span className="text-xs font-medium text-ink/45">/ month</span>
             </p>
             <p className={cn('leading-relaxed text-[#14251d]/55', compact ? 'mt-1 text-[12px]' : 'mt-2 text-[13px]')}>
                 {promo

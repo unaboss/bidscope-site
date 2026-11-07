@@ -2,47 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bidscope: white, forest green and gold, matching the supplied references. */
+/*
+ * Bidscope design tokens — the source of truth (design.md §3.1).
+ *
+ * Two families live here. The named tokens (`--canvas`, `--text`, `--brand` …)
+ * are what new code should read. The `--color-*` triplets are the channel form
+ * Tailwind needs (`rgb(var(--color-ink) / <alpha-value>)`), kept in step with
+ * the named tokens so existing utilities render exactly these values.
+ *
+ * Gold is an accent, never small text: `--accent` is for fills, icons and
+ * rules; readable gold is `--color-wax` (the doc's warning step).
+ */
 :root {
     color-scheme: light;
-    --color-ink: 13 23 35;
-    --color-navy: 0 67 48;
-    --color-wax: 208 148 37;
-    --color-cream: 253 252 250;
+
+    /* Named tokens */
+    --brand: #007a4d;
+    --brand-deep: #06452f;
+    --accent: #ffb612;
+    --canvas: #ffffff;
+    --surface: #f7f9f7;
+    --elevated: #ffffff;
+    --text: #172923;
+    --text-muted: #596a61;
+    --border-subtle: #dce5de;
+    --focus-ring: #007a4d;
+    --radius-control: 8px;
+    --radius-card: 12px;
+    --radius-panel: 16px;
+    --shadow-popover: 0 12px 36px rgb(6 30 19 / 12%);
+
+    /* Channel triplets */
+    --color-ink: 23 41 35;
+    --color-forest: 6 69 47;
+    --color-navy: 0 122 77;
+    --color-wax: 129 88 0;
+    --color-gold: 255 182 18;
+    --color-cream: 255 255 255;
     --color-panel: 255 255 255;
     --color-night: 255 255 255;
-    --color-neutral-50: 250 250 248;
-    --color-neutral-100: 245 245 241;
-    --color-neutral-200: 232 231 226;
-    --color-neutral-300: 210 211 206;
-    --color-neutral-400: 151 157 156;
-    --color-neutral-500: 113 121 127;
-    --color-neutral-600: 85 96 103;
-    --color-neutral-700: 56 67 76;
-    --color-neutral-800: 30 42 51;
-    --color-neutral-900: 13 23 35;
-    --color-success: 0 93 58;
-    --color-warn: 177 113 6;
-    --color-danger: 187 55 48;
-    --background: 40 43% 99%;
-    --foreground: 213 46% 9%;
+    --color-neutral-50: 247 249 247;
+    --color-neutral-100: 241 245 242;
+    --color-neutral-200: 220 229 222;
+    --color-neutral-300: 197 209 201;
+    --color-neutral-400: 148 162 154;
+    --color-neutral-500: 112 128 119;
+    --color-neutral-600: 89 106 97;
+    --color-neutral-700: 66 84 75;
+    --color-neutral-800: 40 57 48;
+    --color-neutral-900: 23 41 35;
+    --color-success: 23 108 73;
+    --color-warn: 129 88 0;
+    --color-danger: 180 35 24;
+
+    /* shadcn/ui semantic names, expressed in the same palette */
+    --background: 0 0% 100%;
+    --foreground: 161 24% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 213 46% 9%;
+    --card-foreground: 161 24% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 213 46% 9%;
-    --primary: 163 100% 13%;
+    --popover-foreground: 161 24% 13%;
+    --primary: 158 100% 24%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 60 17% 96%;
-    --secondary-foreground: 213 46% 9%;
-    --muted: 60 17% 96%;
-    --muted-foreground: 205 10% 44%;
-    --accent: 45 65% 95%;
-    --accent-foreground: 163 100% 13%;
-    --destructive: 3 58% 47%;
+    --secondary: 120 14% 97%;
+    --secondary-foreground: 161 24% 13%;
+    --muted: 120 14% 97%;
+    --muted-foreground: 155 8% 39%;
+    --accent: 43 100% 54%;
+    --accent-foreground: 161 24% 13%;
+    --destructive: 4 77% 40%;
     --destructive-foreground: 0 0% 100%;
-    --border: 50 12% 91%;
-    --input: 70 5% 82%;
-    --ring: 163 100% 13%;
+    --border: 140 17% 88%;
+    --input: 140 17% 88%;
+    --ring: 158 100% 24%;
     --radius: 0.75rem;
 }
 
@@ -67,10 +99,11 @@
         height: 100%;
     }
 
-    /* Keep layout measurements consistent across desktop and mobile. */
-    html {
-        font-size: 16px;
-    }
+    /*
+     * No font-size here: the root scale in public/theme.css owns it, and a
+     * `font-size: 1rem` on html resolves against the initial 16px, pinning the
+     * page and cancelling the scale.
+     */
 
     body {
         margin: 0;
@@ -201,4 +234,17 @@
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/*
+ * design.md §3.2: no all-caps headings or faux-editorial labels, and no wide
+ * tracking to manufacture hierarchy. The 10px mono + uppercase + 0.14em pattern
+ * was the house eyebrow across ~90 call sites; retiring it here keeps those
+ * labels as quiet caption text without touching every file. Unlayered on
+ * purpose, so it wins over the layered utility it corrects.
+ */
+.font-mono.uppercase {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.75rem;
 }

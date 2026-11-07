@@ -361,7 +361,7 @@ export function JoinPage() {
 
                             {showCidb && (
                                 <fieldset className="flex flex-col gap-3">
-                                    <legend className="font-mono text-[10px] uppercase tracking-[0.14em] text-ink/60">
+                                    <legend className="text-xs font-medium text-ink/55">
                                         CIDB grades (optional)
                                     </legend>
                                     <p className="text-xs text-ink/50">
@@ -408,7 +408,7 @@ export function JoinPage() {
                         </p>
 
                         <div className="mt-8 rounded-xl border border-line bg-panel p-5 shadow-panel">
-                            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-wax">Your offer</p>
+                            <p className="text-xs font-medium text-ink/55">Your offer</p>
                             <p className="mt-2 text-2xl font-semibold">
                                 R{price}
                                 <span className="text-base font-normal text-ink/50">/month</span>
@@ -513,7 +513,7 @@ export function JoinPage() {
                     {step === 'result' && summary !== null && (
                         <a
                             href="/login"
-                            className="inline-flex h-10 items-center justify-center rounded-md bg-navy px-5 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-cream transition-colors hover:bg-navy/90"
+                            className="inline-flex h-10 items-center justify-center rounded-md bg-navy px-5 text-sm font-semibold text-cream transition-colors hover:bg-navy/90"
                         >
                             Go to sign in
                         </a>
